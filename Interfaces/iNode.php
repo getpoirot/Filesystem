@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem;
+namespace Poirot\Filesystem\Interfaces;
 
 interface iNode extends iNodeInfo
 {
@@ -29,7 +29,7 @@ interface iNode extends iNodeInfo
     /**
      * Make File/Folder if not exists
      *
-     * @return $this
+     * @return bool
      */
     function mkIfNotExists();
 

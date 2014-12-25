@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem;
+namespace Poirot\Filesystem\Interfaces;
 
 interface iFolder extends iFolderInfo, iNode, iStorage
 {
@@ -9,6 +9,13 @@ interface iFolder extends iFolderInfo, iNode, iStorage
      * @return bool
      */
     function rmDir();
+
+    /**
+     * Change Current Work Dir To Folder
+     *
+     * @return $this
+     */
+    function chToDir();
 
     /**
      * List an array of files and directories from the directory

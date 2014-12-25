@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem;
+namespace Poirot\Filesystem\Interfaces;
 
 interface iLinkInfo extends iFileInfo
 {

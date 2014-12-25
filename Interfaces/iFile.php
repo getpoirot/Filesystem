@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem;
+namespace Poirot\Filesystem\Interfaces;
 
 interface iFile extends iFileInfo, iNode
 {
@@ -18,6 +18,15 @@ interface iFile extends iFileInfo, iNode
      * @return string
      */
     function getContents();
+
+    /**
+     * Set File Contents
+     *
+     * @param string $contents Contents
+     *
+     * @return $this
+     */
+    function setContents($contents);
 
     /**
      * Put Contents To File
