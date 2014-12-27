@@ -13,7 +13,7 @@ interface iCommonInfo
     /**
      * Gets the base name of the file
      *
-     * - Include
+     * - Include extension on files
      *
      * @return string
      */
@@ -25,6 +25,13 @@ interface iCommonInfo
      * @return string
      */
     function getPath();
+
+    /**
+     * Get Path Name To File Or Folder
+     *
+     * @return string
+     */
+    function getRealPathName();
 
     /**
      * Returns the inode change time for the file
@@ -63,6 +70,15 @@ interface iCommonInfo
      * @return mixed
      */
     function getPerms();
+
+    /**
+     * Returns parent directory's path
+     *
+     * /etc/passwd => /etc
+     *
+     * @return string
+     */
+    function getDirname();
 
     /**
      * Gets absolute path to file
