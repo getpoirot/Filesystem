@@ -62,6 +62,8 @@ interface iStorage
     /**
      * List Contents
      *
+     * - Must use createFromPath Method
+     *
      * @return array[iFile|iLink|iDirectory]
      */
     function lsContent();
@@ -82,15 +84,6 @@ interface iStorage
      * @return mixed
      */
     function createFromPath($path);
-
-    /**
-     * Open Existence File Or Folder
-     *
-     * @param iCommon $node File/Folder
-     *
-     * @return iCommon|iFile|iLink|iDirectory
-     */
-    function open(iCommon $node);
 
     /**
      * Get Filesystem node type

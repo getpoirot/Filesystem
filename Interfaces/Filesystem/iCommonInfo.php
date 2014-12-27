@@ -13,6 +13,8 @@ interface iCommonInfo
     /**
      * Gets the base name of the file
      *
+     * - Include
+     *
      * @return string
      */
     function getBasename();

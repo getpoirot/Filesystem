@@ -1,8 +1,10 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-class iFilesystem 
+class iFilesystem
 {
     const DS = DIRECTORY_SEPARATOR;
+
+
 }
  
