@@ -27,20 +27,20 @@ interface iStorage
      *
      * - The mounted directory will show on lsContent
      *
-     * @param iDirectory $directory
+     * @param iStorage $directory
      *
      * @return $this
      */
-    function mount(iDirectory $directory);
+    function mount(iStorage $directory);
 
     /**
      * UnMount Mounted Directory
      *
-     * @param iDirectory $directory
+     * @param iStorage $directory
      *
      * @return $this
      */
-    function unmount(iDirectory $directory);
+    function unmount(iStorage $directory);
 
     /**
      * Is Mounted Storage?

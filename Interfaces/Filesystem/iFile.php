@@ -40,33 +40,28 @@ interface iFile extends iCommon, iFileInfo, iWritable
     function putContents($content);
 
     /**
-     * Rename File And Write To Storage
-     *
-     * @param string $newname New name
-     *
-     * @return $this
-     */
-    function rename($newname);
-
-    /**
      * Copy to new file
      *
-     * @param iFile $file
+     * - If Directory Given Copy With Same Name To Directory
+     *
+     * @param iFile|iDirectory $fileFolder
      *
      * @throws \Exception Throw Exception If File Exists
      * @return $this
      */
-    function copy(iFile $file);
+    function copy($fileFolder);
 
     /**
      * Move to new file
      *
-     * @param iFile $file
+     * - If Directory Given Copy With Same Name To Directory
+     *
+     * @param iFile|iDirectory $fileFolder
      *
      * @throws \Exception Throw Exception If File Exists
      * @return $this
      */
-    function move(iFile $file);
+    function move($fileFolder);
 
     /**
      * Deletes a file from storage

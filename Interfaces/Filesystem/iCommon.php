@@ -45,6 +45,15 @@ interface iCommon extends iCommonInfo, iWritable
     function setPath($path);
 
     /**
+     * Rename File And Write To Storage
+     *
+     * @param string $newname New name
+     *
+     * @return $this
+     */
+    function rename($newname);
+
+    /**
      * Set Owner
      *
      * @param int $owner
