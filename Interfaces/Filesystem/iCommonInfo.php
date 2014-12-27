@@ -92,16 +92,6 @@ interface iCommonInfo
     function isReadable();
 
     /**
-     * Tells if the entry is writable
-     *
-     * - The writable beside of filesystem must
-     *   implement iWritable
-     *
-     * @return bool
-     */
-    function isWritable();
-
-    /**
      * Is File/Folder Exists?
      *
      * @return bool

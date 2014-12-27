@@ -70,4 +70,14 @@ interface iCommon extends iCommonInfo, iWritable
      * @return $this
      */
     function setGroup($group);
+
+    /**
+     * Tells if the entry is writable
+     *
+     * - The writable beside of filesystem must
+     *   implement iWritable
+     *
+     * @return bool
+     */
+    function isWritable();
 }

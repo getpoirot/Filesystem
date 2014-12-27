@@ -53,9 +53,20 @@ interface iFile extends iCommon, iFileInfo, iWritable
      *
      * @param iFile $file
      *
+     * @throws \Exception Throw Exception If File Exists
      * @return $this
      */
     function copy(iFile $file);
+
+    /**
+     * Move to new file
+     *
+     * @param iFile $file
+     *
+     * @throws \Exception Throw Exception If File Exists
+     * @return $this
+     */
+    function move(iFile $file);
 
     /**
      * Deletes a file from storage

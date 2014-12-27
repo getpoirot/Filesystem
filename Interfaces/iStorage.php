@@ -6,6 +6,10 @@ namespace Poirot\Filesystem\Interfaces;
  */
 interface iStorage
 {
+    const FS_TYPE_FILE      = 'file';
+    const FS_TYPE_LINK      = 'link';
+    const FS_TYPE_DIRECTORY = 'dir';
+
     /**
      * Get Current Filesystem/Storage Working Directory
      *
@@ -87,4 +91,17 @@ interface iStorage
      * @return iCommon|iFile|iLink|iDirectory
      */
     function open(iCommon $node);
+
+    /**
+     * Get Filesystem node type
+     *
+     * FS_TYPE_FILE
+     * FS_TYPE_LINK
+     * FS_TYPE_DIRECTORY
+     *
+     * @param iCommon $node
+     *
+     * @return string
+     */
+    function typeOf(iCommon $node);
 }

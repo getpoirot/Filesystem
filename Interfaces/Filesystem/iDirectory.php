@@ -11,6 +11,32 @@ interface iDirectory extends iCommon, iDirectoryInfo, iStorage, iWritable
     function rmDir();
 
     /**
+     * Copy to new directory
+     *
+     * - Merge if directory exists
+     * - Create If Directory Not Exists
+     *
+     * @param iDirectory $directory
+     *
+     * @return $this
+     */
+    function copy(iDirectory $directory);
+
+    /**
+     * Move to new directory
+     *
+     * ! use class copy/rmDir
+     *
+     * - Merge if directory exists
+     * - Create If Directory Not Exists
+     *
+     * @param iDirectory $directory
+     *
+     * @return $this
+     */
+    function move(iDirectory $directory);
+
+    /**
      * List an array of files and directories from the directory
      *
      * @return array
