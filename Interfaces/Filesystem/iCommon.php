@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iCommon extends iCommonInfo
+interface iCommon extends iCommonInfo, iWritable
 {
     /**
      * Lock File
@@ -43,13 +43,6 @@ interface iCommon extends iCommonInfo
      * @return $this
      */
     function setPath($path);
-
-    /**
-     * Make File/Folder if not exists
-     *
-     * @return bool
-     */
-    function mkIfNotExists();
 
     /**
      * Set Owner

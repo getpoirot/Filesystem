@@ -46,6 +46,16 @@ interface iStorage
     function isMount();
 
     /**
+     * Write File To Storage
+     *
+     * @param iCommon|iFile|iDirectory|iLink $node File
+     *
+     * @throws \Exception Throw Exception if file exists/fail write
+     * @return $this
+     */
+    function write(iCommon $node);
+
+    /**
      * List Contents
      *
      * @return array[iFile|iLink|iDirectory]
@@ -53,28 +63,8 @@ interface iStorage
     function lsContent();
 
     /**
-     * Create new Folder Instance
-     *
-     * @return iDirectory
-     */
-    function dir();
-
-    /**
-     * Create new File Instance
-     *
-     * @return iFile
-     */
-    function file();
-
-    /**
-     * Create new Link Instance
-     *
-     * @return iLink
-     */
-    function link();
-
-    /**
      * Create File Or Folder From Given Path
+     * Path's is always /path/to/file_or_folder
      *
      * - if not exists
      *   name without extension considered as folder
@@ -84,6 +74,7 @@ interface iStorage
      *
      * @param string $path Path
      *
+     * @throws \Exception Throw Exception if file not found
      * @return mixed
      */
     function createFromPath($path);
@@ -93,16 +84,7 @@ interface iStorage
      *
      * @param iCommon $node File/Folder
      *
-     * @return iCommon|iFile|iLink
+     * @return iCommon|iFile|iLink|iDirectory
      */
     function open(iCommon $node);
-
-    /**
-     * Write File To Storage
-     *
-     * @param iCommon|iFile|iDirectory|iLink $node File
-     *
-     * @return $this
-     */
-    function write(iCommon $node);
 }

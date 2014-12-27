@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iDirectory extends iDirectoryInfo, iCommon, iStorage
+interface iDirectory extends iCommon, iDirectoryInfo, iStorage, iWritable
 {
     /**
      * Delete a directory from storage

@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iFile extends iFileInfo, iCommon
+interface iFile extends iCommon, iFileInfo, iWritable
 {
     /**
      * Set the file extension

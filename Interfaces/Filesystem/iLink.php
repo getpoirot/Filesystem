@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iLink extends iLinkInfo
+interface iLink extends iLinkInfo, iWritable
 {
     /**
      * Gets the target of a link
@@ -11,11 +11,4 @@ interface iLink extends iLinkInfo
      * @return $this
      */
     function setTarget($target);
-
-    /**
-     * Make File/Folder if not exists
-     *
-     * @return bool
-     */
-    function mkIfNotExists();
 }
