@@ -96,4 +96,11 @@ interface iNodeInfo
      * @return bool
      */
     function isWritable();
+
+    /**
+     * Is File/Folder Exists?
+     *
+     * @return bool
+     */
+    function isExists();
 }

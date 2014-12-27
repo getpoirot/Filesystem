@@ -4,7 +4,23 @@ namespace Poirot\Filesystem\Interfaces;
 interface iNode extends iNodeInfo
 {
     /**
+     * Lock File
+     *
+     * @return $this
+     */
+    function lock();
+
+    /**
+     * Unlock file
+     *
+     * @return $this
+     */
+    function unlock();
+
+    /**
      * Set Basename of file or folder
+     *
+     * ! throw exception if file is lock
      *
      * - /path/to/filename.ext
      * - /path/to/folderName/
@@ -17,6 +33,8 @@ interface iNode extends iNodeInfo
 
     /**
      * Set Path
+     *
+     * ! throw exception if file is lock
      *
      * - if null storage use default/current path
      *
@@ -32,13 +50,6 @@ interface iNode extends iNodeInfo
      * @return bool
      */
     function mkIfNotExists();
-
-    /**
-     * Is File/Folder Exists?
-     *
-     * @return bool
-     */
-    function isExists();
 
     /**
      * Set Owner

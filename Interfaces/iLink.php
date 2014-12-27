@@ -1,14 +1,21 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iLink extends iLinkInfo, iFile
+interface iLink extends iLinkInfo
 {
     /**
      * Gets the target of a link
      *
-     * - can be a File or Directory
+     * @param iFile|iFolder $target Target
      *
-     * @return mixed
+     * @return $this
      */
-    function setTarget();
+    function setTarget($target);
+
+    /**
+     * Make File/Folder if not exists
+     *
+     * @return bool
+     */
+    function mkIfNotExists();
 }
