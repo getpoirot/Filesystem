@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iNode extends iNodeInfo
+interface iCommon extends iCommonInfo
 {
     /**
      * Lock File

@@ -2,14 +2,12 @@
 namespace Poirot\Filesystem\Interfaces;
 
 /**
- * Storages can implement OptionsProviderInterface
+ * Storage can implement OptionsProviderInterface
  */
-interface iStorage extends \IteratorAggregate
+interface iStorage
 {
-    const DS = DIRECTORY_SEPARATOR;
-
     /**
-     * Current Working Directory
+     * Get Current Filesystem/Storage Working Directory
      *
      * - storage with empty working directory
      *   mean the base storage
@@ -21,16 +19,43 @@ interface iStorage extends \IteratorAggregate
     function getCwd();
 
     /**
+     * Mount External Directory To Storage
+     *
+     * - The mounted directory will show on lsContent
+     *
+     * @param iDirectory $directory
+     *
+     * @return $this
+     */
+    function mount(iDirectory $directory);
+
+    /**
+     * UnMount Mounted Directory
+     *
+     * @param iDirectory $directory
+     *
+     * @return $this
+     */
+    function unmount(iDirectory $directory);
+
+    /**
+     * Is Mounted Storage?
+     *
+     * @return bool
+     */
+    function isMount();
+
+    /**
      * List Contents
      *
-     * @return array[iFile|iLink|iFolder]
+     * @return array[iFile|iLink|iDirectory]
      */
     function lsContent();
 
     /**
      * Create new Folder Instance
      *
-     * @return iFolder
+     * @return iDirectory
      */
     function dir();
 
@@ -66,18 +91,18 @@ interface iStorage extends \IteratorAggregate
     /**
      * Open Existence File Or Folder
      *
-     * @param iNode $node File/Folder
+     * @param iCommon $node File/Folder
      *
-     * @return iNode|iFile|iLink
+     * @return iCommon|iFile|iLink
      */
-    function open(iNode $node);
+    function open(iCommon $node);
 
     /**
      * Write File To Storage
      *
-     * @param iNode|iFile|iFolder|iLink $node File
+     * @param iCommon|iFile|iDirectory|iLink $node File
      *
      * @return $this
      */
-    function write(iNode $node);
+    function write(iCommon $node);
 }

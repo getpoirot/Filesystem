@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iFileInfo extends iNodeInfo
+interface iFileInfo extends iCommonInfo
 {
     /**
      * Gets the file extension

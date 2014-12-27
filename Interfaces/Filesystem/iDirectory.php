@@ -1,21 +1,14 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iFolder extends iFolderInfo, iNode, iStorage
+interface iDirectory extends iDirectoryInfo, iCommon, iStorage
 {
     /**
-     * Delete a directory
+     * Delete a directory from storage
      *
      * @return bool
      */
     function rmDir();
-
-    /**
-     * Change Current Work Dir To Folder
-     *
-     * @return $this
-     */
-    function chToDir();
 
     /**
      * List an array of files and directories from the directory

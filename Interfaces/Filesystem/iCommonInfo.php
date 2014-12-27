@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iNodeInfo
+interface iCommonInfo
 {
     /**
      * Gets last access time of the file
@@ -55,7 +55,8 @@ interface iNodeInfo
     /**
      * Gets file permissions
      * Should return an or combination of the PERMISSIONS
-     * exp. WRITABLE|EXECUTABLE
+     *
+     * exp. from storage WRITABLE|EXECUTABLE
      *
      * @return mixed
      */

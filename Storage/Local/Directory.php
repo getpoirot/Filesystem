@@ -2,14 +2,14 @@
 namespace Poirot\Filesystem\Storage\Local;
 
 use Poirot\Filesystem\Interfaces\iFile;
-use Poirot\Filesystem\Interfaces\iFolder;
+use Poirot\Filesystem\Interfaces\iDirectory;
 use Poirot\Filesystem\Interfaces\iLink;
-use Poirot\Filesystem\Interfaces\iNode;
+use Poirot\Filesystem\Interfaces\iCommon;
 use Poirot\Filesystem\Storage\AbstractStorageIterate;
 use Traversable;
 
 class Directory extends AbstractStorageIterate
-    implements iFolder
+    implements iDirectory
 {
     /**
      * (PHP 5 &gt;= 5.0.0)<br/>
@@ -289,7 +289,7 @@ class Directory extends AbstractStorageIterate
     /**
      * List Contents
      *
-     * @return array[iFile|iLink|iFolder]
+     * @return array[iFile|iLink|iDirectory]
      */
     function lsContent()
     {
@@ -299,7 +299,7 @@ class Directory extends AbstractStorageIterate
     /**
      * Create new Folder Instance
      *
-     * @return iFolder
+     * @return iDirectory
      */
     function dir()
     {
@@ -329,11 +329,11 @@ class Directory extends AbstractStorageIterate
     /**
      * Open Existence File Or Folder
      *
-     * @param iNode $node File/Folder
+     * @param iCommon $node File/Folder
      *
-     * @return iNode|iFile|iLink
+     * @return iCommon|iFile|iLink
      */
-    function open(iNode $node)
+    function open(iCommon $node)
     {
         // TODO: Implement open() method.
     }
@@ -341,11 +341,11 @@ class Directory extends AbstractStorageIterate
     /**
      * Write File To Storage
      *
-     * @param iNode|iFile|iFolder|iLink $node File
+     * @param iCommon|iFile|iDirectory|iLink $node File
      *
      * @return $this
      */
-    function write(iNode $node)
+    function write(iCommon $node)
     {
         // TODO: Implement write() method.
     }

@@ -4,9 +4,9 @@ namespace Poirot\Filesystem\Storage\Local;
 use Poirot\Core\AbstractOptions;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
 use Poirot\Filesystem\Interfaces\iFile;
-use Poirot\Filesystem\Interfaces\iFolder;
+use Poirot\Filesystem\Interfaces\iDirectory;
 use Poirot\Filesystem\Interfaces\iLink;
-use Poirot\Filesystem\Interfaces\iNode;
+use Poirot\Filesystem\Interfaces\iCommon;
 use Poirot\Filesystem\Storage\AbstractStorage;
 
 class Storage extends AbstractStorage implements
@@ -55,7 +55,7 @@ class Storage extends AbstractStorage implements
     /**
      * List Contents
      *
-     * @return array[iFile|iLink|iFolder]
+     * @return array[iFile|iLink|iDirectory]
      */
     function lsContent()
     {
@@ -76,7 +76,7 @@ class Storage extends AbstractStorage implements
     /**
      * Create new Folder Instance
      *
-     * @return iFolder
+     * @return iDirectory
      */
     function dir()
     {
@@ -106,12 +106,12 @@ class Storage extends AbstractStorage implements
     /**
      * Open Existence File Or Folder
      *
-     * @param iNode $node File/Folder
+     * @param iCommon $node File/Folder
      *
      * @throws \Exception
-     * @return iNode|iFile|iLink
+     * @return iCommon|iFile|iLink
      */
-    function open(iNode $node)
+    function open(iCommon $node)
     {
         if (!$node ->isExists())
             throw new \Exception('Node not exists to open.');
@@ -122,11 +122,11 @@ class Storage extends AbstractStorage implements
     /**
      * Write File To Storage
      *
-     * @param iNode|iFile|iFolder|iLink $node File
+     * @param iCommon|iFile|iDirectory|iLink $node File
      *
      * @return $this
      */
-    function write(iNode $node)
+    function write(iCommon $node)
     {
         $node->setPath(
             $this->getCwd()

@@ -1,10 +1,12 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-interface iFile extends iFileInfo, iNode
+interface iFile extends iFileInfo, iCommon
 {
     /**
      * Set the file extension
+     *
+     * ! throw exception if file is lock
      *
      * @param string|null $ext File Extension
      *
@@ -29,7 +31,7 @@ interface iFile extends iFileInfo, iNode
     function setContents($contents);
 
     /**
-     * Put Contents To File
+     * Put File Contents to Storage
      *
      * @param string $content Content
      *
@@ -38,7 +40,7 @@ interface iFile extends iFileInfo, iNode
     function putContents($content);
 
     /**
-     * Rename File
+     * Rename File And Write To Storage
      *
      * @param string $newname New name
      *
@@ -56,7 +58,7 @@ interface iFile extends iFileInfo, iNode
     function copy(iFile $file);
 
     /**
-     * Deletes a file
+     * Deletes a file from storage
      *
      * @return bool
      */
