@@ -6,17 +6,31 @@ namespace Poirot\Filesystem\Interfaces;
  */
 interface iStorage
 {
-    const FS_TYPE_FILE      = 'file';
-    const FS_TYPE_LINK      = 'link';
-    const FS_TYPE_DIRECTORY = 'dir';
+    const FS_TYPE_FILE    = 'file';
+    const FS_TYPE_LINK    = 'link';
+    const FS_TYPE_DIR     = 'dir';
+    const FS_TYPE_STORAGE = 'storage';
+    const FS_TYPE_UNKNOWN = 'unknown';
+
+    /**
+     * Gets the name identifier of the storage
+     *
+     * ! the returned name should be the same for every storage object that is created with the same parameters
+     * and two storage objects with the same name should refer to two storages that display the same files.
+     *
+     * - it's common with directories interfaces
+     *
+     * @return string
+     */
+    function getBasename();
 
     /**
      * Get Current Filesystem/Storage Working Directory
      *
-     * - storage with empty working directory
+     * - storage with empty or '/' working directory
      *   mean the base storage
-     * - with creating files or folder cwd will
-     *   append as path
+     *
+     * - with mounting child storage, cwd will append
      *
      * @return string
      */
@@ -52,6 +66,9 @@ interface iStorage
     /**
      * Write File To Storage
      *
+     * - with creating files or folder cwd will
+     *   append as path
+     *
      * @param iCommon|iFile|iDirectory|iLink $node File
      *
      * @throws \Exception Throw Exception if file exists/fail write
@@ -62,9 +79,10 @@ interface iStorage
     /**
      * List Contents
      *
-     * - Must use createFromPath Method
+     * - Must use createFromPath Method to create instance
+     * - Must Display Mounted Storages
      *
-     * @return array[iFile|iLink|iDirectory]
+     * @return array[iCommon|iStorage]
      */
     function lsContent();
 
@@ -90,11 +108,12 @@ interface iStorage
      *
      * FS_TYPE_FILE
      * FS_TYPE_LINK
-     * FS_TYPE_DIRECTORY
+     * FS_TYPE_DIR
+     * ...
      *
-     * @param iCommon $node
+     * @param iCommon|iStorage $node
      *
      * @return string
      */
-    function typeOf(iCommon $node);
+    function typeOf($node);
 }
