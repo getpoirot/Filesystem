@@ -4,7 +4,7 @@ namespace Poirot\Filesystem\Interfaces;
 /**
  * Storage can implement OptionsProviderInterface
  */
-interface iStorage
+interface iStorage extends iCommon
 {
     const FS_TYPE_FILE    = 'file';
     const FS_TYPE_LINK    = 'link';
@@ -98,8 +98,7 @@ interface iStorage
      *
      * @param string $path Path
      *
-     * @throws \Exception Throw Exception if file not found
-     * @return mixed
+     * @return iCommon|false Return False If Not Found
      */
     function createFromPath($path);
 
