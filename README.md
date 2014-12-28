@@ -17,3 +17,15 @@ foreach($storage->lsContents() as $fsc) {
         echo $fsc->getBasename().'<br/>';
 }
 ```
+
+Mount Another Storage Into Home.(Storages can mount to any folder)
+
+```php
+$storage->mount(new LocalStorage([
+    'home_folder' => '/dev/user/test/'
+    'basename'    => 'LocalStorage'
+]));
+
+$storage->createFromPath('/LocalStorage')
+    ->getBasename();
+```
