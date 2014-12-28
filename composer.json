@@ -1,0 +1,20 @@
+{
+    "name": "poirot/filesystem",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Payam Naderi",
+            "email": "naderi.payam@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "poirot/core": "dev-master"
+    },
+    "target-dir": "Poirot/Filesystem",
+    "autoload"  : {
+        "psr-0": {
+            "Poirot\\Filesystem": "."
+        }
+    }
+}
