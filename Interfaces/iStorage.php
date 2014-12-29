@@ -37,24 +37,50 @@ interface iStorage extends iCommon
     function getCwd();
 
     /**
-     * Mount External Directory To Storage
+     * List Contents
+     *
+     * - Must use createFromPath Method to create instance
+     * - Must Display Mounted Storages
+     *
+     * @return array[iCommon|iStorage]
+     */
+    function lsContent();
+
+    /**
+     * Mount External Storage
      *
      * - The mounted directory will show on lsContent
      *
-     * @param iStorage $directory
+     * @param iStorage $storage
      *
      * @return $this
      */
-    function mount(iStorage $directory);
+    function mount(iStorage $storage);
 
     /**
-     * UnMount Mounted Directory
+     * UnMount Mounted Storage
      *
-     * @param iStorage $directory
+     * @param iStorage $storage
      *
      * @return $this
      */
-    function unmount(iStorage $directory);
+    function unmount(iStorage $storage);
+
+    /**
+     * Create File Or Folder From Given Path
+     * Path's is always /path/to/file_or_folder
+     *
+     * - if not exists
+     *   name without extension considered as folder
+     *   else this is file
+     * - if exists
+     *   check type of current node and make object
+     *
+     * @param string $path Path
+     *
+     * @return iCommon|false Return False If Not Found
+     */
+    function createFromPath($path);
 
     /**
      * Is Mounted Storage?
@@ -75,32 +101,6 @@ interface iStorage extends iCommon
      * @return $this
      */
     function write(iCommon $node);
-
-    /**
-     * List Contents
-     *
-     * - Must use createFromPath Method to create instance
-     * - Must Display Mounted Storages
-     *
-     * @return array[iCommon|iStorage]
-     */
-    function lsContent();
-
-    /**
-     * Create File Or Folder From Given Path
-     * Path's is always /path/to/file_or_folder
-     *
-     * - if not exists
-     *   name without extension considered as folder
-     *   else this is file
-     * - if exists
-     *   check type of current node and make object
-     *
-     * @param string $path Path
-     *
-     * @return iCommon|false Return False If Not Found
-     */
-    function createFromPath($path);
 
     /**
      * Get Filesystem node type
