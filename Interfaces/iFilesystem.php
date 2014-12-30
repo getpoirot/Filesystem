@@ -1,32 +1,53 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
+use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+
 interface iFilesystem
 {
-    const DS = DIRECTORY_SEPARATOR;
+    const DS = DIRECTORY_SEPARATOR; // prefer to use '/' as a portable separator
 
     /**
      * Changes file group
      *
-     * @param iCommon $file  Path to the file
-     * @param mixed   $group A group name or number
+     * @param iCommonInfo $file Path to the file
+     * @param mixed $group A group name or number
      *
      * @return $this
      */
-    function chgrp(iCommon $file, $group);
+    function chgrp(iCommonInfo $file, $group);
+
+    /**
+     * Gets file group
+     *
+     * - Returns the group of the file
+     *
+     * @param iCommonInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return int|string
+     */
+    function getFileGroup(iCommonInfo $file);
 
     /**
      * Changes file mode
      *
-     * @param iCommon $file Path to the file
-     * @param int     $mode Note that mode is not automatically
-     *                      assumed to be an octal value, so to
-     *                      ensure the expected operation,
-     *                      you need to prefix mode with a zero (0)
+     * @param iCommonInfo $file Path to the file
+     * @param iPermissions $mode
      *
+     * @throws \Exception On Failure
      * @return $this
      */
-    function chmod(iCommon $file, $mode);
+    function chmod(iCommonInfo $file, iPermissions $mode);
+
+    /**
+     * Gets file permissions
+     *
+     * @param iCommonInfo $file
+     *
+     * @return iPermissions
+     */
+    function getFilePerms(iCommonInfo $file);
 
     /**
      * Changes file owner
@@ -53,6 +74,33 @@ interface iFilesystem
      * @return $this
      */
     function copy(iCommon $source, iCommon $dest);
+
+    /**
+     * Is File?
+     *
+     * @param iCommon $source
+     *
+     * @return bool
+     */
+    function isFile(iCommon $source);
+
+    /**
+     * Is Dir?
+     *
+     * @param iCommon $source
+     *
+     * @return bool
+     */
+    function isDir(iCommon $source);
+
+    /**
+     * Is Link?
+     *
+     * @param iCommon $source
+     *
+     * @return bool
+     */
+    function isLink(iCommon $source);
 
     /**
      * Returns available space on filesystem or disk partition
@@ -129,19 +177,6 @@ interface iFilesystem
     function getFileMTime(iCommonInfo $file);
 
     /**
-     * Gets file group
-     *
-     * - Returns the group ID of the file
-     * ! The group ID is returned in numerical format,
-     *   use posix_getgrgid() to resolve it to a group name.
-     *
-     * @param iCommonInfo $file
-     *
-     * @return int|string
-     */
-    function getFileGroup(iCommonInfo $file);
-
-    /**
      * Gets file owner
      *
      * - Returns the user ID of the owner of the file
@@ -153,15 +188,6 @@ interface iFilesystem
      * @return int|string
      */
     function getFileOwner(iCommonInfo $file);
-
-    /**
-     * Gets file permissions
-     *
-     * @param iCommonInfo $file
-     *
-     * @return int
-     */
-    function getFilePerms(iCommonInfo $file);
 
     /**
      * Gets file size
