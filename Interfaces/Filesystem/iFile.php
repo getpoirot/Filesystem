@@ -17,12 +17,16 @@ interface iFile extends iCommon, iFileInfo, iWritable
     /**
      * Reads entire file into a string
      *
+     * ! check permissions, getPerms
+     *
      * @return string
      */
     function getContents();
 
     /**
      * Set File Contents
+     *
+     * ! check permissions, getPerms
      *
      * @param string $contents Contents
      *

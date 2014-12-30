@@ -108,11 +108,4 @@ interface iCommonInfo
      * @return bool
      */
     function isReadable();
-
-    /**
-     * Is File/Folder Exists?
-     *
-     * @return bool
-     */
-    function isExists();
 }

@@ -70,6 +70,8 @@ interface iStorage extends iCommon
      * Create File Or Folder From Given Path
      * Path's is always /path/to/file_or_folder
      *
+     * ! beware of mounted storages
+     *
      * - if not exists
      *   name without extension considered as folder
      *   else this is file
@@ -92,12 +94,16 @@ interface iStorage extends iCommon
     /**
      * Write File To Storage
      *
+     * ! check iCommon Object to match to
+     *   class filesystem implementation or
+     *   object type
+     *
      * - with creating files or folder cwd will
      *   append as path
      *
      * @param iCommon|iFile|iDirectory|iLink $node File
      *
-     * @throws \Exception Throw Exception if file exists/fail write
+     * @throws \Exception Throw Exception if file exists/fail write/unknown filesystem
      * @return $this
      */
     function write(iCommon $node);
