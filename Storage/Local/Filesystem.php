@@ -30,7 +30,8 @@ class Filesystem implements iFilesystem
         if (!chgrp($filename, $group))
             throw new \Exception(sprintf(
                 'Failed Changing Group Of "%s" File.'
-            ), $filename);
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
 
         clearstatcache(); // don't cache result
 
@@ -52,12 +53,13 @@ class Filesystem implements iFilesystem
         $this->validateFile($file);
 
         $filename = $file->getRealPathName();
-
+        // Upon failure, an E_WARNING is emitted.
         $group = @posix_getgrgid(filegroup($filename));
         if (!$group)
             throw new \Exception(sprintf(
                 'Failed To Know Group Of "%s" File.'
-            ), $filename);
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
 
         clearstatcache(); // don't cache result
 
@@ -78,11 +80,11 @@ class Filesystem implements iFilesystem
         $this->validateFile($file);
 
         $filename = $file->getRealPathName();
-
         if (!chmod($filename, $mode->getTotalPerms()))
             throw new \Exception(sprintf(
-                'Failed To Change Owner Of "%s" File.'
-            ), $filename);
+                'Failed To Change File Mode For "%s".'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
 
         clearstatcache(); // don't cache result
 
@@ -100,6 +102,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
+        // Upon failure, an E_WARNING is emitted.
         $fperm = @fileperms($file->getRealPathName());
 
         $perms = new Permissions();
@@ -111,37 +114,135 @@ class Filesystem implements iFilesystem
     /**
      * Changes file owner
      *
-     * @param iCommon $file Path to the file
+     * @param iCommonInfo $file Path to the file
      * @param string $user A user name or number
      *
+     * @throws \Exception On Failure
      * @return $this
      */
-    function chown(iCommon $file, $user)
+    function chown(iCommonInfo $file, $user)
     {
-        // TODO: Implement chown() method.
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        if (!chown($filename, $user))
+            throw new \Exception(sprintf(
+                'Failed To Change Owner Of "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
+    }
+
+    /**
+     * Gets file owner
+     *
+     * @param iCommonInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return int|string The user Name/ID of the owner of the file
+     */
+    function getFileOwner(iCommonInfo $file)
+    {
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $owner = @posix_getgrgid(fileowner($filename)); // fileowner() "root" is 0
+        if (!$owner)
+            throw new \Exception(sprintf(
+                'Failed To Know Group Of "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        clearstatcache(); // don't cache result
+
+        return $owner;
     }
 
     /**
      * Copies file
      *
-     * - If Destination Exists It Will Be Merged
-     * - If Source Is Directory Can't Copied To File
-     * - If Source Is File
-     *   if dest. is file copy with new name
-     *   else if is directory copy to directory with same name
+     * - Source is Directory:
+     *      the destination must be a directory
+     *      goto a
+     * - Source is File:
+     *      the destination can be a directory or file
+     *          directory:
+     *             a) if exists it will be merged
+     *                  throw exception if file exist
+     *                not exists it will be created
+     *          file:
+     *              if file exists throw exception
+     *              copy source to destination with new name
      *
-     * @param iCommon $source
+     * @param iCommonInfo $source
      * @param iCommon $dest
      *
+     * @throws \Exception On Failure
      * @return $this
      */
-    function copy(iCommon $source, iCommon $dest)
+    function copy(iCommonInfo $source, iCommon $dest)
     {
-        // TODO: Implement copy() method.
+        // source must be valid
+        $this->validateFile($source);
+
+        if ($this->isDir($source) && !$this->isDir($dest))
+            throw new \Exception(sprintf(
+                'Invalid Destination Provided, We Cant Copy A Directory "%s" To File "%s".'
+            , $source->getRealPathName(), $dest->getRealPathName()
+            ));
+
+        if (!$this->isDir($dest) || !$this->isFile($dest))
+            throw new \Exception(sprintf(
+                'Destination at "%s" Must be a File Or Directory For Copy.'
+                , $dest->getRealPathName()
+            ));
+
+        $copied = false;
+        if ($this->isDir($dest)) {
+            // Copy to directory
+            if (!$this->isExists($dest))
+                $this->mkDir($dest);
+
+            if ($this->isFile($source))
+                $copied = copy(
+                    $source->getRealPathName()
+                    , $dest->getRealPathName().self::DS.$source->getRealPathName()
+                );
+            else {
+                // Merge Folder
+                $x = 1;
+            }
+        } else {
+            // Copy File To Destination(file)
+            if ($this->isExists($dest))
+                throw new \Exception(sprintf(
+                    'Destination file "%s" Is Exists And Can`t Overwrite.'
+                    , $dest->getRealPathName()
+                ));
+
+            $copied = copy(
+                $source->getRealPathName()
+                , $dest->getRealPathName()
+            );
+        }
+
+        if (!$copied)
+            throw new \Exception(sprintf(
+                'Failed Copy "%s" To "%s".'
+                , $source->getRealPathName(), $dest->getRealPathName()
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     /**
      * Is File?
+     *
+     * ! It's not necessary to check file existence on storage
+     *   Just Perform Object Check
+     *   It can be used with isExists() combination
      *
      * @param iCommon $source
      *
@@ -155,6 +256,10 @@ class Filesystem implements iFilesystem
     /**
      * Is Dir?
      *
+     * ! It's not necessary to check file existence on storage
+     *   Just Perform Object Check
+     *   It can be used with isExists() combination
+     *
      * @param iCommon $source
      *
      * @return bool
@@ -166,6 +271,10 @@ class Filesystem implements iFilesystem
 
     /**
      * Is Link?
+     *
+     * ! It's not necessary to check file existence on storage
+     *   Just Perform Object Check
+     *   It can be used with isExists() combination
      *
      * @param iCommon $source
      *
@@ -272,22 +381,6 @@ class Filesystem implements iFilesystem
     function getFileMTime(iCommonInfo $file)
     {
         // TODO: Implement getFileMTime() method.
-    }
-
-    /**
-     * Gets file owner
-     *
-     * - Returns the user ID of the owner of the file
-     * ! The user ID is returned in numerical format,
-     *   use posix_getpwuid() to resolve it to a username
-     *
-     * @param iCommonInfo $file
-     *
-     * @return int|string
-     */
-    function getFileOwner(iCommonInfo $file)
-    {
-        // TODO: Implement getFileOwner() method.
     }
 
     /**
