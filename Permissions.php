@@ -8,7 +8,18 @@ class Permissions implements iPermissions
     /**
      * @var int Octal Permissions Combination
      */
-    protected $totalPerms;
+    protected $totalPerms = 0;
+
+    /**
+     * Construct
+     *
+     * @param $perms
+     */
+    function __construct($perms = null)
+    {
+        if ($perms !== null)
+            $this->grantPermission($perms);
+    }
 
     /**
      * Has Same Permissions as Given?
