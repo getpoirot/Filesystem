@@ -280,11 +280,36 @@ interface iFilesystem
      */
     function getBasename(iCommonInfo $file);
 
+    /**
+     * Get Extension Of File
+     *
+     * ! empty screen if dose`nt have ext
+     *
+     * @param iFileInfo $file
+     *
+     * @return string
+     */
     function getFileExtension(iFileInfo $file);
 
+    /**
+     * Get File/Folder Name Without Extension
+     *
+     * @param iCommonInfo $file
+     *
+     * @return string
+     */
     function getFilename(iCommonInfo $file);
 
-    function rename();
+    /**
+     * Rename File Or Directory
+     *
+     * @param iCommonInfo $file
+     * @param string      $newName
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function rename(iCommonInfo $file, $newName);
 
     function rmDir(iDirectory $dir);
 
