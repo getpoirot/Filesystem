@@ -521,17 +521,56 @@ class Filesystem implements iFilesystem
         return basename($file->getRealPathName());
     }
 
+    /**
+     * Get Extension Of File
+     *
+     * ! empty screen if dose`nt have ext
+     *
+     * @param iFileInfo $file
+     *
+     * @return string
+     */
     function getFileExtension(iFileInfo $file)
     {
-        // TODO: Implement getFileExtension() method.
+        /*
+         * TODO
+         * basename() is locale aware, so for it to see the correct
+         * directory name with multibyte character paths, the matching
+         * locale must be set using the setlocale() function.
+         */
+
+        return pathinfo($file->getRealPathName(), PATHINFO_EXTENSION);
     }
 
+    /**
+     * Get File/Folder Name Without Extension
+     *
+     * @param iCommonInfo $file
+     *
+     * @return string
+     */
     function getFilename(iCommonInfo $file)
     {
-        // TODO: Implement getFilename() method.
+        /*
+         * TODO
+         * basename() is locale aware, so for it to see the correct
+         * directory name with multibyte character paths, the matching
+         * locale must be set using the setlocale() function.
+         */
+
+        return pathinfo($file->getRealPathName(), PATHINFO_FILENAME);
     }
 
-    function rename()
+    /**
+     * Rename File Or Directory
+     *
+     * @param iCommonInfo $file
+     * @param string      $newName
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function rename(iCommonInfo $file, $newName)
     {
         // TODO: Implement rename() method.
     }
