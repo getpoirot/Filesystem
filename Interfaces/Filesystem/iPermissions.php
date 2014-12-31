@@ -54,14 +54,13 @@ interface iPermissions
     /**
      * Get Sum Of Permission Rights
      *
+     * @throws \Exception If No Permission Added
      * @return int An Octal Combined Permission
      */
     function getTotalPerms();
 
     /**
      * Get A Readable Permission String
-     *
-     * @link http://php.net/manual/en/function.fileperms.php
      *
      * @return string
      */

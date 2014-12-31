@@ -9,6 +9,7 @@ use Poirot\Filesystem\Interfaces\iFile;
 use Poirot\Filesystem\Interfaces\iFileInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iLink;
+use Poirot\Filesystem\Permissions;
 
 class Filesystem implements iFilesystem
 {
