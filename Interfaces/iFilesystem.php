@@ -52,31 +52,53 @@ interface iFilesystem
     /**
      * Changes file owner
      *
-     * @param iCommon $file Path to the file
-     * @param string  $user A user name or number
+     * @param iCommonInfo $file Path to the file
+     * @param string $user A user name or number
      *
+     * @throws \Exception On Failure
      * @return $this
      */
-    function chown(iCommon $file, $user);
+    function chown(iCommonInfo $file, $user);
+
+    /**
+     * Gets file owner
+     *
+     * @param iCommonInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return int|string The user Name/ID of the owner of the file
+     */
+    function getFileOwner(iCommonInfo $file);
 
     /**
      * Copies file
      *
-     * - If Destination Exists It Will Be Merged
-     * - If Source Is Directory Can't Copied To File
-     * - If Source Is File
-     *   if dest. is file copy with new name
-     *   else if is directory copy to directory with same name
+     * - Source is Directory:
+     *      the destination must be a directory
+     *      goto a
+     * - Source is File:
+     *      the destination can be a directory or file
+     *          directory:
+     *             a) if exists it will be merged
+     *                not exists it will be created
+     *          file:
+     *              if file exists throw exception
+     *              copy source to destination with new name
      *
-     * @param iCommon $source
+     * @param iCommonInfo $source
      * @param iCommon $dest
      *
+     * @throws \Exception On Failure
      * @return $this
      */
-    function copy(iCommon $source, iCommon $dest);
+    function copy(iCommonInfo $source, iCommon $dest);
 
     /**
      * Is File?
+     *
+     * ! It's not necessary to check file existence on storage
+     *   Just Perform Object Check
+     *   It can be used with isExists() combination
      *
      * @param iCommon $source
      *
@@ -87,6 +109,10 @@ interface iFilesystem
     /**
      * Is Dir?
      *
+     * ! It's not necessary to check file existence on storage
+     *   Just Perform Object Check
+     *   It can be used with isExists() combination
+     *
      * @param iCommon $source
      *
      * @return bool
@@ -95,6 +121,10 @@ interface iFilesystem
 
     /**
      * Is Link?
+     *
+     * ! It's not necessary to check file existence on storage
+     *   Just Perform Object Check
+     *   It can be used with isExists() combination
      *
      * @param iCommon $source
      *
@@ -175,19 +205,6 @@ interface iFilesystem
      * @return int timestamp
      */
     function getFileMTime(iCommonInfo $file);
-
-    /**
-     * Gets file owner
-     *
-     * - Returns the user ID of the owner of the file
-     * ! The user ID is returned in numerical format,
-     *   use posix_getpwuid() to resolve it to a username
-     *
-     * @param iCommonInfo $file
-     *
-     * @return int|string
-     */
-    function getFileOwner(iCommonInfo $file);
 
     /**
      * Gets file size
