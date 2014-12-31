@@ -5,12 +5,19 @@ use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iCommon;
 use Poirot\Filesystem\Interfaces\iCommonInfo;
 use Poirot\Filesystem\Interfaces\iDirectory;
+use Poirot\Filesystem\Interfaces\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\iFile;
 use Poirot\Filesystem\Interfaces\iFileInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iLink;
+use Poirot\Filesystem\Interfaces\iLinkInfo;
 use Poirot\Filesystem\Permissions;
 
+/**
+ * ! Note: In PHP Most Of Filesystem actions need
+ *         file/directory permission be as same as
+ *         apache/php user
+ */
 class Filesystem implements iFilesystem
 {
     /**
@@ -169,11 +176,10 @@ class Filesystem implements iFilesystem
      * - Source is File:
      *      the destination can be a directory or file
      *          directory:
-     *             a) if exists it will be merged
-     *                  throw exception if file exist
-     *                not exists it will be created
+     *             (a) if exists it will be merged
+     *                 not exists it will be created
      *          file:
-     *              if file exists throw exception
+     *              if file exists it will be overwrite
      *              copy source to destination with new name
      *
      * @param iCommonInfo $source
@@ -203,7 +209,7 @@ class Filesystem implements iFilesystem
         if ($this->isDir($dest)) {
             // Copy to directory
             if (!$this->isExists($dest))
-                $this->mkDir($dest);
+                $this->mkDir($dest, new Permissions(0777));
 
             if ($this->isFile($source))
                 $copied = copy(
@@ -216,11 +222,15 @@ class Filesystem implements iFilesystem
             }
         } else {
             // Copy File To Destination(file)
-            if ($this->isExists($dest))
-                throw new \Exception(sprintf(
-                    'Destination file "%s" Is Exists And Can`t Overwrite.'
-                    , $dest->getRealPathName()
-                ));
+
+            // make directories to destination to avoid error >>> {
+            $destDir = $this->getDirname(
+                $dest->getRealPathName()
+            );
+            $destDir = new Directory($destDir);
+            if (!$this->isExists($destDir))
+                $this->mkDir($destDir, new Permissions(0777));
+            // } <<<
 
             $copied = copy(
                 $source->getRealPathName()
@@ -250,7 +260,9 @@ class Filesystem implements iFilesystem
      */
     function isFile(iCommon $source)
     {
-        // TODO: Implement isFile() method.
+        /* TODO Make Resource from path */
+
+        return $source instanceof iFileInfo;
     }
 
     /**
@@ -266,7 +278,9 @@ class Filesystem implements iFilesystem
      */
     function isDir(iCommon $source)
     {
-        // TODO: Implement isDir() method.
+        /* TODO Make Resource from path */
+
+        return $source instanceof iDirectoryInfo;
     }
 
     /**
@@ -282,7 +296,9 @@ class Filesystem implements iFilesystem
      */
     function isLink(iCommon $source)
     {
-        // TODO: Implement isLink() method.
+        /* TODO Make Resource from path */
+
+        return $source instanceof iLinkInfo;
     }
 
     /**
@@ -444,14 +460,21 @@ class Filesystem implements iFilesystem
     /**
      * Makes directory Recursively
      *
-     * @param iDirectory $dir
-     * @param int $mode
+     * @param iDirectoryInfo $dir
+     * @param iPermissions $mode
      *
-     * @return
+     * @throws \Exception On Failure
+     * @return $this
      */
-    function mkDir(iDirectory $dir, $mode = 0777)
+    function mkDir(iDirectoryInfo $dir, iPermissions $mode)
     {
-        // TODO: Implement mkDir() method.
+        if (!@mkdir($dir->getRealPathName(), $mode->getTotalPerms(), true))
+            throw new \Exception(sprintf(
+                'Failed To Change Owner Of "%s" File.'
+                , $dir->getRealPathName()
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     function getDirname(iCommonInfo $file)
