@@ -31,7 +31,7 @@ interface iPermissions
      *
      * @return bool
      */
-    function hasPermissions(iPermissions $permission)
+    function hasPermissions(iPermissions $permission);
 
     /**
      * Give An Access Perms.
