@@ -79,10 +79,10 @@ interface iFilesystem
      * - Source is File:
      *      the destination can be a directory or file
      *          directory:
-     *             a) if exists it will be merged
-     *                not exists it will be created
+     *             (a) if exists it will be merged
+     *                 not exists it will be created
      *          file:
-     *              if file exists throw exception
+     *              if file exists it will be overwrite
      *              copy source to destination with new name
      *
      * @param iCommonInfo $source
@@ -252,12 +252,13 @@ interface iFilesystem
     /**
      * Makes directory Recursively
      *
-     * @param iDirectory $dir
-     * @param int        $mode
+     * @param iDirectoryInfo $dir
+     * @param iPermissions $mode
      *
-     * @return
+     * @throws \Exception On Failure
+     * @return $this
      */
-    function mkDir(iDirectory $dir, $mode = 0777);
+    function mkDir(iDirectoryInfo $dir, iPermissions $mode);
 
     function getDirname(iCommonInfo $file);
 
