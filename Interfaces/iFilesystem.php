@@ -260,8 +260,24 @@ interface iFilesystem
      */
     function mkDir(iDirectoryInfo $dir, iPermissions $mode);
 
+    /**
+     * Get Parent Directory Of Given File/Dir
+     *
+     * ! If there are no slashes in path, a current dir returned
+     *
+     * @param iCommonInfo $file
+     *
+     * @return iDirectory
+     */
     function getDirname(iCommonInfo $file);
 
+    /**
+     * Returns the base name of the given path.
+     *
+     * @param iCommonInfo $file
+     *
+     * @return string
+     */
     function getBasename(iCommonInfo $file);
 
     function getFileExtension(iFileInfo $file);

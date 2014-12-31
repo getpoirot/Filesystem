@@ -477,14 +477,48 @@ class Filesystem implements iFilesystem
         return $this;
     }
 
+    /**
+     * Get Parent Directory Of Given File/Dir
+     *
+     * ! If there are no slashes in path, a current dir returned
+     *
+     * @param iCommonInfo $file
+     *
+     * @return iDirectory
+     */
     function getDirname(iCommonInfo $file)
     {
-        // TODO: Implement getDirname() method.
+        /*
+         * TODO
+         * dirname() is locale aware, so for it to see the correct
+         * directory name with multibyte character paths, the matching
+         * locale must be set using the setlocale() function.
+         */
+        $pathname  = $file->getRealPathName();
+        $dirname   = dirname($pathname);
+
+        $directory = new Directory($dirname);
+
+        return $directory;
     }
 
+    /**
+     * Returns the base name of the given path.
+     *
+     * @param iCommonInfo $file
+     *
+     * @return string
+     */
     function getBasename(iCommonInfo $file)
     {
-        // TODO: Implement getBasename() method.
+        /*
+         * TODO
+         * basename() is locale aware, so for it to see the correct
+         * directory name with multibyte character paths, the matching
+         * locale must be set using the setlocale() function.
+         */
+
+        return basename($file->getRealPathName());
     }
 
     function getFileExtension(iFileInfo $file)
