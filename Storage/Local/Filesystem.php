@@ -713,6 +713,12 @@ class Filesystem implements iFilesystem
     /**
      * Rename File Or Directory
      *
+     * - new name can contains absolute path
+     *   /new/path/to/renamed.file
+     *
+     * - if new name is just name
+     *   append file directory path to new name
+     *
      * @param iCommonInfo $file
      * @param string      $newName
      *
@@ -721,33 +727,60 @@ class Filesystem implements iFilesystem
      */
     function rename(iCommonInfo $file, $newName)
     {
-        // TODO: Implement rename() method.
+        // TODO Create New Name Object
+        if ($this->getBasename($newName) !== $newName)
+            $newName = $this->getDirname($file)->getRealPathName()
+                . $newName;
+
+        if (!@rename($file->getRealPathName(), $newName))
+            throw new \Exception(sprintf(
+                'Failed To Rename "%s" File.'
+                , $file->getRealPathName()
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
+    /**
+     * Attempts to remove the directory
+     *
+     * - If Directory was not empty, attempt recursive
+     *   remove for files and nested directories
+     *
+     * @param iDirectory $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
     function rmDir(iDirectory $dir)
     {
         // TODO: Implement rmDir() method.
     }
 
     /**
-     * Creates a temporary file
+     * Sets access time of file
      *
-     * @return iFile
+     * @param iFile $file
+     * @param null  $time
+     *
+     * @return $this
      */
-    function tmpfile()
+    function chFileATime(iFile $file, $time = null)
     {
-        // TODO: Implement tmpfile() method.
+
     }
 
     /**
-     * Sets access and modification time of file
+     * Sets modification time of file
      *
      * @param iFile $file
-     * @param null $time
+     * @param null  $time
+     *
+     * @return $this
      */
-    function touch(iFile $file, $time = null)
+    function chFileMTime(iFile $file, $time = null)
     {
-        // TODO: Implement touch() method.
+        
     }
 
     /**

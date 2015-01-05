@@ -331,6 +331,12 @@ interface iFilesystem
     /**
      * Rename File Or Directory
      *
+     * - new name can contains absolute path
+     *   /new/path/to/renamed.file
+     *
+     * - if new name is just name
+     *   append file directory path to new name
+     *
      * @param iCommonInfo $file
      * @param string      $newName
      *
@@ -339,22 +345,38 @@ interface iFilesystem
      */
     function rename(iCommonInfo $file, $newName);
 
+    /**
+     * Attempts to remove the directory
+     *
+     * - If Directory was not empty, attempt recursive
+     *   remove for files and nested directories
+     *
+     * @param iDirectory $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
     function rmDir(iDirectory $dir);
 
     /**
-     * Creates a temporary file
-     *
-     * @return iFile
-     */
-    function tmpfile();
-
-    /**
-     * Sets access and modification time of file
+     * Sets access time of file
      *
      * @param iFile $file
-     * @param null $time
+     * @param null  $time
+     *
+     * @return $this
      */
-    function touch(iFile $file, $time = null);
+    function chFileATime(iFile $file, $time = null);
+
+    /**
+     * Sets modification time of file
+     *
+     * @param iFile $file
+     * @param null  $time
+     *
+     * @return $this
+     */
+    function chFileMTime(iFile $file, $time = null);
 
     /**
      * Returns the target of a symbolic link
