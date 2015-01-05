@@ -29,6 +29,8 @@ interface iCommonInfo
     /**
      * Get Path Name To File Or Folder
      *
+     * - include full path for remote files
+     *
      * @return string
      */
     function getRealPathName();
@@ -82,6 +84,8 @@ interface iCommonInfo
 
     /**
      * Gets absolute path to file
+     *
+     * - include full path for remote files
      *
      * @return string
      */

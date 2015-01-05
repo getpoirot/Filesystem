@@ -153,6 +153,8 @@ interface iFilesystem
     /**
      * Checks whether a file or directory exists
      *
+     * return FALSE for symlinks pointing to non-existing files
+     *
      * @param iCommonInfo $file
      *
      * @return boolean
@@ -165,6 +167,7 @@ interface iFilesystem
      * @param iFile $file
      * @param int   $maxlen Maximum length of data read
      *
+     * @throws \Exception On Failure
      * @return string
      */
     function getFileContents(iFile $file, $maxlen = 0);
@@ -172,45 +175,58 @@ interface iFilesystem
     /**
      * Write a string to a file
      *
+     * - If filename does not exist, the file is created
+     *
      * @param iFile  $file
      * @param string $contents
+     * @param bool   $append   Append Content To File
      *
+     * @throws \Exception On Failure
      * @return $this
      */
-    function putFileContents(iFile $file, $contents);
+    function putFileContents(iFile $file, $contents, $append = false);
 
     /**
      * Gets last access time of file
      *
-     * @param iCommonInfo $file
+     * @param iFileInfo $file
      *
-     * @return int timestamp
+     * @throws \Exception On Failure
+     * @return int timestamp Unix timestamp
      */
-    function getFileATime(iCommonInfo $file);
+    function getFileATime(iFileInfo $file);
 
     /**
      * Gets inode change time of file
      *
-     * @param iCommonInfo $file
+     * ! when the permissions, owner, group, or other
+     *   metadata from the inode is updated
      *
-     * @return int timestamp
+     * @param iFileInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return int timestamp Unix timestamp
      */
-    function getFileCTime(iCommonInfo $file);
+    function getFileCTime(iFileInfo $file);
 
     /**
      * Gets file modification time
      *
-     * @param iCommonInfo $file
+     * ! the time when the content of the file was changed
      *
-     * @return int timestamp
+     * @param iFileInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return int timestamp Unix timestamp
      */
-    function getFileMTime(iCommonInfo $file);
+    function getFileMTime(iFileInfo $file);
 
     /**
      * Gets file size
      *
      * @param iFile $file
      *
+     * @throws \Exception On Failure
      * @return int In bytes
      */
     function getFileSize(iFile $file);
@@ -218,29 +234,38 @@ interface iFilesystem
     /**
      * Portable advisory file locking
      *
+     * ! shared lock    (reader)
+     *   exclusive lock (writer)
+     *   release lock   (shared|exclusive)
+     *
+     * @param iFileInfo $file
+     * @param int       $lock  LOCK_SH|LOCK_EX|LOCK_UN
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function flock(iFileInfo $file, $lock = LOCK_EX);
+
+    /**
+     * Tells whether a file/directory exists and is readable
+     *
+     * ! checks whether you can do getFileContents() or similar calls
+     *   for directories to fetch contents list
+     *
      * @param iCommonInfo $file
      *
-     * @return mixed
-     */
-    function flock(iCommonInfo $file);
-
-    /**
-     * Tells whether a file exists and is readable
-     *
-     * @param iFile $file
-     *
      * @return bool
      */
-    function isReadable(iFile $file);
+    function isReadable(iCommonInfo $file);
 
     /**
-     * Tells whether the filename is writable
+     * Tells whether the file/directory is writable
      *
-     * @param iFile $file
+     * @param iCommonInfo $file
      *
-     * @return bool
+     * @return bool TRUE if the filename exists and is writable
      */
-    function isWritable(iFile $file);
+    function isWritable(iCommonInfo $file);
 
     /**
      * Create a hard link

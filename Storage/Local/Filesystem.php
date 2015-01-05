@@ -328,13 +328,19 @@ class Filesystem implements iFilesystem
     /**
      * Checks whether a file or directory exists
      *
+     * ! return FALSE for symlinks pointing to non-existing files
+     *
      * @param iCommonInfo $file
      *
      * @return boolean
      */
     function isExists(iCommonInfo $file)
     {
-        // TODO: Implement isExists() method.
+        // Upon failure, an E_WARNING is emitted.
+        $result = @file_exists($file->getRealPathName());
+        clearstatcache();
+
+        return $result;
     }
 
     /**
@@ -343,60 +349,139 @@ class Filesystem implements iFilesystem
      * @param iFile $file
      * @param int $maxlen Maximum length of data read
      *
+     * @throws \Exception On Failure
      * @return string
      */
     function getFileContents(iFile $file, $maxlen = 0)
     {
-        // TODO: Implement getFileContents() method.
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $content = @file_get_contents($filename);
+        if ($content === false)
+            throw new \Exception(sprintf(
+                'Failed To Read Contents Of "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $content;
     }
 
     /**
      * Write a string to a file
      *
-     * @param iFile $file
-     * @param string $contents
+     * - If filename does not exist, the file is created
      *
+     * ! fails if you try to put a file in a directory that doesn't exist.
+     *
+     * @param iFile  $file
+     * @param string $contents
+     * @param bool   $append   Append Content To File
+     *
+     * @throws \Exception On Failure
      * @return $this
      */
-    function putFileContents(iFile $file, $contents)
+    function putFileContents(iFile $file, $contents, $append = false)
     {
-        // TODO: Implement putFileContents() method.
+        $append  = ($append) ? FILE_APPEND : 0;
+        $append |= LOCK_EX; // to prevent anyone else writing to the file at the same time
+
+        $filename = $file->getRealPathName();
+        if(!file_put_contents($filename, $contents, $append)) // file will be created if not exists
+            throw new \Exception(sprintf(
+                'Failed To Put "%s" File Contents.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        $file->setContents($contents);
+
+        return $this;
     }
 
     /**
      * Gets last access time of file
      *
-     * @param iCommonInfo $file
+     * @param iFileInfo $file
      *
-     * @return int timestamp
+     * @throws \Exception On Failure
+     * @return int timestamp Unix timestamp
      */
-    function getFileATime(iCommonInfo $file)
+    function getFileATime(iFileInfo $file)
     {
-        // TODO: Implement getFileATime() method.
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @fileatime($filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Get Access Time For "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        clearstatcache();
+
+        return $result;
     }
 
     /**
      * Gets inode change time of file
      *
-     * @param iCommonInfo $file
+     * ! when the permissions, owner, group, or other
+     *   metadata from the inode is updated
      *
-     * @return int timestamp
+     * @param iFileInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return int timestamp Unix timestamp
      */
-    function getFileCTime(iCommonInfo $file)
+    function getFileCTime(iFileInfo $file)
     {
-        // TODO: Implement getFileCTime() method.
+        // Note that on Windows systems, filectime will show the file creation time
+
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @filectime($filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Get Change Time For "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        clearstatcache();
+
+        return $result;
     }
 
     /**
      * Gets file modification time
      *
-     * @param iCommonInfo $file
+     * ! the time when the content of the file was changed
      *
-     * @return int timestamp
+     * @param iFileInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return int timestamp Unix timestamp
      */
-    function getFileMTime(iCommonInfo $file)
+    function getFileMTime(iFileInfo $file)
     {
-        // TODO: Implement getFileMTime() method.
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @filemtime($filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Get Modified Time For "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        clearstatcache();
+
+        return $result;
     }
 
     /**
@@ -404,47 +489,95 @@ class Filesystem implements iFilesystem
      *
      * @param iFile $file
      *
+     * @throws \Exception On Failure
      * @return int In bytes
      */
     function getFileSize(iFile $file)
     {
-        // TODO: Implement getFileSize() method.
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @filesize($filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Get Size Of "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        clearstatcache();
+
+        return $result;
     }
 
     /**
      * Portable advisory file locking
      *
+     * ! shared lock    (reader)
+     *   exclusive lock (writer)
+     *   release lock   (shared|exclusive)
+     *
+     * @param iFileInfo $file
+     * @param int       $lock  LOCK_SH|LOCK_EX|LOCK_UN
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function flock(iFileInfo $file, $lock = LOCK_EX)
+    {
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        $fp = fopen($filename, "r+");
+
+        // Upon failure, an E_WARNING is emitted.
+        $result = @flock($fp, $lock);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Lock "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $result;
+    }
+
+    /**
+     * Tells whether a file/directory exists and is readable
+     *
+     * ! checks whether you can do getFileContents() or similar calls
+     *   for directories to fetch contents list
+     *
      * @param iCommonInfo $file
      *
-     * @return mixed
+     * @return bool
      */
-    function flock(iCommonInfo $file)
+    function isReadable(iCommonInfo $file)
     {
-        // TODO: Implement flock() method.
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @is_readable($filename);
+
+        clearstatcache();
+
+        return $result;
     }
 
     /**
-     * Tells whether a file exists and is readable
+     * Tells whether the file/directory is writable
      *
-     * @param iFile $file
+     * @param iCommonInfo $file
      *
-     * @return bool
+     * @return bool TRUE if the filename exists and is writable
      */
-    function isReadable(iFile $file)
+    function isWritable(iCommonInfo $file)
     {
-        // TODO: Implement isReadable() method.
-    }
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @is_writable($filename);
 
-    /**
-     * Tells whether the filename is writable
-     *
-     * @param iFile $file
-     *
-     * @return bool
-     */
-    function isWritable(iFile $file)
-    {
-        // TODO: Implement isWritable() method.
+        clearstatcache();
+
+        return $result;
     }
 
     /**
