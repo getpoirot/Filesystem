@@ -583,11 +583,27 @@ class Filesystem implements iFilesystem
     /**
      * Create a hard link
      *
-     * @param iLink $link
+     * @param iLinkInfo $link
+     *
+     * @throws \Exception On Failure
+     * @return $this
      */
-    function mkLink(iLink $link)
+    function mkLink(iLinkInfo $link)
     {
-        // TODO: Implement mkLink() method.
+        $target = $link->getTarget();
+
+        $this->validateFile($target);
+
+        $filename = $link->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @link($target->getRealPathName(), $filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Create "%s" Link.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $result;
     }
 
     /**

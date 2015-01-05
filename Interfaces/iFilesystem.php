@@ -270,9 +270,12 @@ interface iFilesystem
     /**
      * Create a hard link
      *
-     * @param iLink $link
+     * @param iLinkInfo $link
+     *
+     * @throws \Exception On Failure
+     * @return $this
      */
-    function mkLink(iLink $link);
+    function mkLink(iLinkInfo $link);
 
     /**
      * Makes directory Recursively
