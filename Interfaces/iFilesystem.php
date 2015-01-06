@@ -361,12 +361,12 @@ interface iFilesystem
      * - If Directory was not empty, attempt recursive
      *   remove for files and nested directories
      *
-     * @param iDirectory $dir
+     * @param iDirectoryInfo $dir
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function rmDir(iDirectory $dir);
+    function rmDir(iDirectoryInfo $dir);
 
     /**
      * Sets access time of file
