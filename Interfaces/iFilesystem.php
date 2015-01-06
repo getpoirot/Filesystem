@@ -8,6 +8,16 @@ interface iFilesystem
     const DS = DIRECTORY_SEPARATOR; // prefer to use '/' as a portable separator
 
     /**
+     * Make an Object From Existence Path Filesystem
+     *
+     * @param string $path Filesystem Path To File or Directory
+     *
+     * @throws \Exception On Failure
+     * @return iCommonInfo
+     */
+    function mkFromPath($path);
+
+    /**
      * Changes file group
      *
      * @param iCommonInfo $file Path to the file
@@ -383,12 +393,12 @@ interface iFilesystem
     /**
      * Returns the target of a symbolic link
      *
-     * @param iLink $link
+     * @param iLinkInfo $link
      *
      * @throws \Exception On Failure
      * @return iCommonInfo File or Directory
      */
-    function linkRead(iLink $link);
+    function linkRead(iLinkInfo $link);
 
     /**
      * Deletes a file

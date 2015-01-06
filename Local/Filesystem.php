@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem\Storage\Local;
+namespace Poirot\Local;
 
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iCommon;
@@ -9,7 +9,6 @@ use Poirot\Filesystem\Interfaces\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\iFile;
 use Poirot\Filesystem\Interfaces\iFileInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Filesystem\Interfaces\iLink;
 use Poirot\Filesystem\Interfaces\iLinkInfo;
 use Poirot\Filesystem\Permissions;
 
@@ -20,6 +19,19 @@ use Poirot\Filesystem\Permissions;
  */
 class Filesystem implements iFilesystem
 {
+    /**
+     * Make an Object From Existence Path Filesystem
+     *
+     * @param string $path Filesystem Path To File or Directory
+     *
+     * @throws \Exception On Failure
+     * @return iCommonInfo
+     */
+    function mkFromPath($path)
+    {
+        // TODO IMplement This
+    }
+
     /**
      * Changes file group
      *
@@ -810,12 +822,12 @@ class Filesystem implements iFilesystem
     /**
      * Returns the target of a symbolic link
      *
-     * @param iLink $link
+     * @param iLinkInfo $link
      *
      * @throws \Exception On Failure
      * @return iCommonInfo File or Directory
      */
-    function linkRead(iLink $link)
+    function linkRead(iLinkInfo $link)
     {
         $filename = $link->getRealPathName();
         $result = readlink($filename);
