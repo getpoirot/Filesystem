@@ -364,6 +364,7 @@ interface iFilesystem
      * @param iFile $file
      * @param null  $time
      *
+     * @throws \Exception On Failure
      * @return $this
      */
     function chFileATime(iFile $file, $time = null);
@@ -374,6 +375,7 @@ interface iFilesystem
      * @param iFile $file
      * @param null  $time
      *
+     * @throws \Exception On Failure
      * @return $this
      */
     function chFileMTime(iFile $file, $time = null);
@@ -382,14 +384,20 @@ interface iFilesystem
      * Returns the target of a symbolic link
      *
      * @param iLink $link
+     *
+     * @throws \Exception On Failure
+     * @return iCommonInfo File or Directory
      */
     function linkRead(iLink $link);
 
     /**
      * Deletes a file
      * 
-     * @param iCommonInfo $file
+     * @param iFileInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return $this
      */
-    function unlink(iCommonInfo $file);
+    function unlink(iFileInfo $file);
 }
  

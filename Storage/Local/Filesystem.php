@@ -763,11 +763,23 @@ class Filesystem implements iFilesystem
      * @param iFile $file
      * @param null  $time
      *
+     * @throws \Exception On Failure
      * @return $this
      */
     function chFileATime(iFile $file, $time = null)
     {
+        $this->validateFile($file);
 
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @touch($filename, null, $time);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Touch "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     /**
@@ -776,31 +788,69 @@ class Filesystem implements iFilesystem
      * @param iFile $file
      * @param null  $time
      *
+     * @throws \Exception On Failure
      * @return $this
      */
     function chFileMTime(iFile $file, $time = null)
     {
-        
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @touch($filename, $time);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Touch "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     /**
      * Returns the target of a symbolic link
      *
      * @param iLink $link
+     *
+     * @throws \Exception On Failure
+     * @return iCommonInfo File or Directory
      */
     function linkRead(iLink $link)
     {
-        // TODO: Implement linkRead() method.
+        $filename = $link->getRealPathName();
+        $result = readlink($filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Read Link From "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        // TODO Return CommonInterface
+        return iCommonInfo;
     }
 
     /**
      * Deletes a file
      *
-     * @param iCommonInfo $file
+     * @param iFileInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return $this
      */
-    function unlink(iCommonInfo $file)
+    function unlink(iFileInfo $file)
     {
-        // TODO: Implement unlink() method.
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $result = @unlink($filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Delete "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     /**
