@@ -17,6 +17,28 @@ interface iFilesystem
      */
     function mkFromPath($path);
 
+    // Directory Implementation:
+
+    /**
+     * Gets the current working directory
+     *
+     * @throws \Exception On Failure
+     * @return iDirectory
+     */
+    function getCwd();
+
+    /**
+     * Changes Filesystem current directory
+     *
+     * @param iDirectoryInfo $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function chDir(iDirectoryInfo $dir);
+
+    // File Implementation:
+
     /**
      * Changes file group
      *

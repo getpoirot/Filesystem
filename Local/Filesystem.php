@@ -32,6 +32,51 @@ class Filesystem implements iFilesystem
         // TODO IMplement This
     }
 
+    // Directory Implementation:
+
+    /**
+     * Gets the current working directory
+     *
+     * @throws \Exception On Failure
+     * @return iDirectory
+     */
+    function getCwd()
+    {
+        $result = getcwd();
+        if ($result === false)
+            throw new \Exception(
+                'Failed To Get Current Working Directory.'
+                , null
+                , new \Exception(error_get_last()['message'])
+            );
+
+        return $this->mkFromPath($result);
+    }
+
+    /**
+     * Changes Filesystem current directory
+     *
+     * @param iDirectoryInfo $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function chDir(iDirectoryInfo $dir)
+    {
+        $this->validateFile($dir);
+
+        $dirname = $dir->getRealPathName();
+        if (chdir($dirname) === false)
+            throw new \Exception(sprintf(
+                'Failed Changing Directory To "%s".'
+                , $dirname
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
+    }
+
+    // File Implementation:
+
     /**
      * Changes file group
      *
@@ -239,7 +284,7 @@ class Filesystem implements iFilesystem
             $destDir = $this->getDirname(
                 $dest->getRealPathName()
             );
-            $destDir = new Directory($destDir);
+            $destDir = $this->mkFromPath($destDir);
             if (!$this->isExists($destDir))
                 $this->mkDir($destDir, new Permissions(0777));
             // } <<<
@@ -658,7 +703,7 @@ class Filesystem implements iFilesystem
         $pathname  = $file->getRealPathName();
         $dirname   = dirname($pathname);
 
-        $directory = new Directory($dirname);
+        $directory = $this->mkFromPath($dirname);
 
         return $directory;
     }
@@ -838,7 +883,7 @@ class Filesystem implements iFilesystem
             ), null, new \Exception(error_get_last()['message']));
 
         // TODO Return CommonInterface
-        return iCommonInfo;
+        return $this->mkFromPath($result);
     }
 
     /**
