@@ -14,6 +14,10 @@ interface iFilesystem
     const SCANDIR_SORT_DESCENDING = 1;
     const SCANDIR_SORT_NONE       = 2;
 
+    const DISKSPACE_NOT_COMPUTED = -1;
+    const DISKSPACE_UNKNOWN      = -2;
+    const DISKSPACE_UNLIMITED    = -3;
+
     /**
      * Make an Object From Existence Path Filesystem
      *
@@ -150,11 +154,11 @@ interface iFilesystem
      *   Just Perform Object Check
      *   It can be used with isExists() combination
      *
-     * @param iCommon $source
+     * @param iCommon|string $source
      *
      * @return bool
      */
-    function isFile(iCommon $source);
+    function isFile($source);
 
     /**
      * Is Dir?
@@ -163,11 +167,11 @@ interface iFilesystem
      *   Just Perform Object Check
      *   It can be used with isExists() combination
      *
-     * @param iCommon $source
+     * @param iCommon|string $source
      *
      * @return bool
      */
-    function isDir(iCommon $source);
+    function isDir($source);
 
     /**
      * Is Link?
@@ -176,18 +180,19 @@ interface iFilesystem
      *   Just Perform Object Check
      *   It can be used with isExists() combination
      *
-     * @param iCommon $source
+     * @param iCommon|string $source
      *
      * @return bool
      */
-    function isLink(iCommon $source);
+    function isLink($source);
 
     /**
      * Returns available space on filesystem or disk partition
      *
      * - Returns the number of available bytes as a float
+     * - Using Current Working Directory
      *
-     * @return float
+     * @return float|self::DISKSPACE_*
      */
     function getFreeSpace();
 
@@ -195,8 +200,9 @@ interface iFilesystem
      * Returns the total size of a filesystem or disk partition
      *
      * - Returns the number of available bytes as a float
+     * - Using Current Working Directory
      *
-     * @return float
+     * @return float|self::DISKSPACE_*
      */
     function getTotalSpace();
 

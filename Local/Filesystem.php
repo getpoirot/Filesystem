@@ -336,15 +336,21 @@ class Filesystem implements iFilesystem
      *   Just Perform Object Check
      *   It can be used with isExists() combination
      *
-     * @param iCommon $source
+     * @param iCommon|string $source
      *
      * @return bool
      */
-    function isFile(iCommon $source)
+    function isFile($source)
     {
-        /* TODO Make Resource from path */
+        $return = false;
 
-        return $source instanceof iFileInfo;
+        if (is_string($source))
+            $return = @is_file($source);
+
+        if(is_object($source))
+            $return = $source instanceof iFileInfo;
+
+        return $return;
     }
 
     /**
@@ -354,15 +360,21 @@ class Filesystem implements iFilesystem
      *   Just Perform Object Check
      *   It can be used with isExists() combination
      *
-     * @param iCommon $source
+     * @param iCommon|string $source
      *
      * @return bool
      */
-    function isDir(iCommon $source)
+    function isDir($source)
     {
-        /* TODO Make Resource from path */
+        $return = false;
 
-        return $source instanceof iDirectoryInfo;
+        if (is_string($source))
+            $return = @is_dir($source);
+
+        if(is_object($source))
+            $return = $source instanceof iDirectoryInfo;
+
+        return $return;
     }
 
     /**
@@ -372,39 +384,59 @@ class Filesystem implements iFilesystem
      *   Just Perform Object Check
      *   It can be used with isExists() combination
      *
-     * @param iCommon $source
+     * @param iCommon|string $source
      *
      * @return bool
      */
-    function isLink(iCommon $source)
+    function isLink($source)
     {
-        /* TODO Make Resource from path */
+        $return = false;
 
-        return $source instanceof iLinkInfo;
+        if (is_string($source))
+            $return = @is_link($source);
+
+        if(is_object($source))
+            $return = $source instanceof iLinkInfo;
+
+        return $return;
     }
 
     /**
      * Returns available space on filesystem or disk partition
      *
      * - Returns the number of available bytes as a float
+     * - Using Current Working Directory
      *
-     * @return float
+     * @return float|self::DISKSPACE_*
      */
     function getFreeSpace()
     {
-        // TODO: Implement getFreeSpace() method.
+        $result = @disk_free_space(
+            $this->getCwd()->getRealPathName()
+        );
+        if ($result === false)
+            $result = self::DISKSPACE_UNKNOWN;
+
+        return $result;
     }
 
     /**
      * Returns the total size of a filesystem or disk partition
      *
      * - Returns the number of available bytes as a float
+     * - Using Current Working Directory
      *
-     * @return float
+     * @return float|self::DISKSPACE_*
      */
     function getTotalSpace()
     {
-        // TODO: Implement getTotalSpace() method.
+        $result = @disk_total_space(
+            $this->getCwd()->getRealPathName()
+        );
+        if ($result === false)
+            $result = self::DISKSPACE_UNKNOWN;
+
+        return $result;
     }
 
     /**
