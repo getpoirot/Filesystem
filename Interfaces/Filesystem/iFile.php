@@ -4,6 +4,20 @@ namespace Poirot\Filesystem\Interfaces;
 interface iFile extends iCommon, iFileInfo, iWritable
 {
     /**
+     * Lock File
+     *
+     * @return $this
+     */
+    function lock();
+
+    /**
+     * Unlock file
+     *
+     * @return $this
+     */
+    function unlock();
+
+    /**
      * Set the file extension
      *
      * ! throw exception if file is lock

@@ -4,20 +4,6 @@ namespace Poirot\Filesystem\Interfaces;
 interface iCommon extends iCommonInfo, iWritable
 {
     /**
-     * Lock File
-     *
-     * @return $this
-     */
-    function lock();
-
-    /**
-     * Unlock file
-     *
-     * @return $this
-     */
-    function unlock();
-
-    /**
      * Set Basename of file or folder
      *
      * ! throw exception if file is lock

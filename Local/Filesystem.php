@@ -939,7 +939,6 @@ class Filesystem implements iFilesystem
                 , $filename
             ), null, new \Exception(error_get_last()['message']));
 
-        // TODO Return CommonInterface
         return $this->mkFromPath($result);
     }
 

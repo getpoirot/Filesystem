@@ -83,28 +83,12 @@ interface iCommonInfo
     function getDirname();
 
     /**
-     * Gets absolute path to file
-     *
-     * - include full path for remote files
-     *
-     * @return string
-     */
-    function getRealPath();
-
-    /**
      * get the mimetype for a file or folder
      * The mimetype for a folder is required to be "httpd/unix-directory"
      *
      * @return string
      */
      function getMimeType();
-
-    /**
-     * Gets the filesize in bytes for the file referenced
-     *
-     * @return int
-     */
-    function getSize();
 
     /**
      * Tells if file is readable

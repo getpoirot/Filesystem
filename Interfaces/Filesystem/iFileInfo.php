@@ -9,4 +9,11 @@ interface iFileInfo extends iCommonInfo
      * @return string
      */
     function getExtension();
+
+    /**
+     * Gets the file size in bytes for the file referenced
+     *
+     * @return int
+     */
+    function getSize();
 }
