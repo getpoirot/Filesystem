@@ -15,6 +15,8 @@ interface iCommonInfo
     /**
      * Gets the path without filename
      *
+     * - Get CWDir (Filesystem) If Path Not Set
+     *
      * @return string
      */
     function getPath();

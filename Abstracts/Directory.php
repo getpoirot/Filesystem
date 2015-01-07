@@ -86,10 +86,17 @@ class Directory
     /**
      * Gets the path without filename
      *
+     * - Get CWDir (Filesystem) If Path Not Set
+     *
      * @return string
      */
     function getPath()
     {
+        if ($this->path === null)
+            $this->setPath(
+                $this->filesystem()->getCwd()->getRealPathName()
+            );
+
         return Util::normalizePath($this->path);
     }
 

@@ -72,15 +72,17 @@ class Filesystem implements iFilesystem
     /**
      * List an array of files/directories path from the directory
      *
-     * @param iDirectoryInfo $dir
-     * @param int            $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING
-     *                                     |SCANDIR_SORT_DESCENDING
+     * @param iDirectoryInfo|null $dir          If Null Scan Current Working Directory
+     * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING|SCANDIR_SORT_DESCENDING
      *
      * @throws \Exception On Failure
      * @return array
      */
-    function scanDir(iDirectoryInfo $dir, $sortingOrder = self::SCANDIR_SORT_NONE)
+    function scanDir(iDirectoryInfo $dir = null, $sortingOrder = self::SCANDIR_SORT_NONE)
     {
+        if ($dir === null)
+            $dir = $this->getCwd();
+
         $this->validateFile($dir);
 
         $dirname = $dir->getRealPathName();
@@ -992,14 +994,16 @@ class Filesystem implements iFilesystem
     protected function validateFile(iCommonInfo $file)
     {
         $filename = $file->getRealPathName();
-        if (!$this->isFile($file) || $this->isDir($file))
+        if (!$this->isFile($file) && !$this->isDir($file))
             throw new \Exception(sprintf(
                 'The Destination File "%s" Must Be a File Or Folder.'
-            ), $filename);
+                , $filename
+            ));
         elseif (!$this->isExists($file))
             throw new \Exception(sprintf(
                 'File "%s" Not Found.'
-            ), $filename);
+                , $filename
+            ));
     }
 }
  
