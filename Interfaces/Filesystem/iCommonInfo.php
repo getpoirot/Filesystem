@@ -1,6 +1,8 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
+use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+
 interface iCommonInfo
 {
     /**
@@ -30,6 +32,7 @@ interface iCommonInfo
      * Get Path Name To File Or Folder
      *
      * - include full path for remote files
+     * - include extension for files
      *
      * @return string
      */
@@ -69,7 +72,7 @@ interface iCommonInfo
      *
      * exp. from storage WRITABLE|EXECUTABLE
      *
-     * @return mixed
+     * @return iPermissions
      */
     function getPerms();
 
@@ -81,14 +84,6 @@ interface iCommonInfo
      * @return string
      */
     function getDirname();
-
-    /**
-     * get the mimetype for a file or folder
-     * The mimetype for a folder is required to be "httpd/unix-directory"
-     *
-     * @return string
-     */
-     function getMimeType();
 
     /**
      * Tells if file is readable

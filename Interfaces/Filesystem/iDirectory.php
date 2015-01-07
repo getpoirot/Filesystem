@@ -29,6 +29,7 @@ interface iDirectory extends iDirectoryInfo, iCommon
      *
      * - Merge if directory exists
      * - Create If Directory Not Exists
+     * - Use Temp Folder For Safe Move
      *
      * @param iDirectory $directory
      *

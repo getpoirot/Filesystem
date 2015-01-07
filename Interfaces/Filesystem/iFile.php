@@ -82,6 +82,15 @@ interface iFile extends iCommon, iFileInfo, iWritable
     function move($fileFolder);
 
     /**
+     * Rename File And Write To Storage
+     *
+     * @param string $newname New name
+     *
+     * @return $this
+     */
+    function rename($newname);
+
+    /**
      * Deletes a file from storage
      *
      * @return bool

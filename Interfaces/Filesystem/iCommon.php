@@ -1,14 +1,16 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
+use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+
 interface iCommon extends iCommonInfo, iWritable
 {
     /**
      * Set Basename of file or folder
      *
-     * ! throw exception if file is lock
+     * ! without extension
      *
-     * - /path/to/filename.ext
+     * - /path/to/filename[.ext]
      * - /path/to/folderName/
      *
      * @param string $name Basename
@@ -20,24 +22,11 @@ interface iCommon extends iCommonInfo, iWritable
     /**
      * Set Path
      *
-     * ! throw exception if file is lock
-     *
-     * - if null storage use default/current path
-     *
      * @param string|null $path Path To File/Folder
      *
      * @return $this
      */
     function setPath($path);
-
-    /**
-     * Rename File And Write To Storage
-     *
-     * @param string $newname New name
-     *
-     * @return $this
-     */
-    function rename($newname);
 
     /**
      * Set Owner
@@ -46,16 +35,17 @@ interface iCommon extends iCommonInfo, iWritable
      *
      * @return $this
      */
-    function setOwner($owner);
+    function chown($owner);
 
     /**
-     * Set Permissions
+     * Changes file mode
      *
-     * @param $perms
+     * @param iCommonInfo $file Path to the file
+     * @param iPermissions $mode
      *
      * @return $this
      */
-    function setPerms($perms);
+    function chmod(iCommonInfo $file, iPermissions $mode);
 
     /**
      * Set Group
@@ -64,7 +54,7 @@ interface iCommon extends iCommonInfo, iWritable
      *
      * @return $this
      */
-    function setGroup($group);
+    function chgrp($group);
 
     /**
      * Tells if the entry is writable

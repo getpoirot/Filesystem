@@ -1,10 +1,15 @@
 <?php
 namespace Poirot\Filesystem\Abstracts;
 
+use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+use Poirot\Filesystem\Interfaces\iCommonInfo;
 use Poirot\Filesystem\Interfaces\iDirectory;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
+use Poirot\Filesystem\Permissions;
+use Poirot\Filesystem\Util;
+use Poirot\Local\Filesystem;
 
 class Directory
     implements
@@ -12,12 +17,17 @@ class Directory
     iFilesystemAware,
     iFilesystemProvider
 {
+    protected $filesystem;
+
+    protected $basename;
+    protected $path;
+
     /**
      * Set Basename of file or folder
      *
-     * ! throw exception if file is lock
+     * ! without extension
      *
-     * - /path/to/filename.ext
+     * - /path/to/filename[.ext]
      * - /path/to/folderName/
      *
      * @param string $name Basename
@@ -26,15 +36,28 @@ class Directory
      */
     function setBasename($name)
     {
-        // TODO: Implement setBasename() method.
+        $this->basename = $name;
+
+        return $this;
+    }
+
+    /**
+     * Gets the base name of the file
+     *
+     * - Include extension on files
+     *
+     * @return string
+     */
+    function getBasename()
+    {
+        return $this->basename;
     }
 
     /**
      * Set Path
      *
-     * ! throw exception if file is lock
-     *
-     * - if null storage use default/current path
+     * - trimmed left /\ path
+     * - it's consumed from cwd of filesystem or storage
      *
      * @param string|null $path Path To File/Folder
      *
@@ -42,19 +65,32 @@ class Directory
      */
     function setPath($path)
     {
-        // TODO: Implement setPath() method.
+        $this->path = $path;
+
+        return $this;
     }
 
     /**
-     * Rename File And Write To Storage
+     * Gets the path without filename
      *
-     * @param string $newname New name
-     *
-     * @return $this
+     * @return string
      */
-    function rename($newname)
+    function getPath()
     {
-        // TODO: Implement rename() method.
+        return Util::normalizePath($this->path);
+    }
+
+    /**
+     * Get Path Name To File Or Folder
+     *
+     * - include full path for remote files
+     * - include extension for files
+     *
+     * @return string
+     */
+    function getRealPathName()
+    {
+        return $this->getPath().'/'.$this->getBasename();
     }
 
     /**
@@ -64,21 +100,49 @@ class Directory
      *
      * @return $this
      */
-    function setOwner($owner)
+    function chown($owner)
     {
-        // TODO: Implement setOwner() method.
+        $this->filesystem()->chown($this, $owner);
+
+        return $this;
     }
 
     /**
-     * Set Permissions
+     * Gets the owner of the file
      *
-     * @param $perms
+     * @return mixed
+     */
+    function getOwner()
+    {
+        return $this->filesystem()->getFileOwner($this);
+    }
+
+    /**
+     * Changes file mode
+     *
+     * @param iCommonInfo $file Path to the file
+     * @param iPermissions $mode
      *
      * @return $this
      */
-    function setPerms($perms)
+    function chmod(iCommonInfo $file, iPermissions $mode)
     {
-        // TODO: Implement setPerms() method.
+        $this->filesystem()->chmod($this, $mode);
+
+        return $this;
+    }
+
+    /**
+     * Gets file permissions
+     * Should return an or combination of the PERMISSIONS
+     *
+     * exp. from storage WRITABLE|EXECUTABLE
+     *
+     * @return iPermissions
+     */
+    function getPerms()
+    {
+        return $this->filesystem()->getFilePerms($this);
     }
 
     /**
@@ -88,32 +152,21 @@ class Directory
      *
      * @return $this
      */
-    function setGroup($group)
+    function chgrp($group)
     {
-        // TODO: Implement setGroup() method.
+        $this->filesystem()->chgrp($this, $group);
+
+        return $this;
     }
 
     /**
-     * Tells if the entry is writable
+     * Gets the file group
      *
-     * - The writable beside of filesystem must
-     *   implement iWritable
-     *
-     * @return bool
+     * @return mixed
      */
-    function isWritable()
+    function getGroup()
     {
-        // TODO: Implement isWritable() method.
-    }
-
-    /**
-     * Is File/Folder Exists?
-     *
-     * @return bool
-     */
-    function isExists()
-    {
-        // TODO: Implement isExists() method.
+        return $this->filesystem()->getFileGroup($this);
     }
 
     /**
@@ -127,40 +180,6 @@ class Directory
     }
 
     /**
-     * Gets the base name of the file
-     *
-     * - Include extension on files
-     *
-     * @return string
-     */
-    function getBasename()
-    {
-        // TODO: Implement getBasename() method.
-    }
-
-    /**
-     * Gets the path without filename
-     *
-     * @return string
-     */
-    function getPath()
-    {
-        // TODO: Implement getPath() method.
-    }
-
-    /**
-     * Get Path Name To File Or Folder
-     *
-     * - include full path for remote files
-     *
-     * @return string
-     */
-    function getRealPathName()
-    {
-        // TODO: Implement getRealPathName() method.
-    }
-
-    /**
      * Returns the inode change time for the file
      *
      * @return string Unix-TimeStamp
@@ -168,16 +187,6 @@ class Directory
     function getCTime()
     {
         // TODO: Implement getCTime() method.
-    }
-
-    /**
-     * Gets the file group
-     *
-     * @return mixed
-     */
-    function getGroup()
-    {
-        // TODO: Implement getGroup() method.
     }
 
     /**
@@ -191,29 +200,6 @@ class Directory
     }
 
     /**
-     * Gets the owner of the file
-     *
-     * @return mixed
-     */
-    function getOwner()
-    {
-        // TODO: Implement getOwner() method.
-    }
-
-    /**
-     * Gets file permissions
-     * Should return an or combination of the PERMISSIONS
-     *
-     * exp. from storage WRITABLE|EXECUTABLE
-     *
-     * @return mixed
-     */
-    function getPerms()
-    {
-        // TODO: Implement getPerms() method.
-    }
-
-    /**
      * Returns parent directory's path
      *
      * /etc/passwd => /etc
@@ -222,28 +208,7 @@ class Directory
      */
     function getDirname()
     {
-        // TODO: Implement getDirname() method.
-    }
-
-    /**
-     * get the mimetype for a file or folder
-     * The mimetype for a folder is required to be "httpd/unix-directory"
-     *
-     * @return string
-     */
-    function getMimeType()
-    {
-        // TODO: Implement getMimeType() method.
-    }
-
-    /**
-     * Tells if file is readable
-     *
-     * @return bool
-     */
-    function isReadable()
-    {
-        // TODO: Implement isReadable() method.
+        return $this->filesystem()->getDirname($this);
     }
 
     /**
@@ -253,7 +218,7 @@ class Directory
      */
     function rmDir()
     {
-        // TODO: Implement rmDir() method.
+        $this->filesystem()->rmDir($this);
     }
 
     /**
@@ -268,7 +233,9 @@ class Directory
      */
     function copy(iDirectory $directory)
     {
-        // TODO: Implement copy() method.
+        $this->filesystem()->copy($this, $directory);
+
+        return $this;
     }
 
     /**
@@ -278,6 +245,7 @@ class Directory
      *
      * - Merge if directory exists
      * - Create If Directory Not Exists
+     * - Use Temp Folder For Safe Move
      *
      * @param iDirectory $directory
      *
@@ -285,7 +253,7 @@ class Directory
      */
     function move(iDirectory $directory)
     {
-        // TODO: Implement move() method.
+
     }
 
     /**
@@ -295,7 +263,7 @@ class Directory
      */
     function scanDir()
     {
-        // TODO: Implement scanDir() method.
+        return $this->filesystem()->scanDir($this);
     }
 
     /**
@@ -307,7 +275,9 @@ class Directory
      */
     function setFilesystem(iFilesystem $filesystem)
     {
-        // TODO: Implement setFilesystem() method.
+        $this->filesystem = $filesystem;
+
+        return $this;
     }
 
     /**
@@ -315,7 +285,10 @@ class Directory
      */
     function Filesystem()
     {
-        // TODO: Implement Filesystem() method.
+        if (!$this->filesystem)
+            $this->filesystem = new Filesystem();
+
+        return $this->filesystem;
     }
 
     /**
@@ -325,7 +298,41 @@ class Directory
      */
     function mkIfNotExists()
     {
-        // TODO: Implement mkIfNotExists() method.
+        return $this->filesystem()->mkDir(
+            $this, new Permissions(0777)
+        );
+    }
+
+    /**
+     * Is File/Folder Exists?
+     *
+     * @return bool
+     */
+    function isExists()
+    {
+        return $this->Filesystem()->isExists($this);
+    }
+
+    /**
+     * Tells if the entry is writable
+     *
+     * - The writable beside of filesystem must
+     *   implement iWritable
+     *
+     * @return bool
+     */
+    function isWritable()
+    {
+        return $this->filesystem()->isWritable($this);
+    }
+
+    /**
+     * Tells if file is readable
+     *
+     * @return bool
+     */
+    function isReadable()
+    {
+        return $this->filesystem()->isReadable($this);
     }
 }
- 
