@@ -3,10 +3,10 @@ namespace Poirot\Filesystem\Interfaces;
 
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 
-interface iCommon extends iCommonInfo, iWritable
+interface iCommon extends iCommonInfo
 {
     /**
-     * Set Basename of file or folder
+     * Set Filename of file or folder
      *
      * ! without extension
      *
@@ -17,7 +17,7 @@ interface iCommon extends iCommonInfo, iWritable
      *
      * @return $this
      */
-    function setBasename($name);
+    function setFilename($name);
 
     /**
      * Set Path
@@ -40,12 +40,11 @@ interface iCommon extends iCommonInfo, iWritable
     /**
      * Changes file mode
      *
-     * @param iCommonInfo $file Path to the file
      * @param iPermissions $mode
      *
      * @return $this
      */
-    function chmod(iCommonInfo $file, iPermissions $mode);
+    function chmod(iPermissions $mode);
 
     /**
      * Set Group

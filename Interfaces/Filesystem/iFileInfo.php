@@ -16,4 +16,25 @@ interface iFileInfo extends iCommonInfo
      * @return int
      */
     function getSize();
+
+    /**
+     * Gets last access time of the file
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getATime();
+
+    /**
+     * Returns the inode change time for the file
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getCTime();
+
+    /**
+     * Gets the last modified time
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getMTime();
 }

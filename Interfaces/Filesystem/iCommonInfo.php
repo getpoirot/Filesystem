@@ -6,20 +6,13 @@ use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 interface iCommonInfo
 {
     /**
-     * Gets last access time of the file
-     *
-     * @return mixed
-     */
-    function getATime();
-
-    /**
-     * Gets the base name of the file
+     * Gets the file name of the file
      *
      * - Include extension on files
      *
      * @return string
      */
-    function getBasename();
+    function getFilename();
 
     /**
      * Gets the path without filename
@@ -39,25 +32,11 @@ interface iCommonInfo
     function getRealPathName();
 
     /**
-     * Returns the inode change time for the file
-     *
-     * @return string Unix-TimeStamp
-     */
-    function getCTime();
-
-    /**
      * Gets the file group
      *
      * @return mixed
      */
     function getGroup();
-
-    /**
-     * Gets the last modified time
-     *
-     * @return string Unix-TimeStamp
-     */
-    function getMTime();
 
     /**
      * Gets the owner of the file

@@ -2,7 +2,6 @@
 namespace Poirot\Filesystem\Abstracts;
 
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
-use Poirot\Filesystem\Interfaces\iCommonInfo;
 use Poirot\Filesystem\Interfaces\iDirectory;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
@@ -19,7 +18,7 @@ class Directory
 {
     protected $filesystem;
 
-    protected $basename;
+    protected $filename;
     protected $path;
 
     /**
@@ -34,9 +33,9 @@ class Directory
      *
      * @return $this
      */
-    function setBasename($name)
+    function setFilename($name)
     {
-        $this->basename = $name;
+        $this->filename = $name;
 
         return $this;
     }
@@ -48,9 +47,9 @@ class Directory
      *
      * @return string
      */
-    function getBasename()
+    function getFilename()
     {
-        return $this->basename;
+        return $this->filename;
     }
 
     /**
@@ -90,7 +89,21 @@ class Directory
      */
     function getRealPathName()
     {
-        return $this->getPath().'/'.$this->getBasename();
+        return $this->getPath().'/'.$this->getFilename();
+    }
+
+    /**
+     * Makes directory Recursively
+     *
+     * @return $this
+     */
+    function mkDir()
+    {
+        $this->filesystem()->mkDir($this
+            , new Permissions(0755)
+        );
+
+        return $this;
     }
 
     /**
@@ -120,12 +133,11 @@ class Directory
     /**
      * Changes file mode
      *
-     * @param iCommonInfo $file Path to the file
      * @param iPermissions $mode
      *
      * @return $this
      */
-    function chmod(iCommonInfo $file, iPermissions $mode)
+    function chmod(iPermissions $mode)
     {
         $this->filesystem()->chmod($this, $mode);
 
@@ -170,41 +182,11 @@ class Directory
     }
 
     /**
-     * Gets last access time of the file
-     *
-     * @return mixed
-     */
-    function getATime()
-    {
-        // TODO: Implement getATime() method.
-    }
-
-    /**
-     * Returns the inode change time for the file
-     *
-     * @return string Unix-TimeStamp
-     */
-    function getCTime()
-    {
-        // TODO: Implement getCTime() method.
-    }
-
-    /**
-     * Gets the last modified time
-     *
-     * @return string Unix-TimeStamp
-     */
-    function getMTime()
-    {
-        // TODO: Implement getMTime() method.
-    }
-
-    /**
      * Returns parent directory's path
      *
      * /etc/passwd => /etc
      *
-     * @return string
+     * @return iDirectory
      */
     function getDirname()
     {
@@ -289,18 +271,6 @@ class Directory
             $this->filesystem = new Filesystem();
 
         return $this->filesystem;
-    }
-
-    /**
-     * Make File/Folder if not exists
-     *
-     * @return bool
-     */
-    function mkIfNotExists()
-    {
-        return $this->filesystem()->mkDir(
-            $this, new Permissions(0777)
-        );
     }
 
     /**

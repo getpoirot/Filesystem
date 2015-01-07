@@ -1,6 +1,7 @@
 <?php
 namespace Poirot\Local;
 
+use Poirot\Filesystem\Abstracts\Directory;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iCommon;
 use Poirot\Filesystem\Interfaces\iCommonInfo;
@@ -29,7 +30,18 @@ class Filesystem implements iFilesystem
      */
     function mkFromPath($path)
     {
-        // TODO IMplement This
+        $return = false;
+        if ($this->isDir($path))
+            $return = new Directory();
+
+        if (!$return)
+            throw new \Exception(sprintf(
+                    'Path "%s" not recognized.'
+                    , $path
+                ), null, new \Exception(error_get_last()['message'])
+            );
+
+        return $return;
     }
 
     // Directory Implementation:

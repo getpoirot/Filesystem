@@ -11,6 +11,13 @@ interface iDirectory extends iDirectoryInfo, iCommon
     function rmDir();
 
     /**
+     * Makes directory Recursively
+     *
+     * @return $this
+     */
+    function mkDir();
+
+    /**
      * Copy to new directory
      *
      * - Merge if directory exists
