@@ -37,7 +37,7 @@ interface iDirectory extends iStorage, iDirectoryInfo, iWritable
     function move(iDirectory $directory);
 
     /**
-     * List an array of files and directories from the directory
+     * List an array of files/directories Object from the directory
      *
      * @return array
      */

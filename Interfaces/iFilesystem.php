@@ -7,6 +7,13 @@ interface iFilesystem
 {
     const DS = DIRECTORY_SEPARATOR; // prefer to use '/' as a portable separator
 
+    /* Care needed going from PHP 5.3 to 5.4, as the constant
+       SCANDIR_SORT_DESCENDING is only defined from 5.4.
+    */
+    const SCANDIR_SORT_ASCENDING  = 0;
+    const SCANDIR_SORT_DESCENDING = 1;
+    const SCANDIR_SORT_NONE       = 2;
+
     /**
      * Make an Object From Existence Path Filesystem
      *
@@ -26,6 +33,17 @@ interface iFilesystem
      * @return iDirectory
      */
     function getCwd();
+
+    /**
+     * List an array of files/directories path from the directory
+     *
+     * @param iDirectoryInfo $dir
+     * @param int            $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING|SCANDIR_SORT_DESCENDING
+     *
+     * @throws \Exception On Failure
+     * @return array
+     */
+    function scanDir(iDirectoryInfo $dir, $sortingOrder = self::SCANDIR_SORT_NONE);
 
     /**
      * Changes Filesystem current directory

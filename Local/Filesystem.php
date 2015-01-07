@@ -54,6 +54,31 @@ class Filesystem implements iFilesystem
     }
 
     /**
+     * List an array of files/directories path from the directory
+     *
+     * @param iDirectoryInfo $dir
+     * @param int            $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING
+     *                                     |SCANDIR_SORT_DESCENDING
+     *
+     * @throws \Exception On Failure
+     * @return array
+     */
+    function scanDir(iDirectoryInfo $dir, $sortingOrder = self::SCANDIR_SORT_NONE)
+    {
+        $this->validateFile($dir);
+
+        $dirname = $dir->getRealPathName();
+        $result  = scandir($dirname, $sortingOrder);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed Scan Directory To "%s".'
+                , $dirname
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $result;
+    }
+
+    /**
      * Changes Filesystem current directory
      *
      * @param iDirectoryInfo $dir
