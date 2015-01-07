@@ -1,6 +1,13 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
+use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
+use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iFile;
+use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 
 interface iFilesystem
@@ -456,4 +463,3 @@ interface iFilesystem
      */
     function unlink(iFileInfo $file);
 }
- 

@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem\Interfaces;
+namespace Poirot\Filesystem\Interfaces\Filesystem;
 
 interface iFile extends iCommon, iFileInfo, iWritable
 {

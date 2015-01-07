@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem\Interfaces;
+namespace Poirot\Filesystem\Interfaces\Filesystem;
 
 interface iDirectory extends iDirectoryInfo, iCommon
 {

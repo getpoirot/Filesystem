@@ -1,16 +1,16 @@
 <?php
-namespace Poirot\Local;
+namespace Poirot\Filesystem\Local;
 
 use Poirot\Filesystem\Abstracts\Directory;
+use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
+use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iFile;
+use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
-use Poirot\Filesystem\Interfaces\iCommon;
-use Poirot\Filesystem\Interfaces\iCommonInfo;
-use Poirot\Filesystem\Interfaces\iDirectory;
-use Poirot\Filesystem\Interfaces\iDirectoryInfo;
-use Poirot\Filesystem\Interfaces\iFile;
-use Poirot\Filesystem\Interfaces\iFileInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Filesystem\Interfaces\iLinkInfo;
 use Poirot\Filesystem\Permissions;
 
 /**
@@ -32,7 +32,11 @@ class Filesystem implements iFilesystem
     {
         $return = false;
         if ($this->isDir($path))
-            $return = new Directory();
+            $return = new Directory([
+                'filesystem' => $this,
+                'filename'   => pathinfo($path, PATHINFO_FILENAME),
+                'path'       => pathinfo($path, PATHINFO_DIRNAME),
+            ]);
 
         if (!$return)
             throw new \Exception(sprintf(

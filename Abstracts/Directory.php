@@ -1,14 +1,15 @@
 <?php
 namespace Poirot\Filesystem\Abstracts;
 
+use Poirot\Core\BuilderSetterTrait;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
-use Poirot\Filesystem\Interfaces\iDirectory;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
+use Poirot\Filesystem\Local\Filesystem;
 use Poirot\Filesystem\Permissions;
 use Poirot\Filesystem\Util;
-use Poirot\Local\Filesystem;
 
 class Directory
     implements
@@ -16,10 +17,23 @@ class Directory
     iFilesystemAware,
     iFilesystemProvider
 {
+    use BuilderSetterTrait;
+
     protected $filesystem;
 
     protected $filename;
     protected $path;
+
+    /**
+     * Construct
+     *
+     * @param array $setterBuilder
+     */
+    function __construct(array $setterBuilder = [])
+    {
+       if (!empty($setterBuilder))
+           $this->setupFromArray($setterBuilder);
+    }
 
     /**
      * Set Basename of file or folder

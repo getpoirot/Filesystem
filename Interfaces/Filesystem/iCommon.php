@@ -1,7 +1,5 @@
 <?php
-namespace Poirot\Filesystem\Interfaces;
-
-use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+namespace Poirot\Filesystem\Interfaces\Filesystem;
 
 interface iCommon extends iCommonInfo
 {
