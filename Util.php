@@ -47,6 +47,13 @@ class Util
         (!isset($m[3])) ?: $ret['filename']  = $m[3];
         (!isset($m[5])) ?: $ret['extension'] = $m[5];
 
+        if (isset($ret['extension']) && $ret['filename'] === '') {
+            // for folders similar to .ssh
+            unset($ret['extension']);
+
+            $ret['filename'] = $ret['basename'];
+        }
+
         return $ret;
     }
 }
