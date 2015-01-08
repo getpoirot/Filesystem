@@ -11,6 +11,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
+use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Permissions;
 
 /**
@@ -72,6 +73,8 @@ class Filesystem implements iFilesystem
     /**
      * List an array of files/directories path from the directory
      *
+     * - get rid of ".", ".." from list
+     *
      * @param iDirectoryInfo|null $dir          If Null Scan Current Working Directory
      * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING|SCANDIR_SORT_DESCENDING
      *
@@ -92,6 +95,9 @@ class Filesystem implements iFilesystem
                 'Failed Scan Directory To "%s".'
                 , $dirname
             ), null, new \Exception(error_get_last()['message']));
+
+        // get rid of the dots
+        $result = array_diff($result, array('..', '.'));
 
         return $result;
     }
