@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces\Filesystem;
 
-interface iFile extends iCommon, iFileInfo, iWritable
+interface iFile extends iFileInfo, iCommon, iWritable
 {
     /**
      * Lock File
@@ -62,24 +62,24 @@ interface iFile extends iCommon, iFileInfo, iWritable
      *
      * - If Directory Given Copy With Same Name To Directory
      *
-     * @param iFile|iDirectory $fileFolder
+     * @param iFile|iDirectory $fileDir
      *
      * @throws \Exception Throw Exception If File Exists
      * @return $this
      */
-    function copy($fileFolder);
+    function copy($fileDir);
 
     /**
      * Move to new file
      *
      * - If Directory Given Copy With Same Name To Directory
      *
-     * @param iFile|iDirectory $fileFolder
+     * @param iFile|iDirectory $fileDir
      *
      * @throws \Exception Throw Exception If File Exists
      * @return $this
      */
-    function move($fileFolder);
+    function move($fileDir);
 
     /**
      * Rename File And Write To Storage

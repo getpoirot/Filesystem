@@ -2,6 +2,7 @@
 namespace Poirot\Filesystem\Local;
 
 use Poirot\Filesystem\Abstracts\Directory;
+use Poirot\Filesystem\Abstracts\File;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -11,8 +12,8 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Permissions;
+use Poirot\Filesystem\Util;
 
 /**
  * ! Note: In PHP Most Of Filesystem actions need
@@ -32,12 +33,15 @@ class Filesystem implements iFilesystem
     function mkFromPath($path)
     {
         $return = false;
-        if ($this->isDir($path))
-            $return = new Directory([
-                'filesystem' => $this,
-                'filename'   => pathinfo($path, PATHINFO_FILENAME),
-                'path'       => pathinfo($path, PATHINFO_DIRNAME),
-            ]);
+
+        if ($this->isDir($path)) {
+            $pathInfo = Util::getDirPathInfo($path);
+            $return = new Directory($pathInfo);
+        }
+        elseif ($this->isFile($path)) {
+            $pathInfo = Util::getPathInfo($path);
+            $return = new File($pathInfo);
+        }
 
         if (!$return)
             throw new \Exception(sprintf(
@@ -45,6 +49,8 @@ class Filesystem implements iFilesystem
                     , $path
                 ), null, new \Exception(error_get_last()['message'])
             );
+
+        $return->setFilesystem($this);
 
         return $return;
     }
@@ -140,7 +146,7 @@ class Filesystem implements iFilesystem
         $this->validateFile($file);
 
         $filename = $file->getRealPathName();
-        if (!chgrp($filename, $group))
+        if (!@chgrp($filename, $group))
             throw new \Exception(sprintf(
                 'Failed Changing Group Of "%s" File.'
                 , $filename
@@ -167,7 +173,10 @@ class Filesystem implements iFilesystem
 
         $filename = $file->getRealPathName();
         // Upon failure, an E_WARNING is emitted.
-        $group = @posix_getgrgid(filegroup($filename));
+        $group = filegroup($filename);
+        (!function_exists('posix_getgrgid')) ?:
+            $group = posix_getgrgid($group);
+
         if (!$group)
             throw new \Exception(sprintf(
                 'Failed To Know Group Of "%s" File.'
@@ -193,7 +202,7 @@ class Filesystem implements iFilesystem
         $this->validateFile($file);
 
         $filename = $file->getRealPathName();
-        if (!chmod($filename, $mode->getTotalPerms()))
+        if (!@chmod($filename, $mode->getTotalPerms()))
             throw new \Exception(sprintf(
                 'Failed To Change File Mode For "%s".'
                 , $filename
@@ -238,7 +247,7 @@ class Filesystem implements iFilesystem
         $this->validateFile($file);
 
         $filename = $file->getRealPathName();
-        if (!chown($filename, $user))
+        if (!@chown($filename, $user))
             throw new \Exception(sprintf(
                 'Failed To Change Owner Of "%s" File.'
                 , $filename
@@ -261,7 +270,10 @@ class Filesystem implements iFilesystem
 
         $filename = $file->getRealPathName();
         // Upon failure, an E_WARNING is emitted.
-        $owner = @posix_getgrgid(fileowner($filename)); // fileowner() "root" is 0
+        $owner = @fileowner($filename); // fileowner() "root" is 0
+        if (function_exists('posix_getgrgid'))
+            $owner = posix_getgrgid($owner);
+
         if (!$owner)
             throw new \Exception(sprintf(
                 'Failed To Know Group Of "%s" File.'
@@ -305,7 +317,7 @@ class Filesystem implements iFilesystem
             , $source->getRealPathName(), $dest->getRealPathName()
             ));
 
-        if (!$this->isDir($dest) || !$this->isFile($dest))
+        if (!$this->isDir($dest) && !$this->isFile($dest))
             throw new \Exception(sprintf(
                 'Destination at "%s" Must be a File Or Directory For Copy.'
                 , $dest->getRealPathName()
@@ -315,16 +327,24 @@ class Filesystem implements iFilesystem
         if ($this->isDir($dest)) {
             // Copy to directory
             if (!$this->isExists($dest))
-                $this->mkDir($dest, new Permissions(0777));
+                $this->mkDir($dest, new Permissions(0755));
 
             if ($this->isFile($source))
-                $copied = copy(
+                /** @var iFile $source */
+                $copied = @copy(
                     $source->getRealPathName()
-                    , $dest->getRealPathName().self::DS.$source->getRealPathName()
+                    , $dest->getRealPathName().self::DS.$source->getFilename()
+                      .(($source->getExtension()) ? '.'.$source->getExtension() : '')
                 );
             else {
                 // Merge Folder
-                $x = 1;
+                $destDirName = $dest->getRealPathName().'/'.$source->getFilename();
+                $copied = true; // we don't want rise error from here
+                foreach($this->scanDir($source) as $fd)
+                    $this->copy(
+                        $this->mkFromPath($source->getRealPathName().'/'.$fd)
+                        , new Directory($destDirName)
+                    );
             }
         } else {
             // Copy File To Destination(file)
@@ -346,7 +366,7 @@ class Filesystem implements iFilesystem
 
         if (!$copied)
             throw new \Exception(sprintf(
-                'Failed Copy "%s" To "%s".'
+                'Error While Coping "%s" To "%s".'
                 , $source->getRealPathName(), $dest->getRealPathName()
             ), null, new \Exception(error_get_last()['message']));
 
