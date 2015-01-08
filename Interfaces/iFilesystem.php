@@ -289,12 +289,12 @@ interface iFilesystem
     /**
      * Gets file size
      *
-     * @param iFile $file
+     * @param iFileInfo $file
      *
      * @throws \Exception On Failure
      * @return int In bytes
      */
-    function getFileSize(iFile $file);
+    function getFileSize(iFileInfo $file);
 
     /**
      * Portable advisory file locking

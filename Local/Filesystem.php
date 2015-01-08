@@ -502,31 +502,6 @@ class Filesystem implements iFilesystem
     }
 
     /**
-     * Reads entire file into a string
-     *
-     * @param iFile $file
-     * @param int $maxlen Maximum length of data read
-     *
-     * @throws \Exception On Failure
-     * @return string
-     */
-    function getFileContents(iFile $file, $maxlen = 0)
-    {
-        $this->validateFile($file);
-
-        $filename = $file->getRealPathName();
-        // Upon failure, an E_WARNING is emitted.
-        $content = @file_get_contents($filename);
-        if ($content === false)
-            throw new \Exception(sprintf(
-                'Failed To Read Contents Of "%s" File.'
-                , $filename
-            ), null, new \Exception(error_get_last()['message']));
-
-        return $content;
-    }
-
-    /**
      * Write a string to a file
      *
      * - If filename does not exist, the file is created
@@ -555,6 +530,31 @@ class Filesystem implements iFilesystem
         $file->setContents($contents);
 
         return $this;
+    }
+
+    /**
+     * Reads entire file into a string
+     *
+     * @param iFile $file
+     * @param int $maxlen Maximum length of data read
+     *
+     * @throws \Exception On Failure
+     * @return string
+     */
+    function getFileContents(iFile $file, $maxlen = 0)
+    {
+        $this->validateFile($file);
+
+        $filename = $file->getRealPathName();
+        // Upon failure, an E_WARNING is emitted.
+        $content = @file_get_contents($filename);
+        if ($content === false)
+            throw new \Exception(sprintf(
+                'Failed To Read Contents Of "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $content;
     }
 
     /**
@@ -645,12 +645,12 @@ class Filesystem implements iFilesystem
     /**
      * Gets file size
      *
-     * @param iFile $file
+     * @param iFileInfo $file
      *
      * @throws \Exception On Failure
      * @return int In bytes
      */
-    function getFileSize(iFile $file)
+    function getFileSize(iFileInfo $file)
     {
         $this->validateFile($file);
 
@@ -669,6 +669,8 @@ class Filesystem implements iFilesystem
     }
 
     /**
+     * TODO Not Working
+     *
      * Portable advisory file locking
      *
      * ! shared lock    (reader)
