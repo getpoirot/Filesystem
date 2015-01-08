@@ -35,7 +35,7 @@ class Directory
     function __construct($setterBuilder = null)
     {
         if (is_string($setterBuilder))
-            $setterBuilder = Util::getPathInfo($setterBuilder);
+            $setterBuilder = Util::getDirPathInfo($setterBuilder);
 
         if (is_array($setterBuilder))
            $this->setupFromArray($setterBuilder);
@@ -117,7 +117,9 @@ class Directory
     function getRealPathName()
     {
         // remove trailing slashes, happen if current path is /
-        return Util::normalizePath($this->getPath().'/'.$this->getFilename());
+        $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
+
+        return $prefix.$this->getFilename();
     }
 
     /**

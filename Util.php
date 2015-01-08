@@ -34,7 +34,7 @@ class Util
      *
      * @param string $path
      *
-     * @return \stdClass
+     * @return array
      */
     public static function getPathInfo($path)
     {
@@ -42,7 +42,7 @@ class Util
 
         $ret  = [];
         preg_match('%^(.*?)[\\\\/]*(([^/\\\\]*?)(\.([^\.\\\\/]+?)|))[\\\\/\.]*$%im', $path, $m);
-        (!isset($m[1])) ?: $ret['path']      = ($m[1] == '') ? '/' : $m[1];
+        (!isset($m[1])) ?: $ret['path']      = $m[1];
         (!isset($m[2])) ?: $ret['basename']  = $m[2];
         (!isset($m[3])) ?: $ret['filename']  = $m[3];
         (!isset($m[5])) ?: $ret['extension'] = $m[5];
@@ -54,7 +54,30 @@ class Util
             $ret['filename'] = $ret['basename'];
         }
 
+        if ($ret['path'] === '')
+            unset($ret['path']);
+
+        return $ret;
+    }
+
+    /**
+     * For Directories we don't have extension
+     * so a directory with name "jquery.slide"
+     * have not extension, all consumed as filename
+     *
+     * @param $path
+     *
+     * @return array
+     */
+    public static function getDirPathInfo($path)
+    {
+        $ret = self::getPathInfo($path);
+        if (isset($ret['extension'])) {
+            $ret['filename'] .= '.'. $ret['extension'];
+
+            unset($ret['extension']);
+        }
+
         return $ret;
     }
 }
- 
