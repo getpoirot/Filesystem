@@ -27,11 +27,17 @@ class Directory
     /**
      * Construct
      *
-     * @param array $setterBuilder
+     * - ArraySetter or PathString
+     *   we extract info from path and build class
+     *
+     * @param array|string $setterBuilder
      */
-    function __construct(array $setterBuilder = [])
+    function __construct($setterBuilder = null)
     {
-       if (!empty($setterBuilder))
+        if (is_string($setterBuilder))
+            $setterBuilder = Util::getPathInfo($setterBuilder);
+
+        if (is_array($setterBuilder))
            $this->setupFromArray($setterBuilder);
     }
 
@@ -110,7 +116,8 @@ class Directory
      */
     function getRealPathName()
     {
-        return $this->getPath().'/'.$this->getFilename();
+        // remove trailing slashes, happen if current path is /
+        return Util::normalizePath($this->getPath().'/'.$this->getFilename());
     }
 
     /**

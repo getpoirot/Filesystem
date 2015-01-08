@@ -19,10 +19,6 @@ class Util
         // convert paths to portables one
         $path = str_replace('\\', '/', $path);
 
-        // add leading slash
-        if ($path[0] !== '/')
-            $path = '/' . $path;
-
         // remove sequences of slashes
         $path = preg_replace('#/{2,}#', '/', $path);
 
@@ -31,6 +27,27 @@ class Util
             $path = substr($path, 0, -1);
 
         return $path;
+    }
+
+    /**
+     * Extract Path Info
+     *
+     * @param string $path
+     *
+     * @return \stdClass
+     */
+    public static function getPathInfo($path)
+    {
+        $path = self::normalizePath($path);
+
+        $ret  = [];
+        preg_match('%^(.*?)[\\\\/]*(([^/\\\\]*?)(\.([^\.\\\\/]+?)|))[\\\\/\.]*$%im', $path, $m);
+        (!isset($m[1])) ?: $ret['path']      = ($m[1] == '') ? '/' : $m[1];
+        (!isset($m[2])) ?: $ret['basename']  = $m[2];
+        (!isset($m[3])) ?: $ret['filename']  = $m[3];
+        (!isset($m[5])) ?: $ret['extension'] = $m[5];
+
+        return $ret;
     }
 }
  
