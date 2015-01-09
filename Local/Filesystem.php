@@ -333,12 +333,11 @@ class Filesystem implements iFilesystem
                 /** @var iFile $source */
                 $copied = @copy(
                     $source->getRealPathName()
-                    , $dest->getRealPathName().self::DS.$source->getFilename()
-                      .(($source->getExtension()) ? '.'.$source->getExtension() : '')
+                    , $dest->getRealPathName().self::DS.$this->getBasename($source)
                 );
             else {
                 // Merge Folder
-                $destDirName = $dest->getRealPathName().'/'.$source->getFilename();
+                $destDirName = $dest->getRealPathName().'/'.$this->getBasename($source);
                 $copied = true; // we don't want rise error from here
                 foreach($this->scanDir($source) as $fd)
                     $this->copy(
@@ -875,9 +874,10 @@ class Filesystem implements iFilesystem
      *
      * - new name can contains absolute path
      *   /new/path/to/renamed.file
-     *
      * - if new name is just name
      *   append file directory path to new name
+     * - moving it between directories if necessary
+     * - If newname exists, it will be overwritten
      *
      * @param iCommonInfo $file
      * @param string      $newName
@@ -887,10 +887,10 @@ class Filesystem implements iFilesystem
      */
     function rename(iCommonInfo $file, $newName)
     {
-        // TODO Create New Name Object
-        if ($this->getBasename($newName) !== $newName)
+        $pathInfo = Util::getPathInfo($newName);
+        if (!isset($pathInfo['path']))
             $newName = $this->getDirname($file)->getRealPathName()
-                . $newName;
+                .'/'. $newName;
 
         if (!@rename($file->getRealPathName(), $newName))
             throw new \Exception(sprintf(

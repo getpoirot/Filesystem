@@ -398,9 +398,10 @@ interface iFilesystem
      *
      * - new name can contains absolute path
      *   /new/path/to/renamed.file
-     *
      * - if new name is just name
      *   append file directory path to new name
+     * - moving it between directories if necessary
+     * - If newname exists, it will be overwritten
      *
      * @param iCommonInfo $file
      * @param string      $newName
