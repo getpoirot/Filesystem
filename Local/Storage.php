@@ -18,7 +18,7 @@ class Storage extends AbstractStorage implements
     protected $options;
 
     /**
-     * Implemented in AbstractStorage Construct
+     * Implemented in AbstractIStorage Construct
      */
     function consIt()
     {
