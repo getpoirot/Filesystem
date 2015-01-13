@@ -914,7 +914,28 @@ class Filesystem implements iFilesystem
      */
     function rmDir(iDirectoryInfo $dir)
     {
-        // TODO: Implement rmDir() method.
+        $this->validateFile($dir);
+
+        $lsDir = $this->scanDir($dir);
+        if (!empty($lsDir))
+            foreach($lsDir as $ls) {
+                // First: Delete Directories Recursively
+                $ls = $dir->getRealPathName().'/'.$ls;
+                $node = $this->mkFromPath($ls);
+                if ($this->isDir($node))
+                    $this->rmDir($node);
+                else
+                    $this->unlink($node);
+            }
+
+        // Ensure That Folder Is Empty: Delete It
+        if (!@rmdir($dir->getRealPathName()))
+            throw new \Exception(sprintf(
+                'Error While Deleting "%s" File.'
+                , $dir->getRealPathName()
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     /**
