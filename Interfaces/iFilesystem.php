@@ -365,13 +365,13 @@ interface iFilesystem
     function getDirname(iCommonInfo $file);
 
     /**
-     * Returns the base name of the given path.
+     * Returns the base filename of the given path.
      *
      * @param iCommonInfo $file
      *
      * @return string
      */
-    function getBasename(iCommonInfo $file);
+    function getFilename(iCommonInfo $file);
 
     /**
      * Get Extension Of File
@@ -391,7 +391,7 @@ interface iFilesystem
      *
      * @return string
      */
-    function getFilename(iCommonInfo $file);
+    function getBasename(iCommonInfo $file);
 
     /**
      * Rename File Or Directory

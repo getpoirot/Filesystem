@@ -15,7 +15,7 @@ interface iCommon extends iCommonInfo
      *
      * @return $this
      */
-    function setFilename($name);
+    function setBasename($name);
 
     /**
      * Set Path

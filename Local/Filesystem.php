@@ -333,11 +333,11 @@ class Filesystem implements iFilesystem
                 /** @var iFile $source */
                 $copied = @copy(
                     $source->getRealPathName()
-                    , $dest->getRealPathName().self::DS.$this->getBasename($source)
+                    , $dest->getRealPathName().self::DS.$this->getFilename($source)
                 );
             else {
                 // Merge Folder
-                $destDirName = $dest->getRealPathName().'/'.$this->getBasename($source);
+                $destDirName = $dest->getRealPathName().'/'.$this->getFilename($source);
                 $copied = true; // we don't want rise error from here
                 foreach($this->scanDir($source) as $fd)
                     $this->copy(
@@ -808,13 +808,13 @@ class Filesystem implements iFilesystem
     }
 
     /**
-     * Returns the base name of the given path.
+     * Returns the base filename of the given path.
      *
      * @param iCommonInfo $file
      *
      * @return string
      */
-    function getBasename(iCommonInfo $file)
+    function getFilename(iCommonInfo $file)
     {
         /*
          * TODO
@@ -854,7 +854,7 @@ class Filesystem implements iFilesystem
      *
      * @return string
      */
-    function getFilename(iCommonInfo $file)
+    function getBasename(iCommonInfo $file)
     {
         /*
          * TODO

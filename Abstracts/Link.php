@@ -123,7 +123,7 @@ class Link
         $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
         $ext    = ($this->getExtension()) ? '.'.$this->getExtension() : '';
 
-        return $prefix.$this->getFilename().$ext;
+        return $prefix.$this->getBasename().$ext;
     }
 
     /**

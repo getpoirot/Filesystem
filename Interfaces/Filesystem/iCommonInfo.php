@@ -6,11 +6,11 @@ interface iCommonInfo
     /**
      * Gets the file name of the file
      *
-     * - Include extension on files
+     * - Without extension on files
      *
      * @return string
      */
-    function getFilename();
+    function getBasename();
 
     /**
      * Gets the path without filename

@@ -4,6 +4,16 @@ namespace Poirot\Filesystem\Interfaces\Filesystem;
 interface iFileInfo extends iCommonInfo
 {
     /**
+     * Get Filename Include File Extension
+     *
+     * ! It's a combination of basename+'.'.extension
+     *   combined with a dot
+     *
+     * @return string
+     */
+    function getFilename();
+
+    /**
      * Gets the file extension
      *
      * @return string

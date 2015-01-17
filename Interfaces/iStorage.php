@@ -22,7 +22,7 @@ interface iStorage extends iCommon
      *
      * @return string
      */
-    function getBasename();
+    function getFilename();
 
     /**
      * Get Current Filesystem/Storage Working Directory

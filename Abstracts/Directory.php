@@ -53,7 +53,7 @@ class Directory
      *
      * @return $this
      */
-    function setFilename($name)
+    function setBasename($name)
     {
         $this->filename = $name;
 
@@ -119,7 +119,7 @@ class Directory
         // remove trailing slashes, happen if current path is /
         $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
 
-        return $prefix.$this->getFilename();
+        return $prefix.$this->getBasename();
     }
 
     /**

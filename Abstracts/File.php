@@ -55,7 +55,7 @@ class File
      *
      * @return $this
      */
-    function setFilename($name)
+    function setBasename($name)
     {
         $this->filename = $name;
 
@@ -65,13 +65,33 @@ class File
     /**
      * Gets the base name of the file
      *
-     * - Include extension on files
+     * - Without extension on files
+     *
+     * @return string
+     */
+    function getBasename()
+    {
+        return $this->filename;
+    }
+
+    /**
+     * Get Filename Include File Extension
+     *
+     * ! It's a combination of basename+'.'.extension
+     *   combined with a dot
      *
      * @return string
      */
     function getFilename()
     {
-        return $this->filename;
+        $filename = $this->getBasename();
+        $filename = (
+            $this->getExtension()    !== null
+            || $this->getExtension() !== ''
+        ) ? $filename.'.'.$this->getExtension()
+          : $filename;
+
+        return $filename;
     }
 
     /**
@@ -122,7 +142,7 @@ class File
         $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
         $ext    = ($this->getExtension()) ? '.'.$this->getExtension() : '';
 
-        return $prefix.$this->getFilename().$ext;
+        return $prefix.$this->getBasename().$ext;
     }
 
     /**
