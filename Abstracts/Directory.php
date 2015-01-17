@@ -67,7 +67,7 @@ class Directory
      *
      * @return string
      */
-    function getFilename()
+    function getBasename()
     {
         return $this->filename;
     }

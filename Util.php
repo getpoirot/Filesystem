@@ -43,8 +43,8 @@ class Util
         $ret  = [];
         preg_match('%^(.*?)[\\\\/]*(([^/\\\\]*?)(\.([^\.\\\\/]+?)|))[\\\\/\.]*$%im', $path, $m);
         (!isset($m[1])) ?: $ret['path']      = $m[1];
-        (!isset($m[2])) ?: $ret['basename']  = $m[2];
-        (!isset($m[3])) ?: $ret['filename']  = $m[3];
+        (!isset($m[2])) ?: $ret['filename']  = $m[2];
+        (!isset($m[3])) ?: $ret['basename']  = $m[3];
         (!isset($m[5])) ?: $ret['extension'] = $m[5];
 
         if (isset($ret['extension']) && $ret['filename'] === '') {
