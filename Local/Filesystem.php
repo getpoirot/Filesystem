@@ -349,10 +349,7 @@ class Filesystem implements iFilesystem
             // Copy File To Destination(file)
 
             // make directories to destination to avoid error >>> {
-            $destDir = $this->getDirname(
-                $dest->getRealPathName()
-            );
-            $destDir = $this->mkFromPath($destDir);
+            $destDir = $this->getDirname($dest);
             if (!$this->isExists($destDir))
                 $this->mkDir($destDir, new Permissions(0777));
             // } <<<
