@@ -12,66 +12,41 @@ use Poirot\Filesystem\Local\Filesystem;
 use Poirot\Filesystem\Permissions;
 use Poirot\Filesystem\Util;
 
-class File
+class File extends Common
     implements
-    iFile,
-    iFilesystemAware,
-    iFilesystemProvider
+    iFile
 {
-    use BuilderSetterTrait;
-
-    protected $filesystem;
-
-    protected $filename;
     protected $extension;
-    protected $path;
 
     /**
-     * Construct
-     *
-     * - ArraySetter or PathString
-     *   we extract info from path and build class
-     *
-     * @param array|string $setterBuilder
+     * @var file content internal cache
      */
-    function __construct($setterBuilder = null)
-    {
-        if (is_string($setterBuilder))
-            $setterBuilder = Util::getPathInfo($setterBuilder);
-
-        if (is_array($setterBuilder))
-           $this->setupFromArray($setterBuilder);
-    }
+    protected $_fcontent;
 
     /**
-     * Set Basename of file or folder
+     * Set the file extension
      *
-     * ! without extension
+     * ! throw exception if file is lock
      *
-     * - /path/to/filename[.ext]
-     * - /path/to/folderName/
-     *
-     * @param string $name Basename
+     * @param string|null $ext File Extension
      *
      * @return $this
      */
-    function setBasename($name)
+    function setExtension($ext)
     {
-        $this->filename = $name;
+        $this->extension = $ext;
 
         return $this;
     }
 
     /**
-     * Gets the base name of the file
-     *
-     * - Without extension on files
+     * Gets the file extension
      *
      * @return string
      */
-    function getBasename()
+    function getExtension()
     {
-        return $this->filename;
+        return $this->extension;
     }
 
     /**
@@ -95,40 +70,6 @@ class File
     }
 
     /**
-     * Set Path
-     *
-     * - trimmed left /\ path
-     * - it's consumed from cwd of filesystem or storage
-     *
-     * @param string|null $path Path To File/Folder
-     *
-     * @return $this
-     */
-    function setPath($path)
-    {
-        $this->path = $path;
-
-        return $this;
-    }
-
-    /**
-     * Gets the path without filename
-     *
-     * - Get CWDir (Filesystem) If Path Not Set
-     *
-     * @return string
-     */
-    function getPath()
-    {
-        if ($this->path === null)
-            $this->setPath(
-                $this->filesystem()->getCwd()->getRealPathName()
-            );
-
-        return Util::normalizePath($this->path);
-    }
-
-    /**
      * Get Path Name To File Or Folder
      *
      * - include full path for remote files
@@ -140,23 +81,8 @@ class File
     {
         // remove trailing slashes, happen if current path is /
         $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
-        $ext    = ($this->getExtension()) ? '.'.$this->getExtension() : '';
 
-        return $prefix.$this->getBasename().$ext;
-    }
-
-    /**
-     * Makes directory Recursively
-     *
-     * @return $this
-     */
-    function mkDir()
-    {
-        $this->filesystem()->mkDir($this
-            , new Permissions(0755)
-        );
-
-        return $this;
+        return $prefix.$this->getFilename();
     }
 
     /**
@@ -247,16 +173,6 @@ class File
     }
 
     /**
-     * Delete a directory from storage
-     *
-     * @return bool
-     */
-    function rmDir()
-    {
-        $this->filesystem()->rmDir($this);
-    }
-
-    /**
      * Copy to new directory
      *
      * - Merge if directory exists
@@ -289,41 +205,6 @@ class File
     function move($fileDir)
     {
 
-    }
-
-    /**
-     * List an array of files/directories Object from the directory
-     *
-     * @return array
-     */
-    function scanDir()
-    {
-        return $this->filesystem()->scanDir($this);
-    }
-
-    /**
-     * Set Filesystem
-     *
-     * @param iFilesystem $filesystem
-     *
-     * @return $this
-     */
-    function setFilesystem(iFilesystem $filesystem)
-    {
-        $this->filesystem = $filesystem;
-
-        return $this;
-    }
-
-    /**
-     * @return iFilesystem
-     */
-    function Filesystem()
-    {
-        if (!$this->filesystem)
-            $this->filesystem = new Filesystem();
-
-        return $this->filesystem;
     }
 
     /**
@@ -366,7 +247,9 @@ class File
      */
     function lock()
     {
-        // TODO: Implement lock() method.
+        $this->filesystem()->flock($this);
+
+        return $this;
     }
 
     /**
@@ -376,21 +259,7 @@ class File
      */
     function unlock()
     {
-        // TODO: Implement unlock() method.
-    }
-
-    /**
-     * Set the file extension
-     *
-     * ! throw exception if file is lock
-     *
-     * @param string|null $ext File Extension
-     *
-     * @return $this
-     */
-    function setExtension($ext)
-    {
-        $this->extension = $ext;
+        $this->filesystem()->flock($this, LOCK_UN);
 
         return $this;
     }
@@ -398,13 +267,20 @@ class File
     /**
      * Reads entire file into a string
      *
+     * ! if file not exists return null
      * ! check permissions, getPerms
      *
-     * @return string
+     * @return string|null
      */
     function getContents()
     {
-        // TODO: Implement getContents() method.
+        if ($this->_fcontent === null)
+            if ($this->isExists())
+                $this->setContents(
+                    $this->filesystem()->getFileContents($this)
+                );
+
+        return $this->_fcontent;
     }
 
     /**
@@ -418,19 +294,31 @@ class File
      */
     function setContents($contents)
     {
-        // TODO: Implement setContents() method.
+        $this->_fcontent = (string) $contents;
+
+        return $this;
     }
 
     /**
      * Put File Contents to Storage
      *
-     * @param string $content Content
+     * - If Content provided, it must use set content method
+     *   OtherWise Use Current Content With getContent method
+     *
+     * @param string|null $content Content
      *
      * @return $this
      */
-    function putContents($content)
+    function putContents($content = null)
     {
-        // TODO: Implement putContents() method.
+        if ($content !== null)
+            $this->setContents($content);
+        else
+            $content = $this->getContents();
+
+        $this->filesystem()->putFileContents($this, $content);
+
+        return $this;
     }
 
     /**
@@ -442,27 +330,21 @@ class File
      */
     function rename($newname)
     {
-        // TODO: Implement rename() method.
+        $this->filesystem()->rename($this, $newname);
+
+        return $this;
     }
 
     /**
      * Deletes a file from storage
      *
-     * @return bool
+     * @return $this
      */
     function unlink()
     {
-        // TODO: Implement unlink() method.
-    }
+        $this->filesystem()->unlink($this);
 
-    /**
-     * Gets the file extension
-     *
-     * @return string
-     */
-    function getExtension()
-    {
-        return $this->extension;
+        return $this;
     }
 
     /**
@@ -472,7 +354,7 @@ class File
      */
     function getSize()
     {
-        // TODO: Implement getSize() method.
+        return $this->filesystem()->getFileSize($this);
     }
 
     /**
@@ -482,7 +364,7 @@ class File
      */
     function getATime()
     {
-        // TODO: Implement getATime() method.
+        return $this->filesystem()->getFileATime($this);
     }
 
     /**
@@ -492,7 +374,7 @@ class File
      */
     function getCTime()
     {
-        // TODO: Implement getCTime() method.
+        return $this->filesystem()->getFileCTime($this);
     }
 
     /**
@@ -502,16 +384,6 @@ class File
      */
     function getMTime()
     {
-        // TODO: Implement getMTime() method.
-    }
-
-    /**
-     * Make File/Folder if not exists
-     *
-     * @return bool
-     */
-    function mkIfNotExists()
-    {
-        // TODO: Implement mkIfNotExists() method.
+        return $this->filesystem()->getFileMTime($this);
     }
 }

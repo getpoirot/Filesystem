@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces\Filesystem;
 
-interface iFile extends iFileInfo, iCommon, iWritable
+interface iFile extends iFileInfo, iCommon
 {
     /**
      * Lock File
@@ -31,9 +31,10 @@ interface iFile extends iFileInfo, iCommon, iWritable
     /**
      * Reads entire file into a string
      *
+     * ! if file not exists return null
      * ! check permissions, getPerms
      *
-     * @return string
+     * @return string|null
      */
     function getContents();
 
@@ -51,11 +52,14 @@ interface iFile extends iFileInfo, iCommon, iWritable
     /**
      * Put File Contents to Storage
      *
-     * @param string $content Content
+     * - If Content provided, it must use set content method
+     *   OtherWise Use Current Content With getContent method
+     *
+     * @param string|null $content Content
      *
      * @return $this
      */
-    function putContents($content);
+    function putContents($content = null);
 
     /**
      * Copy to new file
@@ -93,7 +97,7 @@ interface iFile extends iFileInfo, iCommon, iWritable
     /**
      * Deletes a file from storage
      *
-     * @return bool
+     * @return $this
      */
     function unlink();
 }
