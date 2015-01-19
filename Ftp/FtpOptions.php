@@ -14,6 +14,7 @@ class FtpOptions extends AbstractOptions
     protected $ftpFilesystem;
 
     protected $serverUri;
+    protected $port = 21;
     protected $username;
     protected $password;
 
@@ -34,7 +35,23 @@ class FtpOptions extends AbstractOptions
     {
         $this->serverUri = $serverUri;
 
-        $this->ftpFilesystem->refreshResource = true;
+        (!$this->ftpFilesystem) ?: $this->ftpFilesystem->refreshResource = true;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPort()
+    {
+        return $this->port;
+    }
+
+    /**
+     * @param mixed $port
+     */
+    public function setPort($port)
+    {
+        $this->port = $port;
     }
 
     /**
@@ -54,7 +71,7 @@ class FtpOptions extends AbstractOptions
     {
         $this->username = $username;
 
-        $this->ftpFilesystem->refreshResource = true;
+        (!$this->ftpFilesystem) ?: $this->ftpFilesystem->refreshResource = true;
     }
 
     /**

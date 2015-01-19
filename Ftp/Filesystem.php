@@ -3,6 +3,8 @@ namespace Poirot\Filesystem\Ftp;
 
 use Poirot\Core\AbstractOptions;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
+use Poirot\Filesystem\Abstracts\Common;
+use Poirot\Filesystem\Abstracts\Directory;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -97,6 +99,33 @@ class Filesystem implements
     }
 
     /**
+     * Destruct
+     */
+    function __destruct()
+    {
+        if (!$this->resource)
+            return false;
+
+        ftp_close($this->resource);
+        $this->resource = null;
+        $this->refreshResource = false;
+    }
+
+    /**
+     * Inject File System To Filesystem Node
+     *
+     * @param Common $fsNode
+     *
+     * @return \Poirot\Filesystem\Abstracts\Common
+     */
+    protected function injectFilesystem(Common $fsNode)
+    {
+        $fsNode->setFilesystem($this);
+
+        return $fsNode;
+    }
+
+    /**
      * Make an Object From Existence Path Filesystem
      *
      * @param string $path Filesystem Path To File or Directory
@@ -117,7 +146,11 @@ class Filesystem implements
      */
     function getCwd()
     {
-        // TODO: Implement getCwd() method.
+        $cwd = ftp_pwd($this->getConnect());
+        if ($cwd === false)
+            throw new \Exception('Failed To Get Current Working Directory.');
+
+        return $this->mkFromPath($cwd);
     }
 
     /**
@@ -146,7 +179,14 @@ class Filesystem implements
      */
     function chDir(iDirectoryInfo $dir)
     {
-        // TODO: Implement chDir() method.
+        $dirname = $dir->getRealPathName();
+        if (@ftp_chdir($this->getConnect(), $dirname) === false)
+            throw new \Exception(sprintf(
+                'Failed Changing Directory To "%s".'
+                , $dirname
+            ));
+
+        return $this;
     }
 
     /**
@@ -287,7 +327,25 @@ class Filesystem implements
      */
     function isDir($source)
     {
-        // TODO: Implement isDir() method.
+        $return = false;
+
+        if (is_string($source)) {
+            $cwd = $this->getCwd();
+            try {
+                $this->chDir(new Directory($source));
+                $return = true;
+            } catch(\Exception $e) {
+                // leave it be, false returned
+            }
+
+            // get back to current directory
+            $this->chDir($cwd);
+        }
+
+        if(is_object($source))
+            $return = $source instanceof iDirectoryInfo;
+
+        return $return;
     }
 
     /**
