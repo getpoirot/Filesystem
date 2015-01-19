@@ -11,101 +11,10 @@ use Poirot\Filesystem\Local\Filesystem;
 use Poirot\Filesystem\Permissions;
 use Poirot\Filesystem\Util;
 
-class Directory
+class Directory extends Common
     implements
-    iDirectory,
-    iFilesystemAware,
-    iFilesystemProvider
+    iDirectory
 {
-    use BuilderSetterTrait;
-
-    protected $filesystem;
-
-    protected $filename;
-    protected $path;
-
-    /**
-     * Construct
-     *
-     * - ArraySetter or PathString
-     *   we extract info from path and build class
-     *
-     * @param array|string $setterBuilder
-     */
-    function __construct($setterBuilder = null)
-    {
-        if (is_string($setterBuilder))
-            $setterBuilder = Util::getDirPathInfo($setterBuilder);
-
-        if (is_array($setterBuilder))
-           $this->setupFromArray($setterBuilder);
-    }
-
-    /**
-     * Set Basename of file or folder
-     *
-     * ! without extension
-     *
-     * - /path/to/filename[.ext]
-     * - /path/to/folderName/
-     *
-     * @param string $name Basename
-     *
-     * @return $this
-     */
-    function setBasename($name)
-    {
-        $this->filename = $name;
-
-        return $this;
-    }
-
-    /**
-     * Gets the base name of the file
-     *
-     * - Include extension on files
-     *
-     * @return string
-     */
-    function getBasename()
-    {
-        return $this->filename;
-    }
-
-    /**
-     * Set Path
-     *
-     * - trimmed left /\ path
-     * - it's consumed from cwd of filesystem or storage
-     *
-     * @param string|null $path Path To File/Folder
-     *
-     * @return $this
-     */
-    function setPath($path)
-    {
-        $this->path = $path;
-
-        return $this;
-    }
-
-    /**
-     * Gets the path without filename
-     *
-     * - Get CWDir (Filesystem) If Path Not Set
-     *
-     * @return string
-     */
-    function getPath()
-    {
-        if ($this->path === null)
-            $this->setPath(
-                $this->filesystem()->getCwd()->getRealPathName()
-            );
-
-        return Util::normalizePath($this->path);
-    }
-
     /**
      * Get Path Name To File Or Folder
      *
@@ -130,7 +39,7 @@ class Directory
     function mkDir()
     {
         $this->filesystem()->mkDir($this
-            , new Permissions(0755)
+            , $this->getPerms()
         );
 
         return $this;
@@ -276,31 +185,6 @@ class Directory
     function scanDir()
     {
         return $this->filesystem()->scanDir($this);
-    }
-
-    /**
-     * Set Filesystem
-     *
-     * @param iFilesystem $filesystem
-     *
-     * @return $this
-     */
-    function setFilesystem(iFilesystem $filesystem)
-    {
-        $this->filesystem = $filesystem;
-
-        return $this;
-    }
-
-    /**
-     * @return iFilesystem
-     */
-    function Filesystem()
-    {
-        if (!$this->filesystem)
-            $this->filesystem = new Filesystem();
-
-        return $this->filesystem;
     }
 
     /**

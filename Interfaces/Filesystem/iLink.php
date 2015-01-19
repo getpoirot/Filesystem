@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces\Filesystem;
 
-interface iLink extends iLinkInfo, iWritable
+interface iLink extends iLinkInfo
 {
     /**
      * Gets the target of a link
