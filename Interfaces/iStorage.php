@@ -1,6 +1,8 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
+use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
+
 /**
  * Storage can implement OptionsProviderInterface
  */
@@ -22,7 +24,7 @@ interface iStorage extends iCommon
      *
      * @return string
      */
-    function getFilename();
+    function getIdentity();
 
     /**
      * Get Current Filesystem/Storage Working Directory
@@ -44,7 +46,7 @@ interface iStorage extends iCommon
      *
      * @return array[iCommon|iStorage]
      */
-    function lsContent();
+    function lsContents();
 
     /**
      * Mount External Storage
