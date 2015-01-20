@@ -3,6 +3,7 @@ namespace Poirot\Filesystem\Abstracts;
 
 use Poirot\Core\BuilderSetterTrait;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
+use Poirot\Filesystem\Interfaces\Filesystem\iPathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
@@ -15,23 +16,6 @@ class Directory extends Common
     implements
     iDirectory
 {
-    /**
-     * Get Path Name To File Or Folder
-     *
-     * - include full path for remote files
-     * - include extension for files
-     * - usually use Util::normalizePath on return
-     *
-     * @return string
-     */
-    function getRealPathName()
-    {
-        // remove trailing slashes, happen if current path is /
-        $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
-
-        return Util::normalizePath($prefix.$this->getBasename());
-    }
-
     /**
      * Makes directory Recursively
      *
@@ -128,9 +112,9 @@ class Directory extends Common
      *
      * @return iDirectory
      */
-    function getDirname()
+    function dirUp()
     {
-        return $this->filesystem()->getDirname($this);
+        return $this->filesystem()->dirUp($this);
     }
 
     /**

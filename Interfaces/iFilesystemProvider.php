@@ -12,5 +12,5 @@ interface iFilesystemProvider
     /**
      * @return iFilesystem
      */
-    function Filesystem();
+    function filesystem();
 }

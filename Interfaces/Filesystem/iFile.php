@@ -18,17 +18,6 @@ interface iFile extends iFileInfo, iCommon
     function unlock();
 
     /**
-     * Set the file extension
-     *
-     * ! throw exception if file is lock
-     *
-     * @param string|null $ext File Extension
-     *
-     * @return $this
-     */
-    function setExtension($ext);
-
-    /**
      * Reads entire file into a string
      *
      * ! if file not exists return null

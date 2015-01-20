@@ -16,74 +16,10 @@ class File extends Common
     implements
     iFile
 {
-    protected $extension;
-
     /**
      * @var file content internal cache
      */
     protected $_fcontent;
-
-    /**
-     * Set the file extension
-     *
-     * ! throw exception if file is lock
-     *
-     * @param string|null $ext File Extension
-     *
-     * @return $this
-     */
-    function setExtension($ext)
-    {
-        $this->extension = $ext;
-
-        return $this;
-    }
-
-    /**
-     * Gets the file extension
-     *
-     * @return string
-     */
-    function getExtension()
-    {
-        return $this->extension;
-    }
-
-    /**
-     * Get Filename Include File Extension
-     *
-     * ! It's a combination of basename+'.'.extension
-     *   combined with a dot
-     *
-     * @return string
-     */
-    function getFilename()
-    {
-        $filename = $this->getBasename();
-        $filename = (
-            $this->getExtension()    !== null
-            || $this->getExtension() !== ''
-        ) ? $filename.'.'.$this->getExtension()
-          : $filename;
-
-        return $filename;
-    }
-
-    /**
-     * Get Path Name To File Or Folder
-     *
-     * - include full path for remote files
-     * - include extension for files
-     *
-     * @return string
-     */
-    function getRealPathName()
-    {
-        // remove trailing slashes, happen if current path is /
-        $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
-
-        return $prefix.$this->getFilename();
-    }
 
     /**
      * Set Owner
@@ -167,9 +103,9 @@ class File extends Common
      *
      * @return iDirectory
      */
-    function getDirname()
+    function dirUp()
     {
-        return $this->filesystem()->getDirname($this);
+        return $this->filesystem()->dirUp($this);
     }
 
     /**

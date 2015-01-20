@@ -12,29 +12,10 @@ class Link extends Common
     implements
     iLink
 {
-    protected $extension;
-
     /**
      * @var iDirectoryInfo|iFileInfo
      */
     protected $target;
-
-    /**
-     * Get Path Name To File Or Folder
-     *
-     * - include full path for remote files
-     * - include extension for files
-     *
-     * @return string
-     */
-    function getRealPathName()
-    {
-        // remove trailing slashes, happen if current path is /
-        $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
-        $ext    = ($this->getExtension()) ? '.'.$this->getExtension() : '';
-
-        return $prefix.$this->getBasename().$ext;
-    }
 
     /**
      * Gets the owner of the file
@@ -76,9 +57,9 @@ class Link extends Common
      *
      * @return iDirectory
      */
-    function getDirname()
+    function dirUp()
     {
-        return $this->filesystem()->getDirname($this);
+        return $this->filesystem()->dirUp($this);
     }
 
     /**

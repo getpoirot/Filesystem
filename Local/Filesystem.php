@@ -3,6 +3,7 @@ namespace Poirot\Filesystem\Local;
 
 use Poirot\Filesystem\Abstracts\Directory;
 use Poirot\Filesystem\Abstracts\File;
+use Poirot\Filesystem\Abstracts\PathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -34,14 +35,10 @@ class Filesystem implements iFilesystem
     {
         $return = false;
 
-        if ($this->isDir($path)) {
-            $pathInfo = Util::getDirPathInfo($path);
-            $return = new Directory($pathInfo);
-        }
-        elseif ($this->isFile($path)) {
-            $pathInfo = Util::getPathInfo($path);
-            $return = new File($pathInfo);
-        }
+        if ($this->isDir($path))
+            $return = new Directory($path);
+        elseif ($this->isFile($path))
+            $return = new File($path);
 
         if (!$return)
             throw new \Exception(sprintf(
@@ -80,6 +77,8 @@ class Filesystem implements iFilesystem
      * List an array of files/directories path from the directory
      *
      * - get rid of ".", ".." from list
+     * - append scanned directory as path to files list
+     *   [/path/to/scanned/dir/]file.ext
      *
      * @param iDirectoryInfo|null $dir          If Null Scan Current Working Directory
      * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING|SCANDIR_SORT_DESCENDING
@@ -94,7 +93,7 @@ class Filesystem implements iFilesystem
 
         $this->validateFile($dir);
 
-        $dirname = $dir->getRealPathName();
+        $dirname = $dir->filePath()->toString();
         $result  = scandir($dirname, $sortingOrder);
         if ($result === false)
             throw new \Exception(sprintf(
@@ -104,6 +103,11 @@ class Filesystem implements iFilesystem
 
         // get rid of the dots
         $result = array_diff($result, array('..', '.'));
+
+        // append dir path to files
+        array_walk($result, function(&$value, $key) use ($dirname)  {
+            $value = PathUri::normalizePath($dirname.'/'.$value);
+        });
 
         return $result;
     }
@@ -120,7 +124,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($dir);
 
-        $dirname = $dir->getRealPathName();
+        $dirname = $dir->filePath()->toString();
         if (chdir($dirname) === false)
             throw new \Exception(sprintf(
                 'Failed Changing Directory To "%s".'
@@ -145,7 +149,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         if (!@chgrp($filename, $group))
             throw new \Exception(sprintf(
                 'Failed Changing Group Of "%s" File.'
@@ -171,7 +175,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $group = filegroup($filename);
         (!function_exists('posix_getgrgid')) ?:
@@ -201,7 +205,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         if (!@chmod($filename, $mode->getTotalPerms()))
             throw new \Exception(sprintf(
                 'Failed To Change File Mode For "%s".'
@@ -225,7 +229,7 @@ class Filesystem implements iFilesystem
         $this->validateFile($file);
 
         // Upon failure, an E_WARNING is emitted.
-        $fperm = @fileperms($file->getRealPathName());
+        $fperm = @fileperms($file->filePath()->toString());
 
         $perms = new Permissions();
         $perms->grantPermission($fperm);
@@ -246,7 +250,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         if (!@chown($filename, $user))
             throw new \Exception(sprintf(
                 'Failed To Change Owner Of "%s" File.'
@@ -268,7 +272,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $owner = @fileowner($filename); // fileowner() "root" is 0
         if (function_exists('posix_getgrgid'))
@@ -314,13 +318,13 @@ class Filesystem implements iFilesystem
         if ($this->isDir($source) && !$this->isDir($dest))
             throw new \Exception(sprintf(
                 'Invalid Destination Provided, We Cant Copy A Directory "%s" To File "%s".'
-            , $source->getRealPathName(), $dest->getRealPathName()
+                , $source->filePath()->toString(), $dest->filePath()->toString()
             ));
 
         if (!$this->isDir($dest) && !$this->isFile($dest))
             throw new \Exception(sprintf(
                 'Destination at "%s" Must be a File Or Directory For Copy.'
-                , $dest->getRealPathName()
+                , $dest->filePath()->toString()
             ));
 
         $copied = false;
@@ -332,16 +336,16 @@ class Filesystem implements iFilesystem
             if ($this->isFile($source))
                 /** @var iFile $source */
                 $copied = @copy(
-                    $source->getRealPathName()
-                    , $dest->getRealPathName().self::DS.$this->getFilename($source)
+                    $source->filePath()->toString()
+                    , $dest->filePath()->toString().'/'.$source->filePath()->getFilename()
                 );
             else {
                 // Merge Folder
-                $destDirName = $dest->getRealPathName().'/'.$this->getFilename($source);
+                $destDirName = $dest->filePath()->toString().'/'.$source->filePath()->getFilename();
                 $copied = true; // we don't want rise error from here
                 foreach($this->scanDir($source) as $fd)
                     $this->copy(
-                        $this->mkFromPath($source->getRealPathName().'/'.$fd)
+                        $this->mkFromPath($fd)
                         , new Directory($destDirName)
                     );
             }
@@ -349,21 +353,21 @@ class Filesystem implements iFilesystem
             // Copy File To Destination(file)
 
             // make directories to destination to avoid error >>> {
-            $destDir = $this->getDirname($dest);
+            $destDir = $this->dirUp($dest);
             if (!$this->isExists($destDir))
                 $this->mkDir($destDir, new Permissions(0777));
             // } <<<
 
             $copied = copy(
-                $source->getRealPathName()
-                , $dest->getRealPathName()
+                $source->filePath()->toString()
+                , $dest->filePath()->toString()
             );
         }
 
         if (!$copied)
             throw new \Exception(sprintf(
                 'Error While Coping "%s" To "%s".'
-                , $source->getRealPathName(), $dest->getRealPathName()
+                , $source->filePath()->toString(), $dest->filePath()->toString()
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -452,7 +456,7 @@ class Filesystem implements iFilesystem
     function getFreeSpace()
     {
         $result = @disk_free_space(
-            $this->getCwd()->getRealPathName()
+            $this->getCwd()->filePath()->toString()
         );
         if ($result === false)
             $result = self::DISKSPACE_UNKNOWN;
@@ -471,7 +475,7 @@ class Filesystem implements iFilesystem
     function getTotalSpace()
     {
         $result = @disk_total_space(
-            $this->getCwd()->getRealPathName()
+            $this->getCwd()->filePath()->toString()
         );
         if ($result === false)
             $result = self::DISKSPACE_UNKNOWN;
@@ -491,7 +495,7 @@ class Filesystem implements iFilesystem
     function isExists(iCommonInfo $file)
     {
         // Upon failure, an E_WARNING is emitted.
-        $result = @file_exists($file->getRealPathName());
+        $result = @file_exists($file->filePath()->toString());
         clearstatcache();
 
         return $result;
@@ -516,7 +520,7 @@ class Filesystem implements iFilesystem
         $append  = ($append) ? FILE_APPEND : 0;
         $append |= LOCK_EX; // to prevent anyone else writing to the file at the same time
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         if(!file_put_contents($filename, $contents, $append)) // file will be created if not exists
             throw new \Exception(sprintf(
                 'Failed To Put "%s" File Contents.'
@@ -541,7 +545,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $content = @file_get_contents($filename);
         if ($content === false)
@@ -565,7 +569,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @fileatime($filename);
         if ($result === false)
@@ -596,7 +600,7 @@ class Filesystem implements iFilesystem
 
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @filectime($filename);
         if ($result === false)
@@ -624,7 +628,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @filemtime($filename);
         if ($result === false)
@@ -650,7 +654,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @filesize($filename);
         if ($result === false)
@@ -683,7 +687,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         $fp = fopen($filename, "r+");
 
         // Upon failure, an E_WARNING is emitted.
@@ -709,7 +713,7 @@ class Filesystem implements iFilesystem
      */
     function isReadable(iCommonInfo $file)
     {
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @is_readable($filename);
 
@@ -727,7 +731,7 @@ class Filesystem implements iFilesystem
      */
     function isWritable(iCommonInfo $file)
     {
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @is_writable($filename);
 
@@ -750,9 +754,9 @@ class Filesystem implements iFilesystem
 
         $this->validateFile($target);
 
-        $filename = $link->getRealPathName();
+        $filename = $link->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
-        $result = @link($target->getRealPathName(), $filename);
+        $result = @link($target->filePath()->toString(), $filename);
         if ($result === false)
             throw new \Exception(sprintf(
                 'Failed To Create "%s" Link.'
@@ -773,10 +777,10 @@ class Filesystem implements iFilesystem
      */
     function mkDir(iDirectoryInfo $dir, iPermissions $mode)
     {
-        if (!@mkdir($dir->getRealPathName(), $mode->getTotalPerms(), true))
+        if (!@mkdir($dir->filePath()->toString(), $mode->getTotalPerms(), true))
             throw new \Exception(sprintf(
                 'Failed To Change Owner Of "%s" File.'
-                , $dir->getRealPathName()
+                , $dir->filePath()->toString()
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -791,7 +795,7 @@ class Filesystem implements iFilesystem
      *
      * @return iDirectory
      */
-    function getDirname(iCommonInfo $file)
+    function dirUp(iCommonInfo $file)
     {
         /*
          * TODO
@@ -799,7 +803,7 @@ class Filesystem implements iFilesystem
          * directory name with multibyte character paths, the matching
          * locale must be set using the setlocale() function.
          */
-        $pathname  = $file->getRealPathName();
+        $pathname  = $file->filePath()->toString();
         $dirname   = dirname($pathname);
 
         $directory = $this->mkFromPath($dirname);
@@ -823,7 +827,7 @@ class Filesystem implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        return basename($file->getRealPathName());
+        return basename($file->filePath()->toString());
     }
 
     /**
@@ -844,7 +848,7 @@ class Filesystem implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        return pathinfo($file->getRealPathName(), PATHINFO_EXTENSION);
+        return pathinfo($file->filePath()->toString(), PATHINFO_EXTENSION);
     }
 
     /**
@@ -863,7 +867,7 @@ class Filesystem implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        return pathinfo($file->getRealPathName(), PATHINFO_FILENAME);
+        return pathinfo($file->filePath()->toString(), PATHINFO_FILENAME);
     }
 
     /**
@@ -884,15 +888,15 @@ class Filesystem implements iFilesystem
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = Util::getPathInfo($newName);
+        $pathInfo = PathUri::getPathInfo($newName);
         if (!isset($pathInfo['path']))
-            $newName = $this->getDirname($file)->getRealPathName()
+            $newName = $this->dirUp($file)->filePath()->toString()
                 .'/'. $newName;
 
-        if (!@rename($file->getRealPathName(), $newName))
+        if (!@rename($file->filePath()->toString(), $newName))
             throw new \Exception(sprintf(
                 'Failed To Rename "%s" File.'
-                , $file->getRealPathName()
+                , $file->filePath()->toString()
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -917,7 +921,6 @@ class Filesystem implements iFilesystem
         if (!empty($lsDir))
             foreach($lsDir as $ls) {
                 // First: Delete Directories Recursively
-                $ls = $dir->getRealPathName().'/'.$ls;
                 $node = $this->mkFromPath($ls);
                 if ($this->isDir($node))
                     $this->rmDir($node);
@@ -926,10 +929,10 @@ class Filesystem implements iFilesystem
             }
 
         // Ensure That Folder Is Empty: Delete It
-        if (!@rmdir($dir->getRealPathName()))
+        if (!@rmdir($dir->filePath()->toString()))
             throw new \Exception(sprintf(
                 'Error While Deleting "%s" File.'
-                , $dir->getRealPathName()
+                , $dir->filePath()->toString()
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -948,7 +951,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @touch($filename, null, $time);
         if ($result === false)
@@ -973,7 +976,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @touch($filename, $time);
         if ($result === false)
@@ -995,7 +998,7 @@ class Filesystem implements iFilesystem
      */
     function linkRead(iLinkInfo $link)
     {
-        $filename = $link->getRealPathName();
+        $filename = $link->filePath()->toString();
         $result = readlink($filename);
         if ($result === false)
             throw new \Exception(sprintf(
@@ -1018,7 +1021,7 @@ class Filesystem implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = @unlink($filename);
         if ($result === false)
@@ -1039,7 +1042,8 @@ class Filesystem implements iFilesystem
      */
     protected function validateFile(iCommonInfo $file)
     {
-        $filename = $file->getRealPathName();
+        $filename = $file->filePath()->toString();
+
         if (!$this->isFile($file) && !$this->isDir($file))
             throw new \Exception(sprintf(
                 'The Destination File "%s" Must Be a File Or Folder.'

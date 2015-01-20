@@ -575,9 +575,9 @@ class Filesystem implements
      *
      * @return iDirectory
      */
-    function getDirname(iCommonInfo $file)
+    function dirUp(iCommonInfo $file)
     {
-        // TODO: Implement getDirname() method.
+        // TODO: Implement dirUp() method.
     }
 
     /**
