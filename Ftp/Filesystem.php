@@ -74,13 +74,18 @@ class Filesystem implements
      */
     protected function getConnect()
     {
-        if ($this->resource !== null && !$this->refreshResource)
+        if ($this->resource !== null
+            && !$this->refreshResource // not has a request for refresh connection
+        )
             return $this->resource;
 
-        $serverUri = $this->options()->getServerUri();
-        $username  = $this->options()->getUsername();
+        $serverUri  = $this->options()->getServerUri();
+        $serverPort = $this->options()->getPort();
+        $timeout    = $this->options()->getTimeout();
 
-        $conn   = ftp_connect($serverUri);
+        $username   = $this->options()->getUsername();
+
+        $conn   = ftp_connect($serverUri, $serverPort, $timeout);
         $loginR = ftp_login(
             $conn,
             $username,
@@ -90,10 +95,11 @@ class Filesystem implements
         if (!$conn || !$loginR)
             throw new \Exception(sprintf(
                 'Ftp Connection Failed to "%s" for user "%s"'
-            , $serverUri, $username));
+                , $serverUri, $username
+            ));
 
         $this->resource = $conn;
-        $this->refreshResource = false; // the resource refreshed
+        $this->refreshResource = false; // the resource is refreshed
 
         return $this->getConnect();
     }
@@ -150,7 +156,7 @@ class Filesystem implements
         if ($cwd === false)
             throw new \Exception('Failed To Get Current Working Directory.');
 
-        return $this->mkFromPath($cwd);
+        return $this->injectFilesystem(new Directory($cwd));
     }
 
     /**
