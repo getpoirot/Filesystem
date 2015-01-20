@@ -273,7 +273,14 @@ class Filesystem implements
      */
     function chmod(iCommonInfo $file, iPermissions $mode)
     {
-        // TODO: Implement chmod() method.
+        $filename = $file->filePath()->toString();
+        if (ftp_chmod($this->getConnect(), $mode->getTotalPerms(), $filename) === false)
+            throw new \Exception(sprintf(
+                'Failed To Change File Mode For "%s".'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     /**
@@ -626,7 +633,9 @@ class Filesystem implements
      */
     function dirUp(iCommonInfo $file)
     {
-        // TODO: Implement dirUp() method.
+        $pathname  = $file->filePath()->getPath();
+
+        return $this->injectFilesystem(new Directory($pathname));
     }
 
     /**
@@ -755,7 +764,16 @@ class Filesystem implements
      */
     function unlink(iFileInfo $file)
     {
-        // TODO: Implement unlink() method.
+        $filename = $file->filePath()->toString();
+        // Upon failure, an E_WARNING is emitted.
+        $result = ftp_delete($this->getConnect(), $filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Delete "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     /**

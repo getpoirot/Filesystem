@@ -803,9 +803,7 @@ class Filesystem implements iFilesystem
          * directory name with multibyte character paths, the matching
          * locale must be set using the setlocale() function.
          */
-        $pathname  = $file->filePath()->toString();
-        $dirname   = dirname($pathname);
-
+        $dirname   = $file->filePath()->getPath();
         $directory = $this->mkFromPath($dirname);
 
         return $directory;
