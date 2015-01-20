@@ -5,6 +5,7 @@ use Poirot\Core\AbstractOptions;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
 use Poirot\Filesystem\Abstracts\Common;
 use Poirot\Filesystem\Abstracts\Directory;
+use Poirot\Filesystem\Abstracts\PathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -85,8 +86,12 @@ class Filesystem implements
 
         $username   = $this->options()->getUsername();
 
-        $conn   = ftp_connect($serverUri, $serverPort, $timeout);
-        $loginR = ftp_login(
+        if ($this->options()->getUseSsl())
+            $conn   = ftp_ssl_connect($serverUri, $serverPort, $timeout);
+        else
+            $conn   = ftp_connect($serverUri, $serverPort, $timeout);
+
+        $loginR = @ftp_login(
             $conn,
             $username,
             $this->options()->getPassword()
@@ -97,6 +102,14 @@ class Filesystem implements
                 'Ftp Connection Failed to "%s" for user "%s"'
                 , $serverUri, $username
             ));
+
+        /*
+         * Some complain that ftp_nlist, always return FALSE.
+         * I did experience this behavior myself, until I used ftp_pasv,
+         * which is useful if your client is behind a firewall
+         * (which most clients are now)
+         */
+        ftp_pasv($conn, true);
 
         $this->resource = $conn;
         $this->refreshResource = false; // the resource is refreshed
@@ -172,7 +185,33 @@ class Filesystem implements
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = self::SCANDIR_SORT_NONE)
     {
-        // TODO: Implement scanDir() method.
+        if ($dir === null)
+            $dir = $this->getCwd();
+
+        $dirname = $dir->filePath()->toString();
+
+        // it's included the full path
+        $result  = ftp_nlist($this->getConnect(), '-la '.$dirname);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed Scan Directory To "%s".'
+                , $dirname
+            ), null, new \Exception(error_get_last()['message']));
+
+        // append dir path to files
+        array_walk($result, function(&$value, $key) use ($dirname)  {
+            $value = @end(explode('/', $value));
+            $value = PathUri::normalizePath($dirname.'/'.$value);
+        });
+
+        // get rid of the dots
+        $result = array_diff($result, array(
+            PathUri::normalizePath($dirname.'/..'),
+            PathUri::normalizePath($dirname.'/.')
+            )
+        );
+
+        return $result;
     }
 
     /**
@@ -185,7 +224,7 @@ class Filesystem implements
      */
     function chDir(iDirectoryInfo $dir)
     {
-        $dirname = $dir->getRealPathName();
+        $dirname = $dir->filePath()->toString();
         if (@ftp_chdir($this->getConnect(), $dirname) === false)
             throw new \Exception(sprintf(
                 'Failed Changing Directory To "%s".'
@@ -317,7 +356,11 @@ class Filesystem implements
      */
     function isFile($source)
     {
-        // TODO: Implement isFile() method.
+        if(ftp_size($ftp_connection, $file) == '-1'){
+            return true; // Is directory
+        }else{
+            return false; // Is file
+        }
     }
 
     /**
