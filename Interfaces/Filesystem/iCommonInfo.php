@@ -26,6 +26,7 @@ interface iCommonInfo
      *
      * - include full path for remote files
      * - include extension for files
+     * - usually use Util::normalizePath on return
      *
      * @return string
      */

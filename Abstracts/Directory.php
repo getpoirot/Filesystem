@@ -20,6 +20,7 @@ class Directory extends Common
      *
      * - include full path for remote files
      * - include extension for files
+     * - usually use Util::normalizePath on return
      *
      * @return string
      */
@@ -28,7 +29,7 @@ class Directory extends Common
         // remove trailing slashes, happen if current path is /
         $prefix = ($this->getPath()) ? $this->getPath().'/' : '';
 
-        return $prefix.$this->getBasename();
+        return Util::normalizePath($prefix.$this->getBasename());
     }
 
     /**

@@ -41,11 +41,11 @@ class Util
         $path = self::normalizePath($path);
 
         $ret  = [];
-        preg_match('%^(.*?)[\\\\/]*(([^/\\\\]*?)(\.([^\.\\\\/]+?)|))[\\\\/\.]*$%im', $path, $m);
-        (!isset($m[1])) ?: $ret['path']      = $m[1];
-        (!isset($m[2])) ?: $ret['filename']  = $m[2];
-        (!isset($m[3])) ?: $ret['basename']  = $m[3];
-        (!isset($m[5])) ?: $ret['extension'] = $m[5];
+        $m    = pathinfo($path);
+        (!isset($m['dirname']))   ?: $ret['path']      = $m['dirname'];  // For file with name.ext
+        (!isset($m['basename']))  ?: $ret['filename']  = $m['basename']; // <= name.ext
+        (!isset($m['filename']))  ?: $ret['basename']  = $m['filename']; // <= name
+        (!isset($m['extension'])) ?: $ret['extension'] = $m['extension'];
 
         if (isset($ret['extension']) && $ret['filename'] === '') {
             // for folders similar to .ssh
