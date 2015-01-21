@@ -2,6 +2,7 @@
 namespace Poirot\Filesystem\Ftp;
 
 use Poirot\Core\AbstractOptions;
+use Poirot\Core\Entity;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
 use Poirot\Filesystem\Abstracts\Common;
 use Poirot\Filesystem\Abstracts\Directory;
@@ -15,6 +16,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
+use Poirot\Storage\Adapter\SessionStorage;
 
 class Filesystem implements
     iFilesystem,
@@ -227,8 +229,8 @@ class Filesystem implements
         $dirname = $dir->filePath()->toString();
         if (@ftp_chdir($this->getConnect(), $dirname) === false)
             throw new \Exception(sprintf(
-                'Failed Changing Directory To "%s".'
-                , $dirname
+                'Failed Changing Directory To "%s", your cwd is "%s".'
+                , $dirname , $this->getCwd()->filePath()->toString()
             ));
 
         return $this;
@@ -398,7 +400,7 @@ class Filesystem implements
             $this->chDir($cwd);
         }
 
-        if(is_object($source))
+        if (is_object($source))
             $return = $source instanceof iDirectoryInfo;
 
         return $return;
@@ -527,6 +529,8 @@ class Filesystem implements
      *
      * ! the time when the content of the file was changed
      *
+     * !! Not all servers support this feature!
+     *
      * @param iFileInfo $file
      *
      * @throws \Exception On Failure
@@ -534,7 +538,16 @@ class Filesystem implements
      */
     function getFileMTime(iFileInfo $file)
     {
-        // TODO: Implement getFileMTime() method.
+        $filename = $file->filePath()->toString();
+        // Upon failure, an E_WARNING is emitted.
+        $result = ftp_mdtm($this->getConnect(), $filename);
+        if ($result === -1)
+            throw new \Exception(sprintf(
+                'Failed To Get Modified Time For "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $result;
     }
 
     /**
@@ -619,7 +632,40 @@ class Filesystem implements
      */
     function mkDir(iDirectoryInfo $dir, iPermissions $mode)
     {
-        // TODO: Implement mkDir() method.
+        $dirpath = $dir->filePath()->toString();
+        if (in_array($dirpath, ['.', '/']))
+            return $this;
+
+        $cwdTmp = $this->getCwd(); // store current working dir
+
+        // Its may included '.' or '' for leading slashes /dir
+        $pathSections = (explode('/', $dirpath));
+
+        do {
+            $mkdir = array_shift($pathSections);
+        } while(in_array($mkdir, ['.']));
+
+        if (!$this->isDir($mkdir)) {
+            // create directory if not exists
+            if (ftp_mkdir($this->getConnect(), $mkdir) === false)
+                throw new \Exception(sprintf(
+                    'Failed To Make Directory "%s".'
+                    , $mkdir
+                ), null, new \Exception(error_get_last()['message']));
+
+            $this->chmod(new Directory($mkdir), $mode);
+        }
+
+        $this->chDir(new Directory($mkdir));
+
+        $this->mkDir(
+            new Directory(implode('/', $pathSections))
+            , $mode
+        );
+
+        $this->chDir($cwdTmp); // get back to working directory
+
+        return $this;
     }
 
     /**
