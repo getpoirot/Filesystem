@@ -83,6 +83,40 @@ class Permissions implements iPermissions
     }
 
     /**
+     * Import Permissions From symbolic notation
+     *
+     * @param string $permissions drwxr-xr-x
+     *
+     * @return $this
+     */
+    function fromString($permissions)
+    {
+        $mode = $this->getTotalPerms();
+
+        if ($permissions[1] == 'r') $mode += 0400;
+        if ($permissions[2] == 'w') $mode += 0200;
+        if ($permissions[3] == 'x') $mode += 0100;
+        else if ($permissions[3] == 's') $mode += 04100;
+        else if ($permissions[3] == 'S') $mode += 04000;
+
+        if ($permissions[4] == 'r') $mode += 040;
+        if ($permissions[5] == 'w') $mode += 020;
+        if ($permissions[6] == 'x') $mode += 010;
+        else if ($permissions[6] == 's') $mode += 02010;
+        else if ($permissions[6] == 'S') $mode += 02000;
+
+        if ($permissions[7] == 'r') $mode += 04;
+        if ($permissions[8] == 'w') $mode += 02;
+        if ($permissions[9] == 'x') $mode += 01;
+        else if ($permissions[9] == 't') $mode += 01001;
+        else if ($permissions[9] == 'T') $mode += 01000;
+
+        $this->grantPermission($mode);
+
+        return $this;
+    }
+
+    /**
      * Get A Readable Permission String
      *
      * @return string
