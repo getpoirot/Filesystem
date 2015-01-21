@@ -87,12 +87,12 @@ interface iFilesystem
      *
      * - Returns the group of the file
      *
-     * @param iCommonInfo $file
+     * @param iCommonInfo $node File Or Directory
      *
      * @throws \Exception On Failure
      * @return int|string
      */
-    function getFileGroup(iCommonInfo $file);
+    function getFileGroup(iCommonInfo $node);
 
     /**
      * Changes file mode

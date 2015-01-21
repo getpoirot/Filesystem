@@ -2,7 +2,6 @@
 namespace Poirot\Filesystem\Ftp;
 
 use Poirot\Core\AbstractOptions;
-use Poirot\Core\Entity;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
 use Poirot\Filesystem\Abstracts\Common;
 use Poirot\Filesystem\Abstracts\Directory;
@@ -16,7 +15,6 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Storage\Adapter\SessionStorage;
 
 class Filesystem implements
     iFilesystem,
@@ -246,7 +244,7 @@ class Filesystem implements
      */
     function chgrp(iCommonInfo $file, $group)
     {
-        // TODO: Implement chgrp() method.
+        return $this;
     }
 
     /**
@@ -254,14 +252,16 @@ class Filesystem implements
      *
      * - Returns the group of the file
      *
-     * @param iCommonInfo $file
+     * @param iCommonInfo $node File Or Directory
      *
      * @throws \Exception On Failure
      * @return int|string
      */
-    function getFileGroup(iCommonInfo $file)
+    function getFileGroup(iCommonInfo $node)
     {
-        // TODO: Implement getFileGroup() method.
+        $info = $this->getFSRawData($node);
+
+        kd($info);
     }
 
     /**
@@ -323,6 +323,63 @@ class Filesystem implements
     {
         // TODO: Implement getFileOwner() method.
     }
+
+    /**
+     * Gets file size
+     *
+     * @param iFileInfo $file
+     *
+     * @throws \Exception On Failure
+     * @return int In bytes
+     */
+    function getFileSize(iFileInfo $file)
+    {
+        // TODO: Implement getFileSize() method.
+    }
+
+        /**
+         * Get Raw Data Information For A File Or Directory
+         *
+         * @param iDirectoryInfo|iFileInfo $node File Or Directory
+         *
+         * @return array
+         */
+        protected function getFSRawData($node)
+        {
+            $items = array();
+            if ($this->isDir($node)) {
+                $upDir  = $this->dirUp($node);
+                $rwlist = $this->getRawList($upDir);
+                $items  = $rwlist[$node->filePath()->toString()];
+            } elseif ($this->isFile($node)) {
+
+            }
+
+            return $items;
+        }
+
+    /**
+     * Get Raw List
+     *
+     * @param iCommonInfo $node File Or Directory
+     *
+     * @throws \Exception
+     * @return array
+     */
+        protected function getRawList($node)
+        {
+            $items = [];
+            if (is_array($children = @ftp_rawlist($this->getConnect(), $node->filePath()->toString())))
+                foreach ($children as $child) {
+                    $chunks = preg_split("/\s+/", $child);
+                    list($item['rights'], $item['number'], $item['user'], $item['group'], $item['size'], $item['month'], $item['day'], $item['time']) = $chunks;
+                    $item['type'] = $chunks[0]{0} === 'd' ? 'directory' : 'file';
+                    array_splice($chunks, 0, 8);
+                    $items[implode(" ", $chunks)] = $item;
+                }
+
+            return $items;
+        }
 
     /**
      * Copies file
@@ -551,19 +608,6 @@ class Filesystem implements
     }
 
     /**
-     * Gets file size
-     *
-     * @param iFileInfo $file
-     *
-     * @throws \Exception On Failure
-     * @return int In bytes
-     */
-    function getFileSize(iFileInfo $file)
-    {
-        // TODO: Implement getFileSize() method.
-    }
-
-    /**
      * Portable advisory file locking
      *
      * ! shared lock    (reader)
@@ -685,44 +729,6 @@ class Filesystem implements
     }
 
     /**
-     * Returns the base filename of the given path.
-     *
-     * @param iCommonInfo $file
-     *
-     * @return string
-     */
-    function getFilename(iCommonInfo $file)
-    {
-        // TODO: Implement getFilename() method.
-    }
-
-    /**
-     * Get Extension Of File
-     *
-     * ! empty screen if dose`nt have ext
-     *
-     * @param iFileInfo $file
-     *
-     * @return string
-     */
-    function getFileExtension(iFileInfo $file)
-    {
-        // TODO: Implement getFileExtension() method.
-    }
-
-    /**
-     * Get File/Folder Name Without Extension
-     *
-     * @param iCommonInfo $file
-     *
-     * @return string
-     */
-    function getBasename(iCommonInfo $file)
-    {
-        // TODO: Implement getBasename() method.
-    }
-
-    /**
      * Rename File Or Directory
      *
      * - new name can contains absolute path
@@ -820,6 +826,44 @@ class Filesystem implements
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
+    }
+
+    /**
+     * Returns the base filename of the given path.
+     *
+     * @param iCommonInfo $file
+     *
+     * @return string
+     */
+    function getFilename(iCommonInfo $file)
+    {
+        // TODO: Implement getFilename() method.
+    }
+
+    /**
+     * Get Extension Of File
+     *
+     * ! empty screen if dose`nt have ext
+     *
+     * @param iFileInfo $file
+     *
+     * @return string
+     */
+    function getFileExtension(iFileInfo $file)
+    {
+        // TODO: Implement getFileExtension() method.
+    }
+
+    /**
+     * Get File/Folder Name Without Extension
+     *
+     * @param iCommonInfo $file
+     *
+     * @return string
+     */
+    function getBasename(iCommonInfo $file)
+    {
+        // TODO: Implement getBasename() method.
     }
 
     /**
