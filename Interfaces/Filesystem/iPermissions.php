@@ -58,11 +58,4 @@ interface iPermissions
      * @return int An Octal Combined Permission
      */
     function getTotalPerms();
-
-    /**
-     * Get A Readable Permission String
-     *
-     * @return string
-     */
-    function toString();
 }
