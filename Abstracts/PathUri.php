@@ -143,7 +143,7 @@ class PathUri implements iPathUri
         else
             $realpath = $filepath.'/'.$this->getFilename();
 
-        return $realpath;
+        return self::normalizePath($realpath);
     }
 
     /**
@@ -189,7 +189,7 @@ class PathUri implements iPathUri
     public static function normalizePath($path, $stripTrailingSlash = true)
     {
         if ($path == '')
-            return '/';
+            return '.';
 
         // convert paths to portables one
         $path = str_replace('\\', '/', $path);
@@ -217,6 +217,7 @@ class PathUri implements iPathUri
 
         $ret  = [];
         $m    = pathinfo($path);
+
         (!isset($m['dirname']))   ?: $ret['path']      = $m['dirname'];  // For file with name.ext
         (!isset($m['basename']))  ?: $ret['filename']  = $m['basename']; // <= name.ext
         (!isset($m['filename']))  ?: $ret['basename']  = $m['filename']; // <= name
