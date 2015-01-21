@@ -779,7 +779,7 @@ class Filesystem implements iFilesystem
     {
         if (!@mkdir($dir->filePath()->toString(), $mode->getTotalPerms(), true))
             throw new \Exception(sprintf(
-                'Failed To Change Owner Of "%s" File.'
+                'Failed To Make Directory "%s".'
                 , $dir->filePath()->toString()
             ), null, new \Exception(error_get_last()['message']));
 
