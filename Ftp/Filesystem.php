@@ -578,7 +578,22 @@ class Filesystem implements
      */
     function getFileContents(iFile $file, $maxlen = 0)
     {
-        // TODO: Implement getFileContents() method.
+        $tmpFile = @fopen('php://temp', 'Wb+');
+        if ($tmpFile === false)
+            throw new \Exception('Failed To Initialize Temp File.');
+
+        $fname   = $file->filePath()->toString();
+
+        if (ftp_fget($this->getConnect(), $tmpFile, $fname, FTP_ASCII) === false)
+            throw new \Exception(sprintf(
+                'Failed To Read Contents Of "%s" File.'
+                , $fname
+            ));
+
+        $size = fstat($tmpFile)['size'];
+        rewind($tmpFile);
+
+        return fread($tmpFile, $size);
     }
 
     /**
