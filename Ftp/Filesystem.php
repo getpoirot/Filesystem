@@ -15,6 +15,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
+use Poirot\Filesystem\Permissions;
 
 class Filesystem implements
     iFilesystem,
@@ -260,8 +261,13 @@ class Filesystem implements
     function getFileGroup(iCommonInfo $node)
     {
         $info = $this->getFSRawData($node);
+        if (!isset($info['group']))
+            throw new \Exception(sprintf(
+                'Failed To Know Group Of "%s" File.'
+                , $node->filePath()->toString()
+            ));
 
-        kd($info);
+        return $info['group'];
     }
 
     /**
@@ -290,11 +296,22 @@ class Filesystem implements
      *
      * @param iCommonInfo $file
      *
+     * @throws \Exception
      * @return iPermissions
      */
     function getFilePerms(iCommonInfo $file)
     {
-        // TODO: Implement getFilePerms() method.
+        $info = $this->getFSRawData($file);
+        if (!isset($info['rights']))
+            throw new \Exception(sprintf(
+                'Failed To Get Permissions Of "%s" File.'
+                , $file->filePath()->toString()
+            ));
+
+        $perms = new Permissions();
+        $perms->fromString($info['rights']);
+
+        return $perms;
     }
 
     /**
@@ -308,7 +325,7 @@ class Filesystem implements
      */
     function chown(iCommonInfo $file, $user)
     {
-        // TODO: Implement chown() method.
+        return $this;
     }
 
     /**
@@ -321,7 +338,14 @@ class Filesystem implements
      */
     function getFileOwner(iCommonInfo $file)
     {
-        // TODO: Implement getFileOwner() method.
+        $info = $this->getFSRawData($file);
+        if (!isset($info['user']))
+            throw new \Exception(sprintf(
+                'Failed To Get Owner Of "%s" File.'
+                , $file->filePath()->toString()
+            ));
+
+        return $info['user'];
     }
 
     /**
@@ -334,7 +358,17 @@ class Filesystem implements
      */
     function getFileSize(iFileInfo $file)
     {
-        // TODO: Implement getFileSize() method.
+        $fname = $file->filePath()->toString();
+
+        /* TODO May not working for files more that 2gb */
+        $fsize = ftp_size($this->getConnect(), $fname);
+        if ($fsize == -1)
+            throw new \Exception(sprintf(
+                'Failed To Get Size Of "%s" File.'
+                , $fname
+            ));
+
+        return $fsize;
     }
 
         /**
@@ -346,13 +380,19 @@ class Filesystem implements
          */
         protected function getFSRawData($node)
         {
+            $nFilename = $node->filePath()->getFilename();
             $items = array();
             if ($this->isDir($node)) {
+                // we can get rawlist of parent node dir
+                // raw data of node may present as array key
                 $upDir  = $this->dirUp($node);
                 $rwlist = $this->getRawList($upDir);
-                $items  = $rwlist[$node->filePath()->toString()];
+                $items  = $rwlist[$nFilename];
             } elseif ($this->isFile($node)) {
+                kd('sdfsf');
+                $rwlist = $this->getRawList($node);
 
+                kd($rwlist);
             }
 
             return $items;
