@@ -51,9 +51,11 @@ class Filesystem implements
     function __construct($options)
     {
         if ($options !== null)
-            if ($options instanceof FtpOptions)
+            if ($options instanceof FtpOptions) {
                 foreach($options->props()->writable as $opt)
-                    $this->options()->{$opt} = $options->{$opt};
+                    if (isset($options->{$opt})) // maybe the write only props is not readable
+                        $this->options()->{$opt} = $options->{$opt};
+            }
             elseif (is_array($options))
                 $this->options()->fromArray($options);
             else
@@ -1070,6 +1072,28 @@ class Filesystem implements
             $this->options = new FtpOptions();
 
         return $this->options;
+    }
+
+    /**
+     * Get An Bare Options Instance
+     *
+     * - return always new instance of same object that used
+     *   by ::options()
+     *
+     * ! it used on easy access to options instance
+     *   before constructing class
+     *   [php]
+     *      $opt = Filesystem::optionsIns();
+     *      $opt->setSomeOption('value');
+     *
+     *      $class = new Filesystem($opt);
+     *   [/php]
+     *
+     * @return FtpOptions
+     */
+    static function optionsIns()
+    {
+        return new FtpOptions();
     }
 }
  

@@ -3,11 +3,6 @@ namespace Poirot\Filesystem\Storage\Local;
 
 use Poirot\Core\AbstractOptions;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
-use Poirot\Filesystem\Interfaces\iFile;
-use Poirot\Filesystem\Interfaces\iDirectory;
-use Poirot\Filesystem\Interfaces\iLink;
-use Poirot\Filesystem\Interfaces\iCommon;
-use Poirot\Filesystem\Storage\AbstractStorage;
 
 class Storage extends AbstractStorage implements
     OptionsProviderInterface
@@ -180,6 +175,25 @@ class Storage extends AbstractStorage implements
                 $return = new Directory();
 
         return $return;
+    }
+
+    /**
+     * Get An Bare Options Instance
+     *
+     * ! it used on easy access to options instance
+     *   before constructing class
+     *   [php]
+     *      $opt = Filesystem::optionsIns();
+     *      $opt->setSomeOption('value');
+     *
+     *      $class = new Filesystem($opt);
+     *   [/php]
+     *
+     * @return AbstractOptions
+     */
+    static function optionsIns()
+    {
+        // TODO: Implement optionsIns() method.
     }
 }
  
