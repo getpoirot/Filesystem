@@ -603,16 +603,30 @@ class Filesystem implements
      *
      * @param iFile $file
      * @param string $contents
-     * @param bool $append Append Content To File
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function putFileContents(iFile $file, $contents, $append = false)
+    function putFileContents(iFile $file, $contents)
     {
         // ftp_alloc — Allocates space for a file to be uploaded
+        $tmpFile = @fopen('php://temp', 'Wb+');
+        if ($tmpFile === false)
+            throw new \Exception('Failed To Initialize Temp File.');
 
-        // TODO: Implement putFileContents() method.
+        if(fwrite($tmpFile, $contents) === false)
+            throw new \Exception('Failed To Write To Temp File.');
+
+        rewind($tmpFile);
+
+        $fname   = $file->filePath()->toString();
+        if (ftp_fput($this->getConnect(), $fname, $tmpFile, FTP_ASCII) === false)
+            throw new \Exception(sprintf(
+                'Failed To Read Contents Of "%s" File.'
+                , $fname
+            ));
+
+        return $this;
     }
 
     /**
