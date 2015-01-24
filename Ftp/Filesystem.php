@@ -374,43 +374,48 @@ class Filesystem implements
         /**
          * Get Raw Data Information For A File Or Directory
          *
+         * ! return empty array if not found
+         *
          * @param iDirectoryInfo|iFileInfo $node File Or Directory
          *
          * @return array
          */
         protected function getFSRawData($node)
         {
-            $nFilename = $node->filePath()->getFilename();
-            $items = array();
-            if ($this->isDir($node)) {
+            $nFilename = $node->filePath()->withoutLeadingDot()->toString();
+
+            if ($this->isDir($node))
                 // we can get rawlist of parent node dir
                 // raw data of node may present as array key
-                $upDir  = $this->dirUp($node);
-                $rwlist = $this->getRawList($upDir);
-                $items  = $rwlist[$nFilename];
-            } elseif ($this->isFile($node)) {
-                kd('sdfsf');
-                $rwlist = $this->getRawList($node);
+                $node = $this->dirUp($node);
 
-                kd($rwlist);
-            }
+            $rwlist = $this->getRawList($node);
+
+            $items = [];
+            if (array_key_exists($nFilename, $rwlist))
+                $items  = $rwlist[$nFilename];
 
             return $items;
         }
 
-    /**
-     * Get Raw List
-     *
-     * @param iCommonInfo $node File Or Directory
-     *
-     * @throws \Exception
-     * @return array
-     */
+        /**
+         * Get Raw List
+         *
+         * @param iCommonInfo $node File Or Directory
+         *
+         * @throws \Exception
+         * @return array
+         */
         protected function getRawList($node)
         {
             $items = [];
-            if (is_array($children = @ftp_rawlist($this->getConnect(), $node->filePath()->toString())))
-                foreach ($children as $child) {
+
+            $rawlist = @ftp_rawlist($this->getConnect()
+                , $node->filePath()->withoutLeadingDot()->toString()
+            );
+
+            if (is_array($rawlist))
+                foreach ($rawlist as $child) {
                     $chunks = preg_split("/\s+/", $child);
                     list($item['rights'], $item['number'], $item['user'], $item['group'], $item['size'], $item['month'], $item['day'], $item['time']) = $chunks;
                     $item['type'] = $chunks[0]{0} === 'd' ? 'directory' : 'file';
@@ -462,11 +467,7 @@ class Filesystem implements
      */
     function isFile($source)
     {
-        if(ftp_size($ftp_connection, $file) == '-1'){
-            return true; // Is directory
-        }else{
-            return false; // Is file
-        }
+        return (ftp_size($this->getConnect(), $source->filePath()->toString()) != -1);
     }
 
     /**
@@ -516,7 +517,12 @@ class Filesystem implements
      */
     function isLink($source)
     {
-        // TODO: Implement isLink() method.
+        $return = false;
+
+        if(is_object($source))
+            $return = $source instanceof iLinkInfo;
+
+        return $return;
     }
 
     /**
@@ -529,7 +535,7 @@ class Filesystem implements
      */
     function getFreeSpace()
     {
-        // TODO: Implement getFreeSpace() method.
+        return self::DISKSPACE_UNKNOWN;
     }
 
     /**
@@ -542,7 +548,7 @@ class Filesystem implements
      */
     function getTotalSpace()
     {
-        // TODO: Implement getTotalSpace() method.
+        return self::DISKSPACE_UNKNOWN;
     }
 
     /**
@@ -556,7 +562,9 @@ class Filesystem implements
      */
     function isExists(iCommonInfo $file)
     {
-        // TODO: Implement isExists() method.
+        $rawlist = $this->getFSRawData($file);
+
+        return !empty($rawlist);
     }
 
     /**
