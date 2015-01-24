@@ -5,6 +5,7 @@ use Poirot\Core\AbstractOptions;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
 use Poirot\Filesystem\Abstracts\Common;
 use Poirot\Filesystem\Abstracts\Directory;
+use Poirot\Filesystem\Abstracts\File;
 use Poirot\Filesystem\Abstracts\PathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
@@ -155,7 +156,22 @@ class Filesystem implements
      */
     function mkFromPath($path)
     {
-        // TODO: Implement mkFromPath() method.
+        $return = false;
+
+        if ($this->isDir($path))
+            $return = new Directory($path);
+        elseif ($this->isFile($path))
+            $return = new File($path);
+
+        if (!$return)
+            throw new \Exception(sprintf(
+                'Path "%s" not recognized.'
+                , $path
+            ));
+
+        $return->setFilesystem($this);
+
+        return $return;
     }
 
     /**
@@ -245,6 +261,8 @@ class Filesystem implements
      */
     function chgrp(iCommonInfo $file, $group)
     {
+        // TODO Implement Feature.
+
         return $this;
     }
 
@@ -449,9 +467,72 @@ class Filesystem implements
      */
     function copy(iCommonInfo $source, iCommon $dest)
     {
-        // ftp_alloc — Allocates space for a file to be uploaded
+        // source must be valid
+        if (!$this->isExists($source))
+            throw new \Exception(sprintf(
+                'Source File Not Found On "%s"'
+                , $source->filePath()->toString()
+            ));
 
-        // TODO: Implement copy() method.
+        if ($this->isDir($source) && !$this->isDir($dest))
+            throw new \Exception(sprintf(
+                'Invalid Destination Provided, We Cant Copy A Directory "%s" To File "%s".'
+                , $source->filePath()->toString(), $dest->filePath()->toString()
+            ));
+
+        if (!$this->isDir($dest) && !$this->isFile($dest))
+            throw new \Exception(sprintf(
+                'Destination at "%s" Must be a File Or Directory For Copy.'
+                , $dest->filePath()->toString()
+            ));
+
+        $copied = false;
+        if ($this->isDir($dest)) {
+            // Copy to directory
+            if (!$this->isExists($dest))
+                $this->mkDir($dest, new Permissions(0755));
+
+            if ($this->isFile($source)) {
+                /** @var iFile $source */
+                // download and upload file again
+                $content = $this->getFileContents($source);
+                $dfile = new File($dest->filePath()->toString().'/'.$source->filePath()->getFilename());
+                $this->putFileContents($dfile, $content);
+                $copied = true;
+            } else {
+                // Merge Folder
+                $destDirName = $dest->filePath()->toString().'/'.$source->filePath()->getFilename();
+                $copied = true; // we don't want rise error from here
+                foreach($this->scanDir($source) as $fd)
+                    $this->copy(
+                        $this->mkFromPath($fd)
+                        , new Directory($destDirName)
+                    );
+            }
+        } else {
+            // Copy File To Destination(file)
+
+            // make directories to destination to avoid error >>> {
+            $destDir = $this->dirUp($dest);
+            if (!$this->isExists($destDir))
+                $this->mkDir($destDir, new Permissions(0777));
+            // } <<<
+
+            // download and upload file again
+            $content = $this->getFileContents($source);
+            $dfile = new File($dest->filePath()->toString());
+            $this->putFileContents($dfile, $content);
+
+            $copied = true;
+        }
+
+        if (!$copied)
+            throw new \Exception(sprintf(
+                'Error While Coping "%s" To "%s".'
+                , $source->filePath()->toString(), $dest->filePath()->toString()
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $this;
     }
 
     /**
@@ -467,7 +548,15 @@ class Filesystem implements
      */
     function isFile($source)
     {
-        return (ftp_size($this->getConnect(), $source->filePath()->toString()) != -1);
+        $return = false;
+
+        if (is_string($source))
+            $return = (ftp_size($this->getConnect(), $source) != -1);
+
+        if(is_object($source))
+            $return = $source instanceof iFileInfo;
+
+        return $return;
     }
 
     /**
@@ -639,7 +728,7 @@ class Filesystem implements
      */
     function getFileATime(iFileInfo $file)
     {
-        // TODO: Implement getFileATime() method.
+        return false;
     }
 
     /**
@@ -655,7 +744,7 @@ class Filesystem implements
      */
     function getFileCTime(iFileInfo $file)
     {
-        // TODO: Implement getFileCTime() method.
+        return false;
     }
 
     /**
@@ -699,7 +788,7 @@ class Filesystem implements
      */
     function flock(iFileInfo $file, $lock = LOCK_EX)
     {
-        // TODO: Implement flock() method.
+        return $this;
     }
 
     /**
@@ -714,7 +803,7 @@ class Filesystem implements
      */
     function isReadable(iCommonInfo $file)
     {
-        // TODO: Implement isReadable() method.
+        return $this->isExists($file);
     }
 
     /**
@@ -726,7 +815,7 @@ class Filesystem implements
      */
     function isWritable(iCommonInfo $file)
     {
-        // TODO: Implement isWritable() method.
+        return $this->isExists($file);
     }
 
     /**
@@ -823,7 +912,18 @@ class Filesystem implements
      */
     function rename(iCommonInfo $file, $newName)
     {
-        // TODO: Implement rename() method.
+        $pathInfo = PathUri::getPathInfo($newName);
+        if (!isset($pathInfo['path']))
+            $newName = $this->dirUp($file)->filePath()->toString()
+                .'/'. $newName;
+
+        if (ftp_rename($this->getConnect(), $file->filePath()->toString(), $newName) === false)
+            throw new \Exception(sprintf(
+                'Failed To Rename "%s" File.'
+                , $file->filePath()->toString()
+            ));
+
+        return $this;
     }
 
     /**
@@ -839,7 +939,25 @@ class Filesystem implements
      */
     function rmDir(iDirectoryInfo $dir)
     {
-        // TODO: Implement rmDir() method.
+        $lsDir = $this->scanDir($dir);
+        if (!empty($lsDir))
+            foreach($lsDir as $ls) {
+                // First: Delete Directories Recursively
+                $node = $this->mkFromPath($ls);
+                if ($this->isDir($node))
+                    $this->rmDir($node);
+                else
+                    $this->unlink($node);
+            }
+
+        // Ensure That Folder Is Empty: Delete It
+        if (!ftp_rmdir($this->getConnect(), $dir->filePath()->toString()))
+            throw new \Exception(sprintf(
+                'Error While Deleting "%s" File.'
+                , $dir->filePath()->toString()
+            ));
+
+        return $this;
     }
 
     /**
@@ -914,7 +1032,7 @@ class Filesystem implements
      */
     function getFilename(iCommonInfo $file)
     {
-        // TODO: Implement getFilename() method.
+        return basename($file->filePath()->toString());
     }
 
     /**
@@ -928,7 +1046,7 @@ class Filesystem implements
      */
     function getFileExtension(iFileInfo $file)
     {
-        // TODO: Implement getFileExtension() method.
+        return pathinfo($file->filePath()->toString(), PATHINFO_EXTENSION);
     }
 
     /**
@@ -940,7 +1058,7 @@ class Filesystem implements
      */
     function getBasename(iCommonInfo $file)
     {
-        // TODO: Implement getBasename() method.
+        return pathinfo($file->filePath()->toString(), PATHINFO_FILENAME);
     }
 
     /**
