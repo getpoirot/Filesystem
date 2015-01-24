@@ -246,12 +246,11 @@ interface iFilesystem
      *
      * @param iFile  $file
      * @param string $contents
-     * @param bool   $append   Append Content To File
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function putFileContents(iFile $file, $contents, $append = false);
+    function putFileContents(iFile $file, $contents);
 
     /**
      * Gets last access time of file

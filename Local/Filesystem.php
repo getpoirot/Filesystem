@@ -510,12 +510,11 @@ class Filesystem implements iFilesystem
      *
      * @param iFile  $file
      * @param string $contents
-     * @param bool   $append   Append Content To File
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function putFileContents(iFile $file, $contents, $append = false)
+    function putFileContents(iFile $file, $contents)
     {
         $append  = ($append) ? FILE_APPEND : 0;
         $append |= LOCK_EX; // to prevent anyone else writing to the file at the same time
