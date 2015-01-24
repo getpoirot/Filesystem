@@ -12,6 +12,8 @@ class PathUri implements iPathUri
     protected $extension;
     protected $pathuri;
 
+    protected $leadingDot = false;
+
     /**
      * Construct
      *
@@ -123,7 +125,36 @@ class PathUri implements iPathUri
      */
     function getPath()
     {
-        return $this->pathuri;
+        $path = $this->pathuri;
+        $path = explode('/', $path);
+        if ($path[0] == '.' && !$this->leadingDot)
+            unset ($path[0]);
+
+        return implode('/', $path);
+    }
+
+    /**
+     * Path Uri Include ./
+     *
+     * @return $this
+     */
+    function withLeadingDot()
+    {
+        $this->leadingDot = true;
+
+        return $this;
+    }
+
+    /**
+     * Strip ./ from paths
+     *
+     * @return $this
+     */
+    function withoutLeadingDot()
+    {
+        $this->leadingDot = false;
+
+        return $this;
     }
 
     /**
@@ -217,7 +248,6 @@ class PathUri implements iPathUri
 
         $ret  = [];
         $m    = pathinfo($path);
-
         (!isset($m['dirname']))   ?: $ret['path']      = $m['dirname'];  // For file with name.ext
         (!isset($m['basename']))  ?: $ret['filename']  = $m['basename']; // <= name.ext
         (!isset($m['filename']))  ?: $ret['basename']  = $m['filename']; // <= name
