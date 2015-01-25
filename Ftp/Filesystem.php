@@ -669,7 +669,7 @@ class Filesystem implements
 
         $fname   = $file->filePath()->toString();
 
-        if (ftp_fget($this->getConnect(), $tmpFile, $fname, FTP_ASCII) === false)
+        if (ftp_fget($this->getConnect(), $tmpFile, $fname, FTP_BINARY) === false)
             throw new \Exception(sprintf(
                 'Failed To Read Contents Of "%s" File.'
                 , $fname
@@ -694,7 +694,6 @@ class Filesystem implements
      */
     function putFileContents(iFile $file, $contents)
     {
-        // ftp_alloc — Allocates space for a file to be uploaded
         $tmpFile = @fopen('php://temp', 'Wb+');
         if ($tmpFile === false)
             throw new \Exception('Failed To Initialize Temp File.');
@@ -702,10 +701,17 @@ class Filesystem implements
         if(fwrite($tmpFile, $contents) === false)
             throw new \Exception('Failed To Write To Temp File.');
 
+        $size = fstat($tmpFile)['size'];
         rewind($tmpFile);
 
         $fname   = $file->filePath()->toString();
-        if (ftp_fput($this->getConnect(), $fname, $tmpFile, FTP_ASCII) === false)
+        if (!ftp_alloc($this->getConnect(), $size, $serverResult))
+            throw new \Exception(sprintf(
+                'Unable to allocate space on server.  Server said: %s'
+                , $serverResult
+            ));
+
+        if (ftp_fput($this->getConnect(), $fname, $tmpFile, FTP_BINARY) === false)
             throw new \Exception(sprintf(
                 'Failed To Write Contents To "%s" File.'
                 , $fname
