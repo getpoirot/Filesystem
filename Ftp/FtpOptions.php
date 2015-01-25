@@ -52,6 +52,25 @@ class FtpOptions extends AbstractOptions
         return $this;
     }
 
+    /**
+     * Set Options From Same Option Object
+     *
+     * - check for private and write_only methods
+     *   to fully options copied to source option
+     *   class object
+     *
+     * @param FtpOptions $options Options Object
+     *
+     * @throws \Exception
+     * @return $this
+     */
+    function fromOption(/*FtpOptions*/ $options) // php is a donkey, why strict_error
+    {                                            // when FtpOptions is extended AbstractOptions
+        parent::fromOption($options);
+
+        return $this;
+    }
+
         protected function extractOptions($uri)
         {
             // Split FTP URI into:

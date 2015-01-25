@@ -50,19 +50,13 @@ class Filesystem implements
      */
     function __construct($options)
     {
-        if ($options !== null)
-            if ($options instanceof FtpOptions) {
-                foreach($options->props()->writable as $opt)
-                    if (isset($options->{$opt})) // maybe the write only props is not readable
-                        $this->options()->{$opt} = $options->{$opt};
-            }
-            elseif (is_array($options))
-                $this->options()->fromArray($options);
-            else
-                throw new \Exception(sprintf(
-                    'Constructor Except "Array" or Instanceof "AbstractOptions", but "%s" given.'
-                    , is_object($options) ? get_class($options) : gettype($options)
-                ));
+        if (!is_array($options) && !$options instanceof FtpOptions)
+            throw new \Exception(sprintf(
+                'Constructor Except "Array" or Instanceof "AbstractOptions", but "%s" given.'
+                , is_object($options) ? get_class($options) : gettype($options)
+            ));
+
+        $this->options()->from($options);
 
         // inject filesystem, refresh connection on option changes
         $this->options()->setFtpFilesystem($this);
