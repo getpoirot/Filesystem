@@ -204,7 +204,7 @@ class Filesystem implements
         $dirname = $dir->filePath()->toString();
 
         // it's included the full path
-        $result  = ftp_nlist($this->getConnect(), '-la '.$dirname);
+        $result  = ftp_nlist($this->getConnect(), $dirname);
         if ($result === false)
             throw new \Exception(sprintf(
                 'Failed Scan Directory To "%s".'
@@ -707,7 +707,7 @@ class Filesystem implements
         $fname   = $file->filePath()->toString();
         if (ftp_fput($this->getConnect(), $fname, $tmpFile, FTP_ASCII) === false)
             throw new \Exception(sprintf(
-                'Failed To Read Contents Of "%s" File.'
+                'Failed To Write Contents To "%s" File.'
                 , $fname
             ));
 
