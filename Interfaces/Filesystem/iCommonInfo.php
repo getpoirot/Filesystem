@@ -41,7 +41,7 @@ interface iCommonInfo
      *
      * /etc/passwd => /etc
      *
-     * @return string
+     * @return iDirectory
      */
     function dirUp();
 

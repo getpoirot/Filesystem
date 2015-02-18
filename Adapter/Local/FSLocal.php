@@ -41,10 +41,9 @@ class FSLocal implements iFilesystem
 
         if (!$return)
             throw new \Exception(sprintf(
-                    'Path "%s" not recognized.'
-                    , $path
-                ), null, new \Exception(error_get_last()['message'])
-            );
+                'Path "%s" not recognized.'
+                , $path
+            ), null, new \Exception(error_get_last()['message']));
 
         $return->setFilesystem($this);
 
