@@ -3,7 +3,7 @@ namespace Poirot\Filesystem\Adapter\Ftp;
 
 use Poirot\Core\AbstractOptions;
 
-class FtpOptions extends AbstractOptions
+class FSFtpOptions extends AbstractOptions
 {
     /**
      * ! injected filesystem to refresh connection
@@ -59,7 +59,7 @@ class FtpOptions extends AbstractOptions
      *   to fully options copied to source option
      *   class object
      *
-     * @param FtpOptions $options Options Object
+     * @param FSFtpOptions $options Options Object
      *
      * @throws \Exception
      * @return $this

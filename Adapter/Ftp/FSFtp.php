@@ -23,7 +23,7 @@ class FSFtp implements
     OptionsProviderInterface
 {
     /**
-     * @var FtpOptions
+     * @var FSFtpOptions
      */
     protected $options;
 
@@ -44,13 +44,13 @@ class FSFtp implements
      *
      * - pass ftp options on construct
      *
-     * @param Array|FtpOptions $options Ftp Connection Options
+     * @param Array|FSFtpOptions $options Ftp Connection Options
      *
      * @throws \Exception
      */
     function __construct($options)
     {
-        if (!is_array($options) && !$options instanceof FtpOptions)
+        if (!is_array($options) && !$options instanceof FSFtpOptions)
             throw new \Exception(sprintf(
                 'Constructor Except "Array" or Instanceof "AbstractOptions", but "%s" given.'
                 , is_object($options) ? get_class($options) : gettype($options)
@@ -1064,12 +1064,12 @@ class FSFtp implements
     }
 
     /**
-     * @return FtpOptions
+     * @return FSFtpOptions
      */
     function options()
     {
         if (!$this->options)
-            $this->options = new FtpOptions();
+            $this->options = new FSFtpOptions();
 
         return $this->options;
     }
@@ -1089,11 +1089,11 @@ class FSFtp implements
      *      $class = new Filesystem($opt);
      *   [/php]
      *
-     * @return FtpOptions
+     * @return FSFtpOptions
      */
     static function optionsIns()
     {
-        return new FtpOptions();
+        return new FSFtpOptions();
     }
 }
  
