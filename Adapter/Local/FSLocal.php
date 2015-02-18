@@ -20,7 +20,7 @@ use Poirot\Filesystem\FileFilePermissions;
  *         file/directory permission be as same as
  *         apache/php user
  */
-class Filesystem implements iFilesystem
+class FSLocal implements iFilesystem
 {
     /**
      * Make an Object From Existence Path Filesystem
@@ -450,7 +450,7 @@ class Filesystem implements iFilesystem
      * - Returns the number of available bytes as a float
      * - Using Current Working Directory
      *
-     * @return float|self::DISKSPACE_*
+     * @return float|FSLocal::DISKSPACE_*
      */
     function getFreeSpace()
     {
@@ -469,7 +469,7 @@ class Filesystem implements iFilesystem
      * - Returns the number of available bytes as a float
      * - Using Current Working Directory
      *
-     * @return float|self::DISKSPACE_*
+     * @return float|FSLocal::DISKSPACE_*
      */
     function getTotalSpace()
     {

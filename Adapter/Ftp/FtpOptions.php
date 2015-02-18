@@ -9,7 +9,7 @@ class FtpOptions extends AbstractOptions
      * ! injected filesystem to refresh connection
      *   on belonged options changed
      *
-     * @var Filesystem
+     * @var FSFtp
      */
     protected $ftpFilesystem;
 
@@ -176,7 +176,7 @@ class FtpOptions extends AbstractOptions
      *
      * @param mixed $ftpFilesystem
      */
-    function setFtpFilesystem(Filesystem $ftpFilesystem)
+    function setFtpFilesystem(FSFtp $ftpFilesystem)
     {
         $this->ftpFilesystem = $ftpFilesystem;
     }

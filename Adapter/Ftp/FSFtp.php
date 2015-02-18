@@ -18,7 +18,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\FileFilePermissions;
 
-class Filesystem implements
+class FSFtp implements
     iFilesystem,
     OptionsProviderInterface
 {
@@ -616,7 +616,7 @@ class Filesystem implements
      * - Returns the number of available bytes as a float
      * - Using Current Working Directory
      *
-     * @return float|self::DISKSPACE_*
+     * @return float|FSFtp::DISKSPACE_*
      */
     function getFreeSpace()
     {
@@ -629,7 +629,7 @@ class Filesystem implements
      * - Returns the number of available bytes as a float
      * - Using Current Working Directory
      *
-     * @return float|self::DISKSPACE_*
+     * @return float|FSFtp::DISKSPACE_*
      */
     function getTotalSpace()
     {
