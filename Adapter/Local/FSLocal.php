@@ -1,9 +1,9 @@
 <?php
 namespace Poirot\Filesystem\Adapter\Local;
 
-use Poirot\Filesystem\Abstracts\Directory;
-use Poirot\Filesystem\Abstracts\File;
-use Poirot\Filesystem\Abstracts\FSPathUri;
+use Poirot\Filesystem\Adapter\Directory;
+use Poirot\Filesystem\Adapter\File;
+use Poirot\Filesystem\Adapter\NodePathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -105,7 +105,7 @@ class FSLocal implements iFilesystem
 
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($dirname)  {
-            $value = FSPathUri::normalizePath($dirname.'/'.$value);
+            $value = NodePathUri::normalizePath($dirname.'/'.$value);
         });
 
         return $result;
@@ -884,7 +884,7 @@ class FSLocal implements iFilesystem
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = FSPathUri::getPathInfo($newName);
+        $pathInfo = NodePathUri::getPathInfo($newName);
         if (!isset($pathInfo['path']))
             $newName = $this->dirUp($file)->filePath()->toString()
                 .'/'. $newName;

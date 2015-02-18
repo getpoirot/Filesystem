@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem\Abstracts;
+namespace Poirot\Filesystem\Adapter;
 
 use Poirot\Filesystem\Adapter\Local\FSLocal;
 use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
@@ -7,7 +7,7 @@ use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
 
-abstract class Common
+abstract class AbstractCommonNode
     implements
     iFilesystemAware,
     iFilesystemProvider
@@ -49,7 +49,7 @@ abstract class Common
     function filePath()
     {
         if (!$this->filepath)
-            $this->filepath = new FSPathUri($this->_pathuri);
+            $this->filepath = new NodePathUri($this->_pathuri);
 
         return $this->filepath;
     }

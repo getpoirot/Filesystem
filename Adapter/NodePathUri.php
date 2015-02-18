@@ -1,10 +1,10 @@
 <?php
-namespace Poirot\Filesystem\Abstracts;
+namespace Poirot\Filesystem\Adapter;
 
 use Poirot\Core\BuilderSetterTrait;
 use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 
-class FSPathUri implements iFSPathUri
+class NodePathUri implements iFSPathUri
 {
     use BuilderSetterTrait;
 

@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem\Abstracts;
+namespace Poirot\Filesystem\Adapter;
 
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
@@ -8,7 +8,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLink;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 
-class Link extends Common
+class Link extends AbstractCommonNode
     implements
     iLink
 {

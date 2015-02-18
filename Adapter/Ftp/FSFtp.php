@@ -3,10 +3,10 @@ namespace Poirot\Filesystem\Adapter\Ftp;
 
 use Poirot\Core\AbstractOptions;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
-use Poirot\Filesystem\Abstracts\Common;
-use Poirot\Filesystem\Abstracts\Directory;
-use Poirot\Filesystem\Abstracts\File;
-use Poirot\Filesystem\Abstracts\FSPathUri;
+use Poirot\Filesystem\Adapter\AbstractCommonNode;
+use Poirot\Filesystem\Adapter\Directory;
+use Poirot\Filesystem\Adapter\File;
+use Poirot\Filesystem\Adapter\NodePathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -131,11 +131,11 @@ class FSFtp implements
     /**
      * Inject File System To Filesystem Node
      *
-     * @param Common $fsNode
+     * @param AbstractCommonNode $fsNode
      *
-     * @return \Poirot\Filesystem\Abstracts\Common
+     * @return \Poirot\Filesystem\Adapter\AbstractCommonNode
      */
-    protected function injectFilesystem(Common $fsNode)
+    protected function injectFilesystem(AbstractCommonNode $fsNode)
     {
         $fsNode->setFilesystem($this);
 
@@ -214,13 +214,13 @@ class FSFtp implements
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($dirname)  {
             $value = @end(explode('/', $value));
-            $value = FSPathUri::normalizePath($dirname.'/'.$value);
+            $value = NodePathUri::normalizePath($dirname.'/'.$value);
         });
 
         // get rid of the dots
         $result = array_diff($result, array(
-            FSPathUri::normalizePath($dirname.'/..'),
-            FSPathUri::normalizePath($dirname.'/.')
+            NodePathUri::normalizePath($dirname.'/..'),
+            NodePathUri::normalizePath($dirname.'/.')
             )
         );
 
@@ -914,7 +914,7 @@ class FSFtp implements
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = FSPathUri::getPathInfo($newName);
+        $pathInfo = NodePathUri::getPathInfo($newName);
         if (!isset($pathInfo['path']))
             $newName = $this->dirUp($file)->filePath()->toString()
                 .'/'. $newName;

@@ -1,18 +1,10 @@
 <?php
-namespace Poirot\Filesystem\Abstracts;
+namespace Poirot\Filesystem\Adapter;
 
-use Poirot\Core\BuilderSetterTrait;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
-use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
-use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Filesystem\Interfaces\iFilesystemAware;
-use Poirot\Filesystem\Interfaces\iFilesystemProvider;
-use Poirot\Filesystem\Local\Filesystem;
-use Poirot\Filesystem\FileFilePermissions;
-use Poirot\Filesystem\Util;
 
-class Directory extends Common
+class Directory extends AbstractCommonNode
     implements
     iDirectory
 {
