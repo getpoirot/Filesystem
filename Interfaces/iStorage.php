@@ -3,31 +3,40 @@ namespace Poirot\Filesystem\Interfaces;
 
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iLink;
 
 /**
  * Storage can implement OptionsProviderInterface
  */
-interface iStorage extends iCommon
+interface iStorage extends iFilesystemProvider
 {
     const FS_TYPE_FILE    = 'file';
     const FS_TYPE_LINK    = 'link';
     const FS_TYPE_DIR     = 'dir';
-    const FS_TYPE_STORAGE = 'storage';
     const FS_TYPE_UNKNOWN = 'unknown';
+
+    /**
+     * Set Basename of Storage
+     *
+     * @param string $name Basename
+     *
+     * @return $this
+     */
+    function setBasename($name);
 
     /**
      * Gets the name identifier of the storage
      *
-     * ! the returned name should be the same for every storage object that is created with the same parameters
-     * and two storage objects with the same name should refer to two storages that display the same files.
-     *
-     * - it's common with directories interfaces
+     * ! the returned name should be the same for
+     *   every storage object that is created with the same parameters
+     *   and two storage objects with the same name should refer to two
+     *   storages that display the same files.
      *
      * @return string
      */
-    function getIdentity();
+    function getBasename();
 
     /**
      * Get Current Filesystem/Storage Working Directory
@@ -42,59 +51,20 @@ interface iStorage extends iCommon
     function getCwd();
 
     /**
-     * List Contents
+     * Mount A Storage To Filesystem Directory
      *
-     * - Must use createFromPath Method to create instance
-     * - Must Display Mounted Storages
-     *
-     * @return array[iCommon|iStorage]
-     */
-    function lsContents();
-
-    /**
-     * Mount External Storage
-     *
-     * - The mounted directory will show on lsContent
-     *
-     * @param iStorage $storage
+     * @param iDirectoryInfo $dir
      *
      * @return $this
      */
-    function mount(iStorage $storage);
+    function mount(iDirectoryInfo $dir);
 
     /**
      * UnMount Mounted Storage
      *
-     * @param iStorage $storage
-     *
      * @return $this
      */
-    function unmount(iStorage $storage);
-
-    /**
-     * Create File Or Folder From Given Path
-     * Path's is always /path/to/file_or_folder
-     *
-     * ! beware of mounted storages
-     *
-     * - if not exists
-     *   name without extension considered as folder
-     *   else this is file
-     * - if exists
-     *   check type of current node and make object
-     *
-     * @param string $path Path
-     *
-     * @return iCommon|false Return False If Not Found
-     */
-    function createFromPath($path);
-
-    /**
-     * Is Mounted Storage?
-     *
-     * @return bool
-     */
-    function isMount();
+    function unmount();
 
     /**
      * Write File To Storage
@@ -102,9 +72,6 @@ interface iStorage extends iCommon
      * ! check iCommon Object to match to
      *   class filesystem implementation or
      *   object type
-     *
-     * - with creating files or folder cwd will
-     *   append as path
      *
      * @param iCommon|iFile|iDirectory|iLink $node File
      *
@@ -114,6 +81,20 @@ interface iStorage extends iCommon
     function write(iCommon $node);
 
     /**
+     * List Contents
+     *
+     * - all fs nodes must have same Filesystem
+     *   as storage Filesystem
+     *   it means the Local Filesystem can't have
+     *   a Directory with DropBox Filesystem
+     *
+     *   all AbstractNodeCommon extended are FilesystemAware
+     *
+     * @return array[iCommon]
+     */
+    function lsContents();
+
+    /**
      * Get Filesystem node type
      *
      * FS_TYPE_FILE
@@ -121,9 +102,9 @@ interface iStorage extends iCommon
      * FS_TYPE_DIR
      * ...
      *
-     * @param iCommon|iStorage $node
+     * @param iCommon $node
      *
      * @return string
      */
-    function typeOf($node);
+    function typeOf(/* iCommon */$node);
 }

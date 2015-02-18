@@ -28,6 +28,8 @@ interface iFilesystem
     /**
      * Make an Object From Existence Path Filesystem
      *
+     * - Inject Current Filesystem into FSNode Object
+     *
      * @param string $path Filesystem Path To File or Directory
      *
      * @throws \Exception On Failure
