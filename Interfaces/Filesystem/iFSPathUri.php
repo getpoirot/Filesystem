@@ -97,6 +97,13 @@ interface iFSPathUri
     function getPath();
 
     /**
+     * Get Imploded Path
+     *
+     * @return string
+     */
+    function getImPath();
+
+    /**
      * Get Path Name To File Or Folder
      *
      * - include full path for remote files
@@ -118,6 +125,7 @@ interface iFSPathUri
      *
      * return [
      *  'path'      => ['path', 'to', 'dir'],
+     *  'impath'    => 'path/to/dir',
      *  'basename'  => 'name_with', # without extension
      *  'extension' => 'ext',
      *  'filename'  => 'name_with.ext',

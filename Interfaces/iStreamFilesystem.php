@@ -1,6 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
+use Poirot\Filesystem\Interfaces\Filesystem\iStream;
 use Poirot\Filesystem\Interfaces\Filesystem\iStreamFile;
 
 interface iStreamFilesystem

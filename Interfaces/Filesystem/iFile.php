@@ -60,7 +60,7 @@ interface iFile extends iFileInfo, iCommon
      * @throws \Exception Throw Exception If File Exists
      * @return $this
      */
-    function copy($fileDir);
+    function copy(/* iFile|iDirectory */ $fileDir);
 
     /**
      * Move to new file
@@ -72,16 +72,16 @@ interface iFile extends iFileInfo, iCommon
      * @throws \Exception Throw Exception If File Exists
      * @return $this
      */
-    function move($fileDir);
+    function move(/* iFile|iDirectory */$fileDir);
 
     /**
      * Rename File And Write To Storage
      *
-     * @param string $newname New name
+     * @param string $newName New File name
      *
      * @return $this
      */
-    function rename($newname);
+    function rename($newName);
 
     /**
      * Deletes a file from storage

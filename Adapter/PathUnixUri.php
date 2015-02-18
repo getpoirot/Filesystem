@@ -188,6 +188,16 @@ class PathUnixUri implements iFSPathUri
     }
 
     /**
+     * Get Imploded Path
+     *
+     * @return string
+     */
+    function getImPath()
+    {
+        return implode('/', $this->pathuri);
+    }
+
+    /**
      * Get Path Name To File Or Folder
      *
      * - include full path for remote files
@@ -221,6 +231,7 @@ class PathUnixUri implements iFSPathUri
      *
      * return [
      *  'path'      => ['path', 'to', 'dir'],
+     *  'impath'    => 'path/to/dir',
      *  'basename'  => 'name_with', # without extension
      *  'extension' => 'ext',
      *  'filename'  => 'name_with.ext',
@@ -232,6 +243,7 @@ class PathUnixUri implements iFSPathUri
     {
         return [
             'path'      => $this->getPath(),
+            'impath'    => $this->getImPath(),
             'basename'  => $this->getBasename(),
             'extension' => $this->getExtension(),
             'filename'  => $this->getFilename(),

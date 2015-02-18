@@ -2,6 +2,7 @@
 namespace Poirot\Filesystem\Adapter;
 
 use Poirot\Filesystem\Adapter\Local\FSLocal;
+use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
@@ -9,6 +10,7 @@ use Poirot\Filesystem\Interfaces\iFilesystemProvider;
 
 abstract class AbstractCommonNode
     implements
+    iCommonInfo,
     iFilesystemAware,
     iFilesystemProvider
 {
@@ -20,38 +22,49 @@ abstract class AbstractCommonNode
     /**
      * @var iFSPathUri
      */
-    protected $filepath;
-
-    /**
-     * internal usage to build filepath object
-     *
-     * @var string|array
-     */
-    protected $_pathuri;
+    protected $pathUri;
 
     /**
      * Construct
      *
-     * @param array|string $pathBuilder ArraySetter or extracted info from path
+     * @param array|string|iFSPathUri $pathUri
+     * @throws \Exception
      */
-    function __construct($pathBuilder = null)
+    function __construct($pathUri = null)
     {
-        $this->_pathuri = $pathBuilder;
+        if ($pathUri instanceof iFSPathUri)
+            $pathUri = $pathUri->toArray();
+
+        if ($pathUri !== null) {
+            if (is_string($pathUri))
+                $this->pathUri()->fromString($pathUri);
+            elseif (is_array($pathUri))
+                $this->pathUri()->fromArray($pathUri);
+            else
+                throw new \Exception(sprintf(
+                    'PathUri must be instanceof iFSPathUri, Array or String, given: %s'
+                    , is_object($pathUri) ? get_class($pathUri) : gettype($pathUri)
+                ));
+        }
     }
 
     /**
-     * Get Path Uri Object
+     * Get Path Uri Filename
      *
      * - it used to build uri address to file
      *
+     * note: you must retrieve PathUri Object
+     *       from Filesystem on classes that extends
+     *       from iFilesystemProvider
+     *
      * @return iFSPathUri
      */
-    function filePath()
+    function pathUri()
     {
-        if (!$this->filepath)
-            $this->filepath = new PathUnixUri($this->_pathuri);
+        if (!$this->pathUri)
+            $this->pathUri = $this->filesystem()->getPathUri();
 
-        return $this->filepath;
+        return $this->pathUri;
     }
 
     /**

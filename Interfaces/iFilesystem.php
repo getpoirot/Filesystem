@@ -30,13 +30,30 @@ interface iFilesystem
      * Make an Object From Existence Path Filesystem
      *
      * - Inject Current Filesystem into FSNode Object
+     *   that makes on this method before return
      *
-     * @param string $path Filesystem Path To File or Directory
+     * - All String Path created from this class can
+     *   be passed as is
+     *
+     * @param string $path
      *
      * @throws \Exception On Failure
      * @return iCommonInfo
      */
     function mkFromPath($path);
+
+    /**
+     * Get Path Uri Object
+     *
+     * - it used to build/parse uri address to file
+     *   by filesystem
+     *
+     * - every time return clean/reset or new instance of
+     *   pathUri
+     *
+     * @return iFSPathUri
+     */
+    function getPathUri();
 
     // Directory Implementation:
 

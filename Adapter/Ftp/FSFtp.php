@@ -13,6 +13,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
@@ -38,6 +39,11 @@ class FSFtp implements
      * @var bool
      */
     public $refreshResource = false;
+
+    /**
+     * @var PathUnixUri
+     */
+    protected $pathUri;
 
     /**
      * Construct
@@ -171,6 +177,22 @@ class FSFtp implements
     }
 
     /**
+     * Get Path Uri Object
+     *
+     * - it used to build/parse uri address to file
+     *   by filesystem
+     *
+     * @return iFSPathUri
+     */
+    function getPathUri()
+    {
+        if (!$this->pathUri)
+            $this->pathUri = new PathUnixUri;
+
+        return $this->pathUri;
+    }
+
+    /**
      * Gets the current working directory
      *
      * @throws \Exception On Failure
@@ -201,7 +223,7 @@ class FSFtp implements
         if ($dir === null)
             $dir = $this->getCwd();
 
-        $dirname = $dir->filePath()->toString();
+        $dirname = $dir->pathUri()->toString();
 
         // it's included the full path
         $result  = ftp_nlist($this->getConnect(), $dirname);
@@ -237,11 +259,11 @@ class FSFtp implements
      */
     function chDir(iDirectoryInfo $dir)
     {
-        $dirname = $dir->filePath()->toString();
+        $dirname = $dir->pathUri()->toString();
         if (@ftp_chdir($this->getConnect(), $dirname) === false)
             throw new \Exception(sprintf(
                 'Failed Changing Directory To "%s", your cwd is "%s".'
-                , $dirname , $this->getCwd()->filePath()->toString()
+                , $dirname , $this->getCwd()->pathUri()->toString()
             ));
 
         return $this;
@@ -278,7 +300,7 @@ class FSFtp implements
         if (!isset($info['group']))
             throw new \Exception(sprintf(
                 'Failed To Know Group Of "%s" File.'
-                , $node->filePath()->toString()
+                , $node->pathUri()->toString()
             ));
 
         return $info['group'];
@@ -295,7 +317,7 @@ class FSFtp implements
      */
     function chmod(iCommonInfo $file, iFilePermissions $mode)
     {
-        $filename = $file->filePath()->toString();
+        $filename = $file->pathUri()->toString();
         if (ftp_chmod($this->getConnect(), $mode->getTotalPerms(), $filename) === false)
             throw new \Exception(sprintf(
                 'Failed To Change File Mode For "%s".'
@@ -319,7 +341,7 @@ class FSFtp implements
         if (!isset($info['rights']))
             throw new \Exception(sprintf(
                 'Failed To Get Permissions Of "%s" File.'
-                , $file->filePath()->toString()
+                , $file->pathUri()->toString()
             ));
 
         $perms = new FileFilePermissions();
@@ -356,7 +378,7 @@ class FSFtp implements
         if (!isset($info['user']))
             throw new \Exception(sprintf(
                 'Failed To Get Owner Of "%s" File.'
-                , $file->filePath()->toString()
+                , $file->pathUri()->toString()
             ));
 
         return $info['user'];
@@ -372,7 +394,7 @@ class FSFtp implements
      */
     function getFileSize(iFileInfo $file)
     {
-        $fname = $file->filePath()->toString();
+        $fname = $file->pathUri()->toString();
 
         /* TODO May not working for files more that 2gb */
         $fsize = ftp_size($this->getConnect(), $fname);
@@ -396,7 +418,7 @@ class FSFtp implements
          */
         protected function getFSRawData($node)
         {
-            $nFilename = $node->filePath()->withoutLeadingDot()->toString();
+            $nFilename = $node->pathUri()->withoutLeadingDot()->toString();
 
             if ($this->isDir($node))
                 // we can get rawlist of parent node dir
@@ -425,7 +447,7 @@ class FSFtp implements
             $items = [];
 
             $rawlist = @ftp_rawlist($this->getConnect()
-                , $node->filePath()->withoutLeadingDot()->toString()
+                , $node->pathUri()->withoutLeadingDot()->toString()
             );
 
             if (is_array($rawlist))
@@ -467,19 +489,19 @@ class FSFtp implements
         if (!$this->isExists($source))
             throw new \Exception(sprintf(
                 'Source File Not Found On "%s"'
-                , $source->filePath()->toString()
+                , $source->pathUri()->toString()
             ));
 
         if ($this->isDir($source) && !$this->isDir($dest))
             throw new \Exception(sprintf(
                 'Invalid Destination Provided, We Cant Copy A Directory "%s" To File "%s".'
-                , $source->filePath()->toString(), $dest->filePath()->toString()
+                , $source->pathUri()->toString(), $dest->pathUri()->toString()
             ));
 
         if (!$this->isDir($dest) && !$this->isFile($dest))
             throw new \Exception(sprintf(
                 'Destination at "%s" Must be a File Or Directory For Copy.'
-                , $dest->filePath()->toString()
+                , $dest->pathUri()->toString()
             ));
 
         $copied = false;
@@ -492,12 +514,12 @@ class FSFtp implements
                 /** @var iFile $source */
                 // download and upload file again
                 $content = $this->getFileContents($source);
-                $dfile = new File($dest->filePath()->toString().'/'.$source->filePath()->getFilename());
+                $dfile = new File($dest->pathUri()->toString().'/'.$source->pathUri()->getFilename());
                 $this->putFileContents($dfile, $content);
                 $copied = true;
             } else {
                 // Merge Folder
-                $destDirName = $dest->filePath()->toString().'/'.$source->filePath()->getFilename();
+                $destDirName = $dest->pathUri()->toString().'/'.$source->pathUri()->getFilename();
                 $copied = true; // we don't want rise error from here
                 foreach($this->scanDir($source) as $fd)
                     $this->copy(
@@ -516,7 +538,7 @@ class FSFtp implements
 
             // download and upload file again
             $content = $this->getFileContents($source);
-            $dfile = new File($dest->filePath()->toString());
+            $dfile = new File($dest->pathUri()->toString());
             $this->putFileContents($dfile, $content);
 
             $copied = true;
@@ -525,7 +547,7 @@ class FSFtp implements
         if (!$copied)
             throw new \Exception(sprintf(
                 'Error While Coping "%s" To "%s".'
-                , $source->filePath()->toString(), $dest->filePath()->toString()
+                , $source->pathUri()->toString(), $dest->pathUri()->toString()
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -667,7 +689,7 @@ class FSFtp implements
         if ($tmpFile === false)
             throw new \Exception('Failed To Initialize Temp File.');
 
-        $fname   = $file->filePath()->toString();
+        $fname   = $file->pathUri()->toString();
 
         if (ftp_fget($this->getConnect(), $tmpFile, $fname, FTP_BINARY) === false)
             throw new \Exception(sprintf(
@@ -704,7 +726,7 @@ class FSFtp implements
         $size = fstat($tmpFile)['size'];
         rewind($tmpFile);
 
-        $fname   = $file->filePath()->toString();
+        $fname   = $file->pathUri()->toString();
         if (!ftp_alloc($this->getConnect(), $size, $serverResult))
             throw new \Exception(sprintf(
                 'Unable to allocate space on server.  Server said: %s'
@@ -763,7 +785,7 @@ class FSFtp implements
      */
     function getFileMTime(iFileInfo $file)
     {
-        $filename = $file->filePath()->toString();
+        $filename = $file->pathUri()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = ftp_mdtm($this->getConnect(), $filename);
         if ($result === -1)
@@ -844,7 +866,7 @@ class FSFtp implements
      */
     function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
     {
-        $dirpath = $dir->filePath()->toString();
+        $dirpath = $dir->pathUri()->toString();
         if (in_array($dirpath, ['.', '/']))
             return $this;
 
@@ -891,7 +913,7 @@ class FSFtp implements
      */
     function dirUp(iCommonInfo $file)
     {
-        $pathname  = $file->filePath()->getPath();
+        $pathname  = $file->pathUri()->getPath();
 
         return $this->injectFilesystem(new Directory($pathname));
     }
@@ -916,13 +938,13 @@ class FSFtp implements
     {
         $pathInfo = (new PathUnixUri($newName))->toArray();
         if (!isset($pathInfo['path']))
-            $newName = $this->dirUp($file)->filePath()->toString()
+            $newName = $this->dirUp($file)->pathUri()->toString()
                 .'/'. $newName;
 
-        if (ftp_rename($this->getConnect(), $file->filePath()->toString(), $newName) === false)
+        if (ftp_rename($this->getConnect(), $file->pathUri()->toString(), $newName) === false)
             throw new \Exception(sprintf(
                 'Failed To Rename "%s" File.'
-                , $file->filePath()->toString()
+                , $file->pathUri()->toString()
             ));
 
         return $this;
@@ -953,10 +975,10 @@ class FSFtp implements
             }
 
         // Ensure That Folder Is Empty: Delete It
-        if (!ftp_rmdir($this->getConnect(), $dir->filePath()->toString()))
+        if (!ftp_rmdir($this->getConnect(), $dir->pathUri()->toString()))
             throw new \Exception(sprintf(
                 'Error While Deleting "%s" File.'
-                , $dir->filePath()->toString()
+                , $dir->pathUri()->toString()
             ));
 
         return $this;
@@ -1013,7 +1035,7 @@ class FSFtp implements
      */
     function unlink(iFileInfo $file)
     {
-        $filename = $file->filePath()->toString();
+        $filename = $file->pathUri()->toString();
         // Upon failure, an E_WARNING is emitted.
         $result = ftp_delete($this->getConnect(), $filename);
         if ($result === false)
@@ -1034,7 +1056,7 @@ class FSFtp implements
      */
     function getFilename(iCommonInfo $file)
     {
-        return basename($file->filePath()->toString());
+        return basename($file->pathUri()->toString());
     }
 
     /**
@@ -1048,7 +1070,7 @@ class FSFtp implements
      */
     function getFileExtension(iFileInfo $file)
     {
-        return pathinfo($file->filePath()->toString(), PATHINFO_EXTENSION);
+        return pathinfo($file->pathUri()->toString(), PATHINFO_EXTENSION);
     }
 
     /**
@@ -1060,7 +1082,7 @@ class FSFtp implements
      */
     function getBasename(iCommonInfo $file)
     {
-        return pathinfo($file->filePath()->toString(), PATHINFO_FILENAME);
+        return pathinfo($file->pathUri()->toString(), PATHINFO_FILENAME);
     }
 
     /**

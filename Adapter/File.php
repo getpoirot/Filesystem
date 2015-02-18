@@ -253,13 +253,13 @@ class File extends AbstractCommonNode
     /**
      * Rename File And Write To Storage
      *
-     * @param string $newname New name
+     * @param string $newName New File name
      *
      * @return $this
      */
-    function rename($newname)
+    function rename($newName)
     {
-        $this->filesystem()->rename($this, $newname);
+        $this->filesystem()->rename($this, $newName);
 
         return $this;
     }

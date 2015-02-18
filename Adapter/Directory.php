@@ -15,7 +15,8 @@ class Directory extends AbstractCommonNode
      */
     function mkDir()
     {
-        $this->filesystem()->mkDir($this
+        $this->filesystem()->mkDir(
+            $this
             , $this->getPerms()
         );
 

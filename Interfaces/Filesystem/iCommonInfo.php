@@ -8,9 +8,13 @@ interface iCommonInfo
      *
      * - it used to build uri address to file
      *
+     * note: you must retrieve PathUri Object
+     *       from Filesystem on classes that extends
+     *       from iFilesystemProvider
+     *
      * @return iFSPathUri
      */
-    function filePath();
+    function pathUri();
 
     /**
      * Gets the file group
