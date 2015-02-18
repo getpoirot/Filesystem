@@ -1,9 +1,9 @@
 <?php
-namespace Poirot\Filesystem\Local;
+namespace Poirot\Filesystem\Adapter\Local;
 
 use Poirot\Filesystem\Abstracts\Directory;
 use Poirot\Filesystem\Abstracts\File;
-use Poirot\Filesystem\Abstracts\PathUri;
+use Poirot\Filesystem\Abstracts\FSPathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -11,10 +11,9 @@ use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
-use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Filesystem\Permissions;
-use Poirot\Filesystem\Util;
+use Poirot\Filesystem\FileFilePermissions;
 
 /**
  * ! Note: In PHP Most Of Filesystem actions need
@@ -106,7 +105,7 @@ class Filesystem implements iFilesystem
 
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($dirname)  {
-            $value = PathUri::normalizePath($dirname.'/'.$value);
+            $value = FSPathUri::normalizePath($dirname.'/'.$value);
         });
 
         return $result;
@@ -196,12 +195,12 @@ class Filesystem implements iFilesystem
      * Changes file mode
      *
      * @param iCommonInfo $file Path to the file
-     * @param iPermissions $mode
+     * @param iFilePermissions $mode
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chmod(iCommonInfo $file, iPermissions $mode)
+    function chmod(iCommonInfo $file, iFilePermissions $mode)
     {
         $this->validateFile($file);
 
@@ -222,7 +221,7 @@ class Filesystem implements iFilesystem
      *
      * @param iCommonInfo $file
      *
-     * @return iPermissions
+     * @return iFilePermissions
      */
     function getFilePerms(iCommonInfo $file)
     {
@@ -231,7 +230,7 @@ class Filesystem implements iFilesystem
         // Upon failure, an E_WARNING is emitted.
         $fperm = @fileperms($file->filePath()->toString());
 
-        $perms = new Permissions();
+        $perms = new FileFilePermissions();
         $perms->grantPermission($fperm);
 
         return $perms;
@@ -331,7 +330,7 @@ class Filesystem implements iFilesystem
         if ($this->isDir($dest)) {
             // Copy to directory
             if (!$this->isExists($dest))
-                $this->mkDir($dest, new Permissions(0755));
+                $this->mkDir($dest, new FileFilePermissions(0755));
 
             if ($this->isFile($source))
                 /** @var iFile $source */
@@ -355,7 +354,7 @@ class Filesystem implements iFilesystem
             // make directories to destination to avoid error >>> {
             $destDir = $this->dirUp($dest);
             if (!$this->isExists($destDir))
-                $this->mkDir($destDir, new Permissions(0777));
+                $this->mkDir($destDir, new FileFilePermissions(0777));
             // } <<<
 
             $copied = copy(
@@ -769,12 +768,12 @@ class Filesystem implements iFilesystem
      * Makes directory Recursively
      *
      * @param iDirectoryInfo $dir
-     * @param iPermissions $mode
+     * @param iFilePermissions $mode
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function mkDir(iDirectoryInfo $dir, iPermissions $mode)
+    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
     {
         if (!@mkdir($dir->filePath()->toString(), $mode->getTotalPerms(), true))
             throw new \Exception(sprintf(
@@ -885,7 +884,7 @@ class Filesystem implements iFilesystem
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = PathUri::getPathInfo($newName);
+        $pathInfo = FSPathUri::getPathInfo($newName);
         if (!isset($pathInfo['path']))
             $newName = $this->dirUp($file)->filePath()->toString()
                 .'/'. $newName;

@@ -15,11 +15,11 @@ interface iCommon extends iCommonInfo
     /**
      * Changes file mode
      *
-     * @param iPermissions $mode
+     * @param iFilePermissions $mode
      *
      * @return $this
      */
-    function chmod(iPermissions $mode);
+    function chmod(iFilePermissions $mode);
 
     /**
      * Set Group

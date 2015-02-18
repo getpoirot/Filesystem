@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem\Ftp;
+namespace Poirot\Filesystem\Adapter\Ftp;
 
 use Poirot\Core\AbstractOptions;
 

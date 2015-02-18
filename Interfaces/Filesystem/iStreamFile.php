@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces\Filesystem;
 
-interface iFileStream extends iFileStreamInfo
+interface iStreamFile extends iStreamFileInfo
 {
     /**
      * Get a file pointer resource on success

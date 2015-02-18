@@ -8,7 +8,7 @@ interface iCommonInfo
      *
      * - it used to build uri address to file
      *
-     * @return iPathUri
+     * @return iFSPathUri
      */
     function filePath();
 
@@ -32,7 +32,7 @@ interface iCommonInfo
      *
      * exp. from storage WRITABLE|EXECUTABLE
      *
-     * @return iPermissions
+     * @return iFilePermissions
      */
     function getPerms();
 

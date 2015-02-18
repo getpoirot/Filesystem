@@ -6,7 +6,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLink;
-use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 
 class Link extends Common
     implements
@@ -33,7 +33,7 @@ class Link extends Common
      *
      * exp. from storage WRITABLE|EXECUTABLE
      *
-     * @return iPermissions
+     * @return iFilePermissions
      */
     function getPerms()
     {

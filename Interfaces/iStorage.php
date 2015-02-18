@@ -2,6 +2,9 @@
 namespace Poirot\Filesystem\Interfaces;
 
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
+use Poirot\Filesystem\Interfaces\Filesystem\iFile;
+use Poirot\Filesystem\Interfaces\Filesystem\iLink;
 
 /**
  * Storage can implement OptionsProviderInterface

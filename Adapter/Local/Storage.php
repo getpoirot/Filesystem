@@ -1,5 +1,5 @@
 <?php
-namespace Poirot\Filesystem\Storage\Local;
+namespace Poirot\Filesystem\Adapter\Storage\Local;
 
 use Poirot\Core\AbstractOptions;
 use Poirot\Core\Interfaces\OptionsProviderInterface;

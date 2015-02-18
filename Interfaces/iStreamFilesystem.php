@@ -1,9 +1,9 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
-use Poirot\Filesystem\Interfaces\Filesystem\iFileStream;
+use Poirot\Filesystem\Interfaces\Filesystem\iStreamFile;
 
-interface iFilesystemStream
+interface iStreamFilesystem
 {
     const STREAM_RB    = 'r';
     const STREAM_RWB   = 'r+';
@@ -23,11 +23,11 @@ interface iFilesystemStream
      *   iFile scheme
      * - get resource from file, inject to iStream
      *
-     * @param iFileStream $file File To Be Streamed
+     * @param iStreamFile $file File To Be Streamed
      * @param string      $mode self::STREAM_*
      *
      * @throw \Exception On Failed
      * @return iStream
      */
-    function stream(iFileStream $file, $mode);
+    function stream(iStreamFile $file, $mode);
 }

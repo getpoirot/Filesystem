@@ -54,4 +54,4 @@ interface iStream
      * @return null
      */
     function close();
-} 
+}

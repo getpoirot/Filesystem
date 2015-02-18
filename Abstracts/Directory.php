@@ -3,13 +3,13 @@ namespace Poirot\Filesystem\Abstracts;
 
 use Poirot\Core\BuilderSetterTrait;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
-use Poirot\Filesystem\Interfaces\Filesystem\iPathUri;
-use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
+use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
 use Poirot\Filesystem\Local\Filesystem;
-use Poirot\Filesystem\Permissions;
+use Poirot\Filesystem\FileFilePermissions;
 use Poirot\Filesystem\Util;
 
 class Directory extends Common
@@ -57,11 +57,11 @@ class Directory extends Common
     /**
      * Changes file mode
      *
-     * @param iPermissions $mode
+     * @param iFilePermissions $mode
      *
      * @return $this
      */
-    function chmod(iPermissions $mode)
+    function chmod(iFilePermissions $mode)
     {
         $this->filesystem()->chmod($this, $mode);
 
@@ -74,7 +74,7 @@ class Directory extends Common
      *
      * exp. from storage WRITABLE|EXECUTABLE
      *
-     * @return iPermissions
+     * @return iFilePermissions
      */
     function getPerms()
     {

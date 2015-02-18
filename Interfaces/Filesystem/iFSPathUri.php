@@ -1,7 +1,11 @@
 <?php
 namespace Poirot\Filesystem\Interfaces\Filesystem;
 
-interface iPathUri 
+/**
+ * Represent Full Path/uri/to/filename.ext
+ *
+ */
+interface iFSPathUri
 {
     /**
      * Set Filename of file or folder
@@ -87,20 +91,4 @@ interface iPathUri
      * @return string
      */
     function toString();
-
-    /**
-     * Set Scheme/Protocol of File path
-     *
-     * @param string $scheme Protocol Scheme
-     *
-     * @return $this
-     */
-    function setScheme($scheme);
-
-    /**
-     * Get Scheme Protocol part of file path
-     *
-     * @return string
-     */
-    function getScheme();
 }

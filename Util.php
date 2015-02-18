@@ -10,7 +10,7 @@ class Util
      *
      * @return string
      */
-    public static function makeSafe($fileName)
+    public static function makeSafeFilename($fileName)
     {
         $regex = array('#(\.){2,}#', '#[^A-Za-z0-9\.\_\-]#', '#^\.#');
 

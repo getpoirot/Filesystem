@@ -1,12 +1,12 @@
 <?php
-namespace Poirot\Filesystem\Ftp;
+namespace Poirot\Filesystem\Adapter\Ftp;
 
 use Poirot\Core\AbstractOptions;
 use Poirot\Core\Interfaces\OptionsProviderInterface;
 use Poirot\Filesystem\Abstracts\Common;
 use Poirot\Filesystem\Abstracts\Directory;
 use Poirot\Filesystem\Abstracts\File;
-use Poirot\Filesystem\Abstracts\PathUri;
+use Poirot\Filesystem\Abstracts\FSPathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -14,9 +14,9 @@ use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
-use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Filesystem\Permissions;
+use Poirot\Filesystem\FileFilePermissions;
 
 class Filesystem implements
     iFilesystem,
@@ -214,13 +214,13 @@ class Filesystem implements
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($dirname)  {
             $value = @end(explode('/', $value));
-            $value = PathUri::normalizePath($dirname.'/'.$value);
+            $value = FSPathUri::normalizePath($dirname.'/'.$value);
         });
 
         // get rid of the dots
         $result = array_diff($result, array(
-            PathUri::normalizePath($dirname.'/..'),
-            PathUri::normalizePath($dirname.'/.')
+            FSPathUri::normalizePath($dirname.'/..'),
+            FSPathUri::normalizePath($dirname.'/.')
             )
         );
 
@@ -288,12 +288,12 @@ class Filesystem implements
      * Changes file mode
      *
      * @param iCommonInfo $file Path to the file
-     * @param iPermissions $mode
+     * @param iFilePermissions $mode
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chmod(iCommonInfo $file, iPermissions $mode)
+    function chmod(iCommonInfo $file, iFilePermissions $mode)
     {
         $filename = $file->filePath()->toString();
         if (ftp_chmod($this->getConnect(), $mode->getTotalPerms(), $filename) === false)
@@ -311,7 +311,7 @@ class Filesystem implements
      * @param iCommonInfo $file
      *
      * @throws \Exception
-     * @return iPermissions
+     * @return iFilePermissions
      */
     function getFilePerms(iCommonInfo $file)
     {
@@ -322,7 +322,7 @@ class Filesystem implements
                 , $file->filePath()->toString()
             ));
 
-        $perms = new Permissions();
+        $perms = new FileFilePermissions();
         $perms->fromString($info['rights']);
 
         return $perms;
@@ -486,7 +486,7 @@ class Filesystem implements
         if ($this->isDir($dest)) {
             // Copy to directory
             if (!$this->isExists($dest))
-                $this->mkDir($dest, new Permissions(0755));
+                $this->mkDir($dest, new FileFilePermissions(0755));
 
             if ($this->isFile($source)) {
                 /** @var iFile $source */
@@ -511,7 +511,7 @@ class Filesystem implements
             // make directories to destination to avoid error >>> {
             $destDir = $this->dirUp($dest);
             if (!$this->isExists($destDir))
-                $this->mkDir($destDir, new Permissions(0777));
+                $this->mkDir($destDir, new FileFilePermissions(0777));
             // } <<<
 
             // download and upload file again
@@ -837,12 +837,12 @@ class Filesystem implements
      * Makes directory Recursively
      *
      * @param iDirectoryInfo $dir
-     * @param iPermissions $mode
+     * @param iFilePermissions $mode
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function mkDir(iDirectoryInfo $dir, iPermissions $mode)
+    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
     {
         $dirpath = $dir->filePath()->toString();
         if (in_array($dirpath, ['.', '/']))
@@ -914,7 +914,7 @@ class Filesystem implements
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = PathUri::getPathInfo($newName);
+        $pathInfo = FSPathUri::getPathInfo($newName);
         if (!isset($pathInfo['path']))
             $newName = $this->dirUp($file)->filePath()->toString()
                 .'/'. $newName;

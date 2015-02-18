@@ -1,9 +1,10 @@
 <?php
-namespace Poirot\Local\Storage;
+namespace Poirot\Filesystem\Adapter\Local\Storage;
 
 use Poirot\Core\AbstractOptions;
+use Poirot\Filesystem\Adapter\Local\Filesystem;
 
-class Options extends AbstractOptions
+class LocalStorageOptions extends AbstractOptions
 {
     protected $root_dir;
 
@@ -12,7 +13,7 @@ class Options extends AbstractOptions
      */
     public function getRootDir()
     {
-        return rtrim($this->root_dir, Storage::DS).Storage::DS;
+        return rtrim($this->root_dir, Filesystem::DS).Filesystem::DS;
     }
 
     /**

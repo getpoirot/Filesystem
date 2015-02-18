@@ -1,9 +1,9 @@
 <?php
 namespace Poirot\Filesystem;
 
-use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 
-class Permissions implements iPermissions
+class FileFilePermissions implements iFilePermissions
 {
     /**
      * @var int Octal Permissions Combination
@@ -24,11 +24,11 @@ class Permissions implements iPermissions
     /**
      * Has Same Permissions as Given?
      *
-     * @param iPermissions $permission
+     * @param iFilePermissions $permission
      *
      * @return bool
      */
-    function hasPermissions(iPermissions $permission)
+    function hasPermissions(iFilePermissions $permission)
     {
         return $this->getTotalPerms() & $permission->getTotalPerms();
     }

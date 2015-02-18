@@ -8,7 +8,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
-use Poirot\Filesystem\Interfaces\Filesystem\iPermissions;
+use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 
 interface iFilesystem
 {
@@ -98,19 +98,19 @@ interface iFilesystem
      * Changes file mode
      *
      * @param iCommonInfo $file Path to the file
-     * @param iPermissions $mode
+     * @param iFilePermissions $mode
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chmod(iCommonInfo $file, iPermissions $mode);
+    function chmod(iCommonInfo $file, iFilePermissions $mode);
 
     /**
      * Gets file permissions
      *
      * @param iCommonInfo $file
      *
-     * @return iPermissions
+     * @return iFilePermissions
      */
     function getFilePerms(iCommonInfo $file);
 
@@ -347,12 +347,12 @@ interface iFilesystem
      * Makes directory Recursively
      *
      * @param iDirectoryInfo $dir
-     * @param iPermissions $mode
+     * @param iFilePermissions $mode
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function mkDir(iDirectoryInfo $dir, iPermissions $mode);
+    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode);
 
     /**
      * Get Parent Directory Of Given File/Dir

@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Abstracts;
 
-use Poirot\Filesystem\Interfaces\Filesystem\iPathUri;
+use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
@@ -18,7 +18,7 @@ abstract class Common
     protected $filesystem;
 
     /**
-     * @var iPathUri
+     * @var iFSPathUri
      */
     protected $filepath;
 
@@ -44,12 +44,12 @@ abstract class Common
      *
      * - it used to build uri address to file
      *
-     * @return iPathUri
+     * @return iFSPathUri
      */
     function filePath()
     {
         if (!$this->filepath)
-            $this->filepath = new PathUri($this->_pathuri);
+            $this->filepath = new FSPathUri($this->_pathuri);
 
         return $this->filepath;
     }

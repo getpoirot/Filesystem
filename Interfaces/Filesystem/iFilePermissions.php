@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces\Filesystem;
 
-interface iPermissions 
+interface iFilePermissions
 {
     /*
      * Permissions
@@ -27,11 +27,11 @@ interface iPermissions
     /**
      * Has Same Permissions as Given?
      *
-     * @param iPermissions $permission
+     * @param iFilePermissions $permission
      *
      * @return bool
      */
-    function hasPermissions(iPermissions $permission);
+    function hasPermissions(iFilePermissions $permission);
 
     /**
      * Give An Access Perms.

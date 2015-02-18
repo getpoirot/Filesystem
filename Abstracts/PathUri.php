@@ -2,9 +2,9 @@
 namespace Poirot\Filesystem\Abstracts;
 
 use Poirot\Core\BuilderSetterTrait;
-use Poirot\Filesystem\Interfaces\Filesystem\iPathUri;
+use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 
-class PathUri implements iPathUri
+class FSPathUri implements iFSPathUri
 {
     use BuilderSetterTrait;
 
