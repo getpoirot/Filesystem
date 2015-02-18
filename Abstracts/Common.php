@@ -1,11 +1,11 @@
 <?php
 namespace Poirot\Filesystem\Abstracts;
 
+use Poirot\Filesystem\Adapter\Local\FSLocal;
 use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
-use Poirot\Filesystem\Local\Filesystem as LocalFilesystem;
 
 abstract class Common
     implements
@@ -74,7 +74,7 @@ abstract class Common
     function filesystem()
     {
         if (!$this->filesystem)
-            $this->filesystem = new LocalFilesystem();
+            $this->filesystem = new FSLocal();
 
         return $this->filesystem;
     }
