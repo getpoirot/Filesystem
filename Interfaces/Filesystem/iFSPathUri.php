@@ -8,6 +8,24 @@ namespace Poirot\Filesystem\Interfaces\Filesystem;
 interface iFSPathUri
 {
     /**
+     * Build Object From String
+     *
+     * @param string $pathUri
+     *
+     * @return $this
+     */
+    function fromString($pathUri);
+
+    /**
+     * Build Object From Array
+     *
+     * @param array $path
+     *
+     * @return $this
+     */
+    function fromArray(array $path);
+
+    /**
      * Set Filename of file or folder
      *
      * ! without extension
@@ -61,7 +79,9 @@ interface iFSPathUri
     /**
      * Set Path
      *
-     * @param string|null $path Path To File/Folder
+     * - in form of ['path', 'to', 'dir']
+     *
+     * @param array|string $path Path To File/Folder
      *
      * @return $this
      */
@@ -70,7 +90,9 @@ interface iFSPathUri
     /**
      * Gets the path without filename
      *
-     * @return string
+     * - return in form of ['path', 'to', 'dir']
+     *
+     * @return array
      */
     function getPath();
 
@@ -79,7 +101,6 @@ interface iFSPathUri
      *
      * - include full path for remote files
      * - include extension for files
-     * - usually use Util::normalizePath on return
      *
      * @return string
      */
@@ -91,4 +112,18 @@ interface iFSPathUri
      * @return string
      */
     function toString();
+
+    /**
+     * Get Array In Form Of PathInfo
+     *
+     * return [
+     *  'path'      => ['path', 'to', 'dir'],
+     *  'basename'  => 'name_with', # without extension
+     *  'extension' => 'ext',
+     *  'filename'  => 'name_with.ext',
+     * ]
+     *
+     * @return array
+     */
+    function toArray();
 }

@@ -6,7 +6,7 @@ use Poirot\Core\Interfaces\OptionsProviderInterface;
 use Poirot\Filesystem\Adapter\AbstractCommonNode;
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
-use Poirot\Filesystem\Adapter\NodePathUri;
+use Poirot\Filesystem\Adapter\PathUnixUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -213,14 +213,14 @@ class FSFtp implements
 
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($dirname)  {
-            $value = @end(explode('/', $value));
-            $value = NodePathUri::normalizePath($dirname.'/'.$value);
+            $value = @end(explode('/', $value)); // PathUnixUri
+            $value = $dirname.'/'.$value;        // PathUnixUri
         });
 
         // get rid of the dots
         $result = array_diff($result, array(
-            NodePathUri::normalizePath($dirname.'/..'),
-            NodePathUri::normalizePath($dirname.'/.')
+            $dirname.'/..', // PathUnixUri
+            $dirname.'/.'   // PathUnixUri
             )
         );
 
@@ -914,7 +914,7 @@ class FSFtp implements
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = NodePathUri::getPathInfo($newName);
+        $pathInfo = (new PathUnixUri($newName))->toArray();
         if (!isset($pathInfo['path']))
             $newName = $this->dirUp($file)->filePath()->toString()
                 .'/'. $newName;

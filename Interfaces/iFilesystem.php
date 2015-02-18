@@ -7,6 +7,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 

@@ -3,7 +3,7 @@ namespace Poirot\Filesystem\Adapter\Local;
 
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
-use Poirot\Filesystem\Adapter\NodePathUri;
+use Poirot\Filesystem\Adapter\PathUnixUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -32,12 +32,14 @@ class FSLocal implements iFilesystem
      */
     function mkFromPath($path)
     {
+        $path = new PathUnixUri($path);
+
         $return = false;
 
-        if ($this->isDir($path))
-            $return = new Directory($path);
+        if ($this->isDir($path->toString()))
+            $return = new Directory($path->toArray());
         elseif ($this->isFile($path))
-            $return = new File($path);
+            $return = new File($path->toArray());
 
         if (!$return)
             throw new \Exception(sprintf(
@@ -104,7 +106,7 @@ class FSLocal implements iFilesystem
 
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($dirname)  {
-            $value = NodePathUri::normalizePath($dirname.'/'.$value);
+            $value = $dirname.'/'.$value;
         });
 
         return $result;
@@ -514,7 +516,7 @@ class FSLocal implements iFilesystem
      */
     function putFileContents(iFile $file, $contents)
     {
-        $append  = ($append) ? FILE_APPEND : 0;
+        $append  = /*($append) ? FILE_APPEND :*/ 0;
         $append |= LOCK_EX; // to prevent anyone else writing to the file at the same time
 
         $filename = $file->filePath()->toString();
@@ -883,7 +885,7 @@ class FSLocal implements iFilesystem
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = NodePathUri::getPathInfo($newName);
+        $pathInfo = (new PathUnixUri($newName))->toArray();
         if (!isset($pathInfo['path']))
             $newName = $this->dirUp($file)->filePath()->toString()
                 .'/'. $newName;

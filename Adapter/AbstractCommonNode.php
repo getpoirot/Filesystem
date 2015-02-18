@@ -40,7 +40,7 @@ abstract class AbstractCommonNode
     }
 
     /**
-     * Get Path Uri Filename
+     * Get Path Uri Object
      *
      * - it used to build uri address to file
      *
@@ -49,7 +49,7 @@ abstract class AbstractCommonNode
     function filePath()
     {
         if (!$this->filepath)
-            $this->filepath = new NodePathUri($this->_pathuri);
+            $this->filepath = new PathUnixUri($this->_pathuri);
 
         return $this->filepath;
     }
