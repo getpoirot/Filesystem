@@ -188,28 +188,6 @@ class NodePathUri implements iFSPathUri
     }
 
     /**
-     * Set Scheme/Protocol of File path
-     *
-     * @param string $scheme Protocol Scheme
-     *
-     * @return $this
-     */
-    function setScheme($scheme)
-    {
-        // TODO: Implement setScheme() method.
-    }
-
-    /**
-     * Get Scheme Protocol part of file path
-     *
-     * @return string
-     */
-    function getScheme()
-    {
-        // TODO: Implement getScheme() method.
-    }
-
-    /**
      * Fix common problems with a file path
      *
      * @param string $path

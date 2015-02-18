@@ -48,6 +48,16 @@ interface iFilesystem
     function getCwd();
 
     /**
+     * Changes Filesystem current directory
+     *
+     * @param iDirectoryInfo $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function chDir(iDirectoryInfo $dir);
+
+    /**
      * List an array of files/directories path from the directory
      *
      * - get rid of ".", ".." from list
@@ -61,16 +71,6 @@ interface iFilesystem
      * @return array
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = self::SCANDIR_SORT_NONE);
-
-    /**
-     * Changes Filesystem current directory
-     *
-     * @param iDirectoryInfo $dir
-     *
-     * @throws \Exception On Failure
-     * @return $this
-     */
-    function chDir(iDirectoryInfo $dir);
 
     // File Implementation:
 
