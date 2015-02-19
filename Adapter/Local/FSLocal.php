@@ -38,14 +38,12 @@ class FSLocal implements iFilesystem
      */
     function mkFromPath($path)
     {
-        $path = new PathUnixUri($path);
-
         $return = false;
 
-        if ($this->isDir($path->toString()))
-            $return = new Directory($path->toArray());
+        if ($this->isDir($path))
+            $return = new Directory($path);
         elseif ($this->isFile($path))
-            $return = new File($path->toArray());
+            $return = new File($path);
 
         if (!$return)
             throw new \Exception(sprintf(
@@ -79,6 +77,9 @@ class FSLocal implements iFilesystem
     /**
      * Gets the current working directory
      *
+     * - filesystem cwd result must get back
+     *   from class pathUri()
+     *
      * @throws \Exception On Failure
      * @return iDirectory
      */
@@ -92,7 +93,9 @@ class FSLocal implements iFilesystem
                 , new \Exception(error_get_last()['message'])
             );
 
-        return $this->mkFromPath($result);
+        $result = $this->getPathUri()->fromString($result);
+
+        return $this->mkFromPath($result->toString());
     }
 
     /**
@@ -115,7 +118,10 @@ class FSLocal implements iFilesystem
 
         $this->validateFile($dir);
 
-        $dirname = $dir->pathUri()->toString();
+        $dirname = $this->getPathUri()
+            ->fromPathUri($dir->pathUri())
+            ->toString()
+        ;
         $result  = scandir($dirname, $sortingOrder);
         if ($result === false)
             throw new \Exception(sprintf(
@@ -146,7 +152,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($dir);
 
-        $dirname = $dir->pathUri()->toString();
+        $dirname = $this->getPathUri()
+            ->fromPathUri($dir->pathUri())
+            ->toString()
+        ;
         if (chdir($dirname) === false)
             throw new \Exception(sprintf(
                 'Failed Changing Directory To "%s".'
@@ -171,7 +180,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         if (!@chgrp($filename, $group))
             throw new \Exception(sprintf(
                 'Failed Changing Group Of "%s" File.'
@@ -197,7 +209,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $group = filegroup($filename);
         (!function_exists('posix_getgrgid')) ?:
@@ -227,7 +242,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         if (!@chmod($filename, $mode->getTotalPerms()))
             throw new \Exception(sprintf(
                 'Failed To Change File Mode For "%s".'
@@ -251,7 +269,11 @@ class FSLocal implements iFilesystem
         $this->validateFile($file);
 
         // Upon failure, an E_WARNING is emitted.
-        $fperm = @fileperms($file->pathUri()->toString());
+        $fperm = @fileperms(
+            $this->getPathUri()
+                ->fromPathUri($file->pathUri())
+                ->toString()
+        );
 
         $perms = new FileFilePermissions();
         $perms->grantPermission($fperm);
@@ -272,7 +294,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         if (!@chown($filename, $user))
             throw new \Exception(sprintf(
                 'Failed To Change Owner Of "%s" File.'
@@ -294,7 +319,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $owner = @fileowner($filename); // fileowner() "root" is 0
         if (function_exists('posix_getgrgid'))
@@ -337,16 +365,24 @@ class FSLocal implements iFilesystem
         // source must be valid
         $this->validateFile($source);
 
+        $sourcePathStr = $this->getPathUri()
+            ->fromPathUri($source->pathUri())
+            ->toString();
+
+        $destPathStr   = $this->getPathUri()
+            ->fromPathUri($dest->pathUri())
+            ->toString();
+
         if ($this->isDir($source) && !$this->isDir($dest))
             throw new \Exception(sprintf(
                 'Invalid Destination Provided, We Cant Copy A Directory "%s" To File "%s".'
-                , $source->pathUri()->toString(), $dest->pathUri()->toString()
+                , $sourcePathStr, $destPathStr
             ));
 
         if (!$this->isDir($dest) && !$this->isFile($dest))
             throw new \Exception(sprintf(
                 'Destination at "%s" Must be a File Or Directory For Copy.'
-                , $dest->pathUri()->toString()
+                , $destPathStr
             ));
 
         $copied = false;
@@ -358,12 +394,16 @@ class FSLocal implements iFilesystem
             if ($this->isFile($source))
                 /** @var iFile $source */
                 $copied = @copy(
-                    $source->pathUri()->toString()
-                    , $dest->pathUri()->toString().'/'.$source->pathUri()->getFilename()
+                    $sourcePathStr
+                    , $destPathStr.'/'.$this->getPathUri()
+                        ->fromPathUri($source->pathUri())
+                        ->getFilename()
                 );
             else {
                 // Merge Folder
-                $destDirName = $dest->pathUri()->toString().'/'.$source->pathUri()->getFilename();
+                $destDirName = $destPathStr.'/'.$this->getPathUri()
+                        ->fromPathUri($source->pathUri())
+                        ->getFilename();
                 $copied = true; // we don't want rise error from here
                 foreach($this->scanDir($source) as $fd)
                     $this->copy(
@@ -381,15 +421,15 @@ class FSLocal implements iFilesystem
             // } <<<
 
             $copied = copy(
-                $source->pathUri()->toString()
-                , $dest->pathUri()->toString()
+                $sourcePathStr
+                , $destPathStr
             );
         }
 
         if (!$copied)
             throw new \Exception(sprintf(
                 'Error While Coping "%s" To "%s".'
-                , $source->pathUri()->toString(), $dest->pathUri()->toString()
+                , $sourcePathStr, $destPathStr
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -517,7 +557,11 @@ class FSLocal implements iFilesystem
     function isExists(iCommonInfo $file)
     {
         // Upon failure, an E_WARNING is emitted.
-        $result = @file_exists($file->pathUri()->toString());
+        $result = @file_exists(
+            $this->getPathUri()
+                ->fromPathUri($file->pathUri())
+                ->toString()
+        );
         clearstatcache();
 
         return $result;
@@ -541,7 +585,10 @@ class FSLocal implements iFilesystem
         $append  = /*($append) ? FILE_APPEND :*/ 0;
         $append |= LOCK_EX; // to prevent anyone else writing to the file at the same time
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         if(!file_put_contents($filename, $contents, $append)) // file will be created if not exists
             throw new \Exception(sprintf(
                 'Failed To Put "%s" File Contents.'
@@ -566,7 +613,11 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+
         // Upon failure, an E_WARNING is emitted.
         $content = @file_get_contents($filename);
         if ($content === false)
@@ -590,7 +641,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $result = @fileatime($filename);
         if ($result === false)
@@ -621,7 +675,10 @@ class FSLocal implements iFilesystem
 
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $result = @filectime($filename);
         if ($result === false)
@@ -649,7 +706,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $result = @filemtime($filename);
         if ($result === false)
@@ -675,7 +735,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $result = @filesize($filename);
         if ($result === false)
@@ -708,9 +771,12 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $file->pathUri()->toString();
-        $fp = fopen($filename, "r+");
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
+        $fp = fopen($filename, "r+");
         // Upon failure, an E_WARNING is emitted.
         $result = @flock($fp, $lock);
         if ($result === false)
@@ -734,7 +800,10 @@ class FSLocal implements iFilesystem
      */
     function isReadable(iCommonInfo $file)
     {
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $result = @is_readable($filename);
 
@@ -752,7 +821,10 @@ class FSLocal implements iFilesystem
      */
     function isWritable(iCommonInfo $file)
     {
-        $filename = $file->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $result = @is_writable($filename);
 
@@ -775,9 +847,17 @@ class FSLocal implements iFilesystem
 
         $this->validateFile($target);
 
-        $filename = $link->pathUri()->toString();
+        $filename = $this->getPathUri()
+            ->fromPathUri($link->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
-        $result = @link($target->pathUri()->toString(), $filename);
+        $result = @link(
+            $this->getPathUri()
+                ->fromPathUri($target->pathUri())
+                ->toString()
+            , $filename
+        );
         if ($result === false)
             throw new \Exception(sprintf(
                 'Failed To Create "%s" Link.'
@@ -798,10 +878,15 @@ class FSLocal implements iFilesystem
      */
     function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
     {
-        if (!@mkdir($dir->pathUri()->toString(), $mode->getTotalPerms(), true))
+        $dirname = $this->getPathUri()
+            ->fromPathUri($dir->pathUri())
+            ->toString()
+        ;
+
+        if (!@mkdir($dirname, $mode->getTotalPerms(), true))
             throw new \Exception(sprintf(
                 'Failed To Make Directory "%s".'
-                , $dir->pathUri()->toString()
+                , $dirname
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -824,10 +909,11 @@ class FSLocal implements iFilesystem
          * directory name with multibyte character paths, the matching
          * locale must be set using the setlocale() function.
          */
-        $path      = $file->pathUri()->getPath();
-        $directory = $this->mkFromPath(
-            $this->getPathUri()->setPath($path)
-        );
+        $path = $this->getPathUri()
+            ->setPath($file->pathUri()->getPath())
+            ->getRealPathName();
+
+        $directory = $this->mkFromPath($path);
 
         return $directory;
     }
@@ -848,7 +934,12 @@ class FSLocal implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        return basename($file->pathUri()->toString());
+        $pathStr = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+
+        return basename($pathStr);
     }
 
     /**
@@ -869,7 +960,12 @@ class FSLocal implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        return pathinfo($file->pathUri()->toString(), PATHINFO_EXTENSION);
+        $pathStr = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+
+        return pathinfo($pathStr, PATHINFO_EXTENSION);
     }
 
     /**
@@ -888,7 +984,12 @@ class FSLocal implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        return pathinfo($file->pathUri()->toString(), PATHINFO_FILENAME);
+        $pathStr = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+
+        return pathinfo($pathStr, PATHINFO_FILENAME);
     }
 
     /**
@@ -911,16 +1012,17 @@ class FSLocal implements iFilesystem
     {
         $pathInfo = (new PathUnixUri($newName))->toArray();
         if (!isset($pathInfo['path']))
-            $newName = $this->dirUp($file)->pathUri()->toString()
+            $newName = ($this->dirUp($file)->pathUri()->toString())
                 .'/'. $newName;
 
-        $filename = $this->getPathUri()->fromArray(
-            $file->pathUri()->toArray()
-        );
-        if (!@rename($filename->toString(), $newName))
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+        if (!@rename($filename, $newName))
             throw new \Exception(sprintf(
                 'Failed To Rename "%s" File.'
-                , $filename->toString()
+                , $filename
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -953,14 +1055,15 @@ class FSLocal implements iFilesystem
             }
 
         // Ensure That Folder Is Empty: Delete It
-        $dirPath = $this->getPathUri()->fromArray(
-            $dir->pathUri()->toArray()
-        );
+        $dirName = $this->getPathUri()
+            ->fromPathUri($dir->pathUri())
+            ->toString()
+        ;
 
-        if (!@rmdir($dirPath->toString()))
+        if (!@rmdir($dirName))
             throw new \Exception(sprintf(
                 'Error While Deleting "%s" File.'
-                , $dirPath->toString()
+                , $dirName
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -979,9 +1082,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()->fromArray(
-            $file->pathUri()->toArray()
-        );
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toArray()
+        ;
 
         // Upon failure, an E_WARNING is emitted.
         $result = @touch($filename, null, $time);
@@ -1007,9 +1111,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()->fromArray(
-            $file->pathUri()->toArray()
-        );
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         // Upon failure, an E_WARNING is emitted.
         $result = @touch($filename, $time);
@@ -1032,9 +1137,10 @@ class FSLocal implements iFilesystem
      */
     function linkRead(iLinkInfo $link)
     {
-        $filename = $this->getPathUri()->fromArray(
-            $link->pathUri()->toArray()
-        );
+        $filename = $this->getPathUri()
+            ->fromPathUri($link->pathUri())
+            ->toString()
+        ;
         $result = readlink($filename);
         if ($result === false)
             throw new \Exception(sprintf(
@@ -1057,9 +1163,10 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()->fromArray(
-            $file->pathUri()->toArray()
-        );
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         // Upon failure, an E_WARNING is emitted.
         $result = @unlink($filename);
         if ($result === false)
@@ -1080,9 +1187,10 @@ class FSLocal implements iFilesystem
      */
     protected function validateFile(iCommonInfo $file)
     {
-        $filename = $this->getPathUri()->fromArray(
-            $file->pathUri()->toArray()
-        );
+        $filename = $this->getPathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         if (!$this->isFile($file) && !$this->isDir($file))
             throw new \Exception(sprintf(

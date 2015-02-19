@@ -60,6 +60,9 @@ interface iFilesystem
     /**
      * Gets the current working directory
      *
+     * - filesystem cwd result must get back
+     *   from class pathUri()
+     *
      * @throws \Exception On Failure
      * @return iDirectory
      */

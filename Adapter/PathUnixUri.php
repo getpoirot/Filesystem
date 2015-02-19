@@ -47,6 +47,22 @@ class PathUnixUri implements iFSPathUri
         return $this;
     }
 
+    /*function fromArray(array $path) {};*/ # Using Trait
+
+    /**
+     * Build Object From PathUri
+     *
+     * @param iFSPathUri $path
+     *
+     * @return $this
+     */
+    function fromPathUri(iFSPathUri $path)
+    {
+        $this->fromArray($path->toArray());
+
+        return $this;
+    }
+
     /**
      * Path Uri Include ./
      *
