@@ -26,6 +26,15 @@ interface iFSPathUri
     function fromArray(array $path);
 
     /**
+     * Build Object From PathUri
+     *
+     * @param iFSPathUri $path
+     *
+     * @return $this
+     */
+    function fromPathUri(iFSPathUri $path);
+
+    /**
      * Set Filename of file or folder
      *
      * ! without extension
@@ -114,7 +123,7 @@ interface iFSPathUri
     function getRealPathName();
 
     /**
-     * Alias of getRealPathName
+     * Get PathUri Object As String
      *
      * @return string
      */

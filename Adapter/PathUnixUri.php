@@ -217,7 +217,7 @@ class PathUnixUri implements iFSPathUri
     }
 
     /**
-     * Alias of getRealPathName
+     * Get PathUri Object As String
      *
      * @return string
      */
