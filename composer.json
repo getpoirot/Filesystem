@@ -9,7 +9,8 @@
         }
     ],
     "require": {
-        "poirot/core": "dev-master"
+        "poirot/core": "dev-master",
+        "poirot/pathuri": "dev-master"
     },
     "target-dir": "Poirot/Filesystem",
     "autoload"  : {

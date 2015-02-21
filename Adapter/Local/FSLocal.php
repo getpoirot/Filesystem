@@ -3,18 +3,17 @@ namespace Poirot\Filesystem\Adapter\Local;
 
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
-use Poirot\Filesystem\Adapter\PathUnixUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
-use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\FileFilePermissions;
+use Poirot\PathUri\Interfaces\iPathFileUri;
 
 /**
  * ! Note: In PHP Most Of Filesystem actions need
@@ -65,7 +64,7 @@ class FSLocal implements iFilesystem
      * - every time return clean/reset or new instance of
      *   pathUri
      *
-     * @return iFSPathUri
+     * @return iPathFileUri
      */
     function getPathUri()
     {

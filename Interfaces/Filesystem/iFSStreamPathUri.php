@@ -1,11 +1,13 @@
 <?php
 namespace Poirot\Filesystem\Interfaces\Filesystem;
 
+use Poirot\PathUri\Interfaces\iPathFileUri;
+
 /**
  * Represent Full protocol://Path/uri/to/filename.ext
  *
  */
-interface iFSStreamPathUri extends iFSPathUri
+interface iFSStreamPathUri extends iPathFileUri
 {
     /**
      * Set Scheme/Protocol of File path

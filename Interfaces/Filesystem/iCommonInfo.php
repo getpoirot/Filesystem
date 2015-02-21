@@ -1,6 +1,8 @@
 <?php
 namespace Poirot\Filesystem\Interfaces\Filesystem;
 
+use Poirot\PathUri\Interfaces\iPathFileUri;
+
 interface iCommonInfo
 {
     /**
@@ -12,7 +14,7 @@ interface iCommonInfo
      *       from Filesystem on classes that extends
      *       from iFilesystemProvider
      *
-     * @return iFSPathUri
+     * @return iPathFileUri
      */
     function pathUri();
 

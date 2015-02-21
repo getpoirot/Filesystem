@@ -3,10 +3,10 @@ namespace Poirot\Filesystem\Adapter;
 
 use Poirot\Filesystem\Adapter\Local\FSLocal;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
-use Poirot\Filesystem\Interfaces\Filesystem\iFSPathUri;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
+use Poirot\PathUri\Interfaces\iPathFileUri;
 
 abstract class AbstractCommonNode
     implements
@@ -20,19 +20,19 @@ abstract class AbstractCommonNode
     protected $filesystem;
 
     /**
-     * @var iFSPathUri
+     * @var iPathFileUri
      */
     protected $pathUri;
 
     /**
      * Construct
      *
-     * @param array|string|iFSPathUri $pathUri
+     * @param array|string|iPathFileUri $pathUri
      * @throws \Exception
      */
     function __construct($pathUri = null)
     {
-        if ($pathUri instanceof iFSPathUri)
+        if ($pathUri instanceof iPathFileUri)
             $pathUri = $pathUri->toArray();
 
         if ($pathUri !== null) {
@@ -42,7 +42,7 @@ abstract class AbstractCommonNode
                 $this->pathUri()->fromArray($pathUri);
             else
                 throw new \Exception(sprintf(
-                    'PathUri must be instanceof iFSPathUri, Array or String, given: %s'
+                    'PathUri must be instanceof iPathFileUri, Array or String, given: %s'
                     , is_object($pathUri) ? get_class($pathUri) : gettype($pathUri)
                 ));
         }
@@ -57,7 +57,7 @@ abstract class AbstractCommonNode
      *       from Filesystem on classes that extends
      *       from iFilesystemProvider
      *
-     * @return iFSPathUri
+     * @return iPathFileUri
      */
     function pathUri()
     {
