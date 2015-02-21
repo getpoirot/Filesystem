@@ -17,6 +17,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\FileFilePermissions;
 use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\PathFileUri;
 
 class FSFtp implements
     iFilesystem,
@@ -40,7 +41,7 @@ class FSFtp implements
     public $refreshResource = false;
 
     /**
-     * @var PathUnixUri
+     * @var PathFileUri
      */
     protected $pathUri;
 
@@ -186,7 +187,7 @@ class FSFtp implements
     function getPathUri()
     {
         if (!$this->pathUri)
-            $this->pathUri = new PathUnixUri;
+            $this->pathUri = new PathFileUri;
 
         return $this->pathUri;
     }
@@ -234,14 +235,14 @@ class FSFtp implements
 
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($dirname)  {
-            $value = @end(explode('/', $value)); // PathUnixUri
-            $value = $dirname.'/'.$value;        // PathUnixUri
+            $value = @end(explode('/', $value)); // PathFileUri
+            $value = $dirname.'/'.$value;        // PathFileUri
         });
 
         // get rid of the dots
         $result = array_diff($result, array(
-            $dirname.'/..', // PathUnixUri
-            $dirname.'/.'   // PathUnixUri
+            $dirname.'/..', // PathFileUri
+            $dirname.'/.'   // PathFileUri
             )
         );
 
@@ -935,7 +936,7 @@ class FSFtp implements
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = (new PathUnixUri($newName))->toArray();
+        $pathInfo = (new PathFileUri($newName))->toArray();
         if (!isset($pathInfo['path']))
             $newName = $this->dirUp($file)->pathUri()->toString()
                 .'/'. $newName;

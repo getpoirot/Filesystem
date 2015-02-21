@@ -14,6 +14,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\FileFilePermissions;
 use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\PathFileUri;
 
 /**
  * ! Note: In PHP Most Of Filesystem actions need
@@ -23,7 +24,7 @@ use Poirot\PathUri\Interfaces\iPathFileUri;
 class FSLocal implements iFilesystem
 {
     /**
-     * @var PathUnixUri
+     * @var PathFileUri
      */
     protected $pathUri;
 
@@ -68,7 +69,7 @@ class FSLocal implements iFilesystem
      */
     function getPathUri()
     {
-        return new PathUnixUri;
+        return new PathFileUri;
     }
 
     // Directory Implementation:
@@ -910,7 +911,7 @@ class FSLocal implements iFilesystem
          */
         $path = $this->getPathUri()
             ->setPath($file->pathUri()->getPath())
-            ->getRealPathName();
+            ->toString();
 
         $directory = $this->mkFromPath($path);
 
@@ -1009,7 +1010,7 @@ class FSLocal implements iFilesystem
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = (new PathUnixUri($newName))->toArray();
+        $pathInfo = (new PathFileUri($newName))->toArray();
         if (!isset($pathInfo['path']))
             $newName = ($this->dirUp($file)->pathUri()->toString())
                 .'/'. $newName;
