@@ -7,6 +7,7 @@ use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
 use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\PathFileUri;
 
 abstract class AbstractCommonNode
     implements
@@ -34,11 +35,13 @@ abstract class AbstractCommonNode
     {
         if ($pathUri instanceof iPathFileUri)
             $pathUri = $pathUri->toArray();
+        elseif (is_string($pathUri))
+            $pathUri = $this->pathUri()->parse($pathUri);
+
+        kd($pathUri);
 
         if ($pathUri !== null) {
-            if (is_string($pathUri))
-                $this->pathUri()->fromString($pathUri);
-            elseif (is_array($pathUri))
+            if (is_array($pathUri))
                 $this->pathUri()->fromArray($pathUri);
             else
                 throw new \Exception(sprintf(
@@ -53,16 +56,16 @@ abstract class AbstractCommonNode
      *
      * - it used to build uri address to file
      *
-     * note: you must retrieve PathUri Object
-     *       from Filesystem on classes that extends
-     *       from iFilesystemProvider
-     *
      * @return iPathFileUri
      */
     function pathUri()
     {
         if (!$this->pathUri)
-            $this->pathUri = $this->filesystem()->getPathUri();
+            $this->pathUri = new PathFileUri;
+
+        /*$this->pathUri()->setPathSeparator(
+            '/'
+        );*/
 
         return $this->pathUri;
     }
