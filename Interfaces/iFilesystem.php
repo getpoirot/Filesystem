@@ -10,6 +10,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\Interfaces\iPathJoinedUri;
 
 interface iFilesystem
 {
@@ -25,6 +26,31 @@ interface iFilesystem
     const DISKSPACE_NOT_COMPUTED = -1;
     const DISKSPACE_UNKNOWN      = -2;
     const DISKSPACE_UNLIMITED    = -3;
+
+
+    /**
+     * Construct
+     *
+     * @param null|iDirectoryInfo|string $rootDir
+     */
+    function __construct($rootDir = null);
+
+    /**
+     * Changes Root Directory
+     *
+     * @param iDirectoryInfo $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function chRootDir(iDirectoryInfo $dir);
+
+    /**
+     * Get Root Directory
+     *
+     * @return iDirectory
+     */
+    function getRootDir();
 
     /**
      * Make an Object From Existence Path Filesystem
@@ -53,7 +79,7 @@ interface iFilesystem
      *
      * @return iPathFileUri
      */
-    function getPathUri();
+    function pathUri();
 
     // Directory Implementation:
 

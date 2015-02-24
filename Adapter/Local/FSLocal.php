@@ -14,7 +14,9 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\FileFilePermissions;
 use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\Interfaces\iPathJoinedUri;
 use Poirot\PathUri\PathFileUri;
+use Poirot\PathUri\PathJoinUri;
 
 /**
  * ! Note: In PHP Most Of Filesystem actions need
@@ -23,10 +25,49 @@ use Poirot\PathUri\PathFileUri;
  */
 class FSLocal implements iFilesystem
 {
+    protected $rootDir;
+
     /**
-     * @var PathFileUri
+     * Construct
+     *
+     * @param null|iDirectoryInfo|string $rootDir
      */
-    protected $pathUri;
+    function __construct($rootDir = null)
+    {
+        if (is_string($rootDir))
+            $rootDir = new Directory($rootDir);
+
+        if ($rootDir !== null)
+            $this->chRootDir($rootDir);
+    }
+
+    /**
+     * Changes Root Directory
+     *
+     * @param iDirectoryInfo $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function chRootDir(iDirectoryInfo $dir)
+    {
+        $this->rootDir = $dir;
+
+        return $this;
+    }
+
+    /**
+     * Get Root Directory
+     *
+     * - by default use "/" root as Root Dir
+     *
+     * @return iDirectory
+     */
+    function getRootDir()
+    {
+        if (!$this->rootDir)
+            $this->chDir(new Directory('/'));
+    }
 
     /**
      * Make an Object From Existence Path Filesystem
@@ -65,11 +106,15 @@ class FSLocal implements iFilesystem
      * - every time return clean/reset or new instance of
      *   pathUri
      *
+     * @throws \Exception
      * @return iPathFileUri
      */
-    function getPathUri()
+    function pathUri()
     {
-        return new PathFileUri;
+        $pathFileUri = new PathFileUri;
+        $pathFileUri->setPathSeparator('/');
+
+        return $pathFileUri;
     }
 
     // Directory Implementation:
@@ -93,9 +138,9 @@ class FSLocal implements iFilesystem
                 , new \Exception(error_get_last()['message'])
             );
 
-        $result = $this->getPathUri()->fromString($result);
+        $result = $this->getPathUri()->getBasepath();
 
-        return $this->mkFromPath($result->getRealPathname());
+        return $this->mkFromPath($result->toString());
     }
 
     /**
@@ -120,7 +165,7 @@ class FSLocal implements iFilesystem
 
         $dirname = $this->getPathUri()
             ->fromPathUri($dir->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         $result  = scandir($dirname, $sortingOrder);
         if ($result === false)
@@ -154,7 +199,7 @@ class FSLocal implements iFilesystem
 
         $dirname = $this->getPathUri()
             ->fromPathUri($dir->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         if (chdir($dirname) === false)
             throw new \Exception(sprintf(
@@ -182,7 +227,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         if (!@chgrp($filename, $group))
             throw new \Exception(sprintf(
@@ -211,7 +256,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $group = filegroup($filename);
@@ -244,7 +289,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         if (!@chmod($filename, $mode->getTotalPerms()))
             throw new \Exception(sprintf(
@@ -272,7 +317,7 @@ class FSLocal implements iFilesystem
         $fperm = @fileperms(
             $this->getPathUri()
                 ->fromPathUri($file->pathUri())
-                ->getRealPathname()
+                ->toString()
         );
 
         $perms = new FileFilePermissions();
@@ -296,7 +341,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         if (!@chown($filename, $user))
             throw new \Exception(sprintf(
@@ -321,7 +366,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $owner = @fileowner($filename); // fileowner() "root" is 0
@@ -367,11 +412,11 @@ class FSLocal implements iFilesystem
 
         $sourcePathStr = $this->getPathUri()
             ->fromPathUri($source->pathUri())
-            ->getRealPathname();
+            ->toString();
 
         $destPathStr   = $this->getPathUri()
             ->fromPathUri($dest->pathUri())
-            ->getRealPathname();
+            ->toString();
 
         if ($this->isDir($source) && !$this->isDir($dest))
             throw new \Exception(sprintf(
@@ -518,7 +563,7 @@ class FSLocal implements iFilesystem
     function getFreeSpace()
     {
         $result = @disk_free_space(
-            $this->getCwd()->pathUri()->getRealPathname()
+            $this->getCwd()->pathUri()->toString()
         );
         if ($result === false)
             $result = self::DISKSPACE_UNKNOWN;
@@ -537,7 +582,7 @@ class FSLocal implements iFilesystem
     function getTotalSpace()
     {
         $result = @disk_total_space(
-            $this->getCwd()->pathUri()->getRealPathname()
+            $this->getCwd()->pathUri()->toString()
         );
         if ($result === false)
             $result = self::DISKSPACE_UNKNOWN;
@@ -560,7 +605,7 @@ class FSLocal implements iFilesystem
         $result = @file_exists(
             $this->getPathUri()
                 ->fromPathUri($file->pathUri())
-                ->getRealPathname()
+                ->toString()
         );
         clearstatcache();
 
@@ -587,7 +632,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         if(!file_put_contents($filename, $contents, $append)) // file will be created if not exists
             throw new \Exception(sprintf(
@@ -615,7 +660,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         // Upon failure, an E_WARNING is emitted.
@@ -643,7 +688,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @fileatime($filename);
@@ -677,7 +722,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @filectime($filename);
@@ -708,7 +753,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @filemtime($filename);
@@ -737,7 +782,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @filesize($filename);
@@ -773,7 +818,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         $fp = fopen($filename, "r+");
@@ -802,7 +847,7 @@ class FSLocal implements iFilesystem
     {
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @is_readable($filename);
@@ -823,7 +868,7 @@ class FSLocal implements iFilesystem
     {
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @is_writable($filename);
@@ -849,13 +894,13 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($link->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @link(
             $this->getPathUri()
                 ->fromPathUri($target->pathUri())
-                ->getRealPathname()
+                ->toString()
             , $filename
         );
         if ($result === false)
@@ -880,7 +925,7 @@ class FSLocal implements iFilesystem
     {
         $dirname = $this->getPathUri()
             ->fromPathUri($dir->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         if (!@mkdir($dirname, $mode->getTotalPerms(), true))
@@ -911,7 +956,7 @@ class FSLocal implements iFilesystem
          */
         $path = $this->getPathUri()
             ->setPath($file->pathUri()->getPath())
-            ->getRealPathname();
+            ->toString();
 
         $directory = $this->mkFromPath($path);
 
@@ -936,7 +981,7 @@ class FSLocal implements iFilesystem
 
         $pathStr = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         return basename($pathStr);
@@ -962,7 +1007,7 @@ class FSLocal implements iFilesystem
 
         $pathStr = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         return pathinfo($pathStr, PATHINFO_EXTENSION);
@@ -986,7 +1031,7 @@ class FSLocal implements iFilesystem
 
         $pathStr = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         return pathinfo($pathStr, PATHINFO_FILENAME);
@@ -1012,12 +1057,12 @@ class FSLocal implements iFilesystem
     {
         $pathInfo = (new PathFileUri($newName))->toArray();
         if (!isset($pathInfo['path']))
-            $newName = ($this->dirUp($file)->pathUri()->getRealPathname())
+            $newName = ($this->dirUp($file)->pathUri()->toString())
                 .'/'. $newName;
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         if (!@rename($filename, $newName))
             throw new \Exception(sprintf(
@@ -1057,7 +1102,7 @@ class FSLocal implements iFilesystem
         // Ensure That Folder Is Empty: Delete It
         $dirName = $this->getPathUri()
             ->fromPathUri($dir->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         if (!@rmdir($dirName))
@@ -1113,7 +1158,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         // Upon failure, an E_WARNING is emitted.
@@ -1139,7 +1184,7 @@ class FSLocal implements iFilesystem
     {
         $filename = $this->getPathUri()
             ->fromPathUri($link->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         $result = readlink($filename);
         if ($result === false)
@@ -1165,7 +1210,7 @@ class FSLocal implements iFilesystem
 
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @unlink($filename);
@@ -1189,7 +1234,7 @@ class FSLocal implements iFilesystem
     {
         $filename = $this->getPathUri()
             ->fromPathUri($file->pathUri())
-            ->getRealPathname()
+            ->toString()
         ;
 
         if (!$this->isFile($file) && !$this->isDir($file))
