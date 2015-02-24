@@ -1,6 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Adapter\Local;
 
+use Poirot\Filesystem\Adapter\AbstractCommonNode;
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
@@ -83,6 +84,9 @@ class FSLocal implements iFilesystem
         if (!$this->rootDir)
             $this->chRootDir(new Directory(self::DS));
 
+        if ($this->rootDir instanceof AbstractCommonNode)
+            $this->rootDir->setFilesystem($this);
+
         return $this->rootDir;
     }
 
@@ -107,7 +111,7 @@ class FSLocal implements iFilesystem
                 , new \Exception(error_get_last()['message'])
             );
 
-        // Check that current working directory is within root path .. {
+        // Check that current working directory is within root path >>>>> {
         $rdPath = new PathJoinUri($this->getRootDir()->pathUri()->toString());
         $cdPath  = new PathJoinUri([
             'path'      => $cwd,
@@ -121,7 +125,7 @@ class FSLocal implements iFilesystem
             chdir($rdPath->toString());
             return $this->getCwd();
         }
-        // ... }
+        // <<<<<< }
 
         $path = $cdPath->mask($rdPath)->toString();
         $path = ($path == '')
@@ -215,8 +219,10 @@ class FSLocal implements iFilesystem
 
         $dirname = $this->pathUri()
             ->fromPathUri($dir->pathUri())
+            ->normalize()
             ->toString()
         ;
+
         $result  = scandir($dirname, $sortingOrder);
         if ($result === false)
             throw new \Exception(sprintf(
