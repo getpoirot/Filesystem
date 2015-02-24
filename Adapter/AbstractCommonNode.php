@@ -38,8 +38,6 @@ abstract class AbstractCommonNode
         elseif (is_string($pathUri))
             $pathUri = $this->pathUri()->parse($pathUri);
 
-        kd($pathUri);
-
         if ($pathUri !== null) {
             if (is_array($pathUri))
                 $this->pathUri()->fromArray($pathUri);
@@ -61,11 +59,14 @@ abstract class AbstractCommonNode
     function pathUri()
     {
         if (!$this->pathUri)
-            $this->pathUri = new PathFileUri;
-
-        /*$this->pathUri()->setPathSeparator(
-            '/'
-        );*/
+            $this->pathUri = (new PathFileUri)
+                // by default create relative paths
+                ->setPathStrMode(PathFileUri::PATH_AS_RELATIVE)
+                ->setPathSeparator(
+                    $this->filesystem()->pathUri()
+                        ->getPathSeparator()
+                )
+            ;
 
         return $this->pathUri;
     }
