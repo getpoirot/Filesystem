@@ -1,7 +1,6 @@
 <?php
 namespace Poirot\Filesystem\Adapter\Local;
 
-use Poirot\Filesystem\Adapter\AbstractCommonNode;
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
@@ -26,42 +25,54 @@ use Poirot\PathUri\PathJoinUri;
  */
 class FSLocal implements iFilesystem
 {
+    /**
+     * @var iPathJoinedUri
+     */
     protected $rootDir;
 
     /**
      * Construct
      *
-     * @param null|iDirectory|string $rootDir
+     * @param null|iPathJoinedUri|string $rootDir
      */
     function __construct($rootDir = null)
     {
-        if (is_string($rootDir))
-            $rootDir = $this->mkFromPath($rootDir);
-
         if ($rootDir !== null)
-            $this->chRootDir($rootDir);
+            $this->chRootPath($rootDir);
     }
 
     /**
-     * Changes Root Directory
+     * Changes Root Directory Path
      *
      * - root directory must be absolute
-     * - must exists
-     * - must be a directory
      *
-     * @param iDirectory $dir
+     * @param string|iPathJoinedUri $dir
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chRootDir(iDirectory $dir)
+    function chRootPath($dir)
     {
-        $dir->pathUri()->setPathSeparator(
-            $this->pathUri()->getPathSeparator()
+        if (!is_string($dir) && !$dir instanceof iPathJoinedUri)
+            throw new \Exception(sprintf(
+                'Dir Path must be string or instanceof iPathJoinedUri but "%s" given.'
+                , is_object($dir) ? get_class($dir) : gettype($dir)
+            ));
+
+        if (is_string($dir))
+            $dir = new PathJoinUri([
+                'path'      => $dir,
+                'separator' => $this->pathUri()->getSeparator()
+            ]);
+
+        $dir->setSeparator(
+            $this->pathUri()->getSeparator()
         );
 
-        if (!$dir->pathUri()->isAbsolute()
-            || !is_dir($dir->pathUri()->toString())
+        $dir->normalize();
+
+        if (!$dir->isAbsolute()
+            || !is_dir($dir->toString())
         )
             throw new \Exception(sprintf(
                 'Dir path must be an absolute address, to an existence directory.'
@@ -73,19 +84,15 @@ class FSLocal implements iFilesystem
     }
 
     /**
-     * Get Root Directory
+     * Get Root Directory Path
      *
-     * - by default use "/" root as Root Dir
-     *
-     * @return iDirectory
+     * @return iPathJoinedUri
      */
-    function getRootDir()
+    function getRootPath()
     {
         if (!$this->rootDir)
-            $this->chRootDir(new Directory(self::DS));
-
-        if ($this->rootDir instanceof AbstractCommonNode)
-            $this->rootDir->setFilesystem($this);
+            // root "/"
+            $this->chRootPath(self::DS);
 
         return $this->rootDir;
     }
@@ -112,16 +119,17 @@ class FSLocal implements iFilesystem
             );
 
         // Check that current working directory is within root path >>>>> {
-        $rdPath = new PathJoinUri($this->getRootDir()->pathUri()->toString());
+        $rdPath = new PathJoinUri($this->getRootPath()->toString());
         $cdPath  = new PathJoinUri([
             'path'      => $cwd,
-            'separator' => $this->pathUri()->getPathSeparator()
+            'separator' => $this->pathUri()->getSeparator()
         ]);
 
         // (root = /var/www/) mask (cwd = /var/www/html) === root
         $trdPath = clone $rdPath;
         if ($trdPath->joint($cdPath, false)->getPath() !== $rdPath->getPath()) {
             // current directory is not within root directory
+            // change current directory to root
             chdir($rdPath->toString());
             return $this->getCwd();
         }
@@ -130,7 +138,7 @@ class FSLocal implements iFilesystem
         $path = $cdPath->mask($rdPath)->toString();
         $path = ($path == '')
             // we are on root
-            ? $this->pathUri()->getPathSeparator()
+            ? $this->pathUri()->getSeparator()
             : $path;
 
         return $this->mkFromPath($path);
@@ -148,21 +156,25 @@ class FSLocal implements iFilesystem
     {
         $path = new PathJoinUri([
             'path'      => $path,
-            'separator' => $this->pathUri()->getPathSeparator()
+            'separator' => $this->pathUri()->getSeparator()
         ]);
 
-        if ($path->isAbsolute())
-            // prepend root dir to absolute paths
-            $path = $path->prepend(new PathJoinUri(
-                $this->getRootDir()->pathUri()->toString()
-            ))->normalize();
+        $origPath = clone $path;
 
+        // prepend root dir to absolute paths
+        if ($path->isAbsolute())
+            $path = $path->prepend(
+                new PathJoinUri($this->getRootPath()->toString())
+            )
+                ->normalize();
+
+        // create filesystem node object
         $path = $path->toString();
         $return = false;
         if ($this->isDir($path))
-            $return = new Directory($path);
+            $return = new Directory;
         elseif ($this->isFile($path))
-            $return = new File($path);
+            $return = new File;
 
         if (!$return)
             throw new \Exception(sprintf(
@@ -170,7 +182,15 @@ class FSLocal implements iFilesystem
                 , $path
             ), null, new \Exception(error_get_last()['message']));
 
-        $return->setFilesystem($this);
+        $return->setFilesystem($this)
+            ->pathUri()
+                ->setSeparator($this->pathUri()->getSeparator())
+                ->fromArray(
+                    $this->pathUri()->parse($origPath->toString()) // set path/filename.ext
+                )
+                ->setBasepath($this->getRootPath())
+                ->allowOverrideBasepath(false)
+        ;
 
         return $return;
     }
@@ -190,7 +210,7 @@ class FSLocal implements iFilesystem
     function pathUri()
     {
         $pathFileUri = new PathFileUri;
-        $pathFileUri->setPathSeparator('/');
+        $pathFileUri->setSeparator(self::DS);
 
         return $pathFileUri;
     }
@@ -208,7 +228,7 @@ class FSLocal implements iFilesystem
      * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING|SCANDIR_SORT_DESCENDING
      *
      * @throws \Exception On Failure
-     * @return array
+     * @return iPathFileUri[]
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = self::SCANDIR_SORT_NONE)
     {
@@ -217,25 +237,29 @@ class FSLocal implements iFilesystem
 
         $this->validateFile($dir);
 
-        $dirname = $this->pathUri()
+        $dirPathStr = $this->pathUri()
             ->fromPathUri($dir->pathUri())
             ->normalize()
             ->toString()
         ;
 
-        $result  = scandir($dirname, $sortingOrder);
+        $result  = scandir($dirPathStr, $sortingOrder);
         if ($result === false)
             throw new \Exception(sprintf(
                 'Failed Scan Directory To "%s".'
-                , $dirname
+                , $dirPathStr
             ), null, new \Exception(error_get_last()['message']));
 
         // get rid of the dots
         $result = array_diff($result, array('..', '.'));
 
         // append dir path to files
-        array_walk($result, function(&$value, $key) use ($dirname)  {
-            $value = $dirname.'/'.$value;
+        array_walk($result, function(&$value, $key) {
+            $value = $this->pathUri()
+                ->setBasepath($this->getRootPath())
+                ->fromArray($this->pathUri()->parse($value))
+                ->allowOverrideBasepath(false)
+            ;
         });
 
         return $result;

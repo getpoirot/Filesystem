@@ -31,28 +31,28 @@ interface iFilesystem
     /**
      * Construct
      *
-     * @param null|iDirectory|string $rootDir
+     * @param null|iPathJoinedUri|string $rootDir
      */
     function __construct($rootDir = null);
 
     /**
-     * Changes Root Directory
+     * Changes Root Directory Path
      *
      * - root directory must be absolute
      *
-     * @param iDirectory $dir
+     * @param string|iPathJoinedUri $dir
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chRootDir(iDirectory $dir);
+    function chRootPath($dir);
 
     /**
-     * Get Root Directory
+     * Get Root Directory Path
      *
-     * @return iDirectory
+     * @return iPathJoinedUri
      */
-    function getRootDir();
+    function getRootPath();
 
     /**
      * Gets the current working directory
@@ -117,7 +117,7 @@ interface iFilesystem
      * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING|SCANDIR_SORT_DESCENDING
      *
      * @throws \Exception On Failure
-     * @return array
+     * @return iPathFileUri[]
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = self::SCANDIR_SORT_NONE);
 

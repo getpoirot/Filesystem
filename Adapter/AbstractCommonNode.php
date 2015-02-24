@@ -62,9 +62,9 @@ abstract class AbstractCommonNode
             $this->pathUri = (new PathFileUri)
                 // by default create relative paths
                 ->setPathStrMode(PathFileUri::PATH_AS_RELATIVE)
-                ->setPathSeparator(
+                ->setSeparator(
                     $this->filesystem()->pathUri()
-                        ->getPathSeparator()
+                        ->getSeparator()
                 )
             ;
 
