@@ -31,19 +31,21 @@ interface iFilesystem
     /**
      * Construct
      *
-     * @param null|iDirectoryInfo|string $rootDir
+     * @param null|iDirectory|string $rootDir
      */
     function __construct($rootDir = null);
 
     /**
      * Changes Root Directory
      *
-     * @param iDirectoryInfo $dir
+     * - root directory must be absolute
+     *
+     * @param iDirectory $dir
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chRootDir(iDirectoryInfo $dir);
+    function chRootDir(iDirectory $dir);
 
     /**
      * Get Root Directory
@@ -51,6 +53,17 @@ interface iFilesystem
      * @return iDirectory
      */
     function getRootDir();
+
+    /**
+     * Gets the current working directory
+     *
+     * - filesystem cwd result must get back
+     *   from class pathUri()
+     *
+     * @throws \Exception On Failure
+     * @return iDirectory
+     */
+    function getCwd();
 
     /**
      * Make an Object From Existence Path Filesystem
@@ -82,17 +95,6 @@ interface iFilesystem
     function pathUri();
 
     // Directory Implementation:
-
-    /**
-     * Gets the current working directory
-     *
-     * - filesystem cwd result must get back
-     *   from class pathUri()
-     *
-     * @throws \Exception On Failure
-     * @return iDirectory
-     */
-    function getCwd();
 
     /**
      * Changes Filesystem current directory

@@ -30,12 +30,12 @@ class FSLocal implements iFilesystem
     /**
      * Construct
      *
-     * @param null|iDirectoryInfo|string $rootDir
+     * @param null|iDirectory|string $rootDir
      */
     function __construct($rootDir = null)
     {
         if (is_string($rootDir))
-            $rootDir = new Directory($rootDir);
+            $rootDir = $this->mkFromPath($rootDir);
 
         if ($rootDir !== null)
             $this->chRootDir($rootDir);
@@ -44,13 +44,28 @@ class FSLocal implements iFilesystem
     /**
      * Changes Root Directory
      *
-     * @param iDirectoryInfo $dir
+     * - root directory must be absolute
+     * - must exists
+     * - must be a directory
+     *
+     * @param iDirectory $dir
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chRootDir(iDirectoryInfo $dir)
+    function chRootDir(iDirectory $dir)
     {
+        $dir->pathUri()->setPathSeparator(
+            $this->pathUri()->getPathSeparator()
+        );
+
+        if (!$dir->pathUri()->isAbsolute()
+            || !is_dir($dir->pathUri()->toString())
+        )
+            throw new \Exception(sprintf(
+                'Dir path must be an absolute address, to an existence directory.'
+            ));
+
         $this->rootDir = $dir;
 
         return $this;
@@ -66,7 +81,55 @@ class FSLocal implements iFilesystem
     function getRootDir()
     {
         if (!$this->rootDir)
-            $this->chDir(new Directory('/'));
+            $this->chRootDir(new Directory(self::DS));
+
+        return $this->rootDir;
+    }
+
+    /**
+     * Gets the current working directory
+     *
+     * - current working directory must exist
+     *   from within root directory
+     *
+     * - if not chDir to root dir
+     *
+     * @throws \Exception On Failure
+     * @return iDirectory
+     */
+    function getCwd()
+    {
+        $cwd = getcwd();
+        if ($cwd === false)
+            throw new \Exception(
+                'Failed To Get Current Working Directory.'
+                , null
+                , new \Exception(error_get_last()['message'])
+            );
+
+        // Check that current working directory is within root path .. {
+        $rdPath = new PathJoinUri($this->getRootDir()->pathUri()->toString());
+        $cdPath  = new PathJoinUri([
+            'path'      => $cwd,
+            'separator' => $this->pathUri()->getPathSeparator()
+        ]);
+
+        // (root = /var/www/) mask (cwd = /var/www/html) === root
+        $trdPath = clone $rdPath;
+        if ($trdPath->joint($cdPath, false)->getPath() !== $rdPath->getPath()) {
+            // current directory is not within root directory
+            chdir($rdPath->toString());
+            return $this->getCwd();
+        }
+        // ... }
+
+        $path = $cdPath->mask($rdPath)->toString();
+        $path = ($path == '')
+            // we are on root
+            ? $this->pathUri()->getPathSeparator()
+            : $path;
+
+        return $this->mkFromPath($path);
     }
 
     /**
@@ -79,8 +142,19 @@ class FSLocal implements iFilesystem
      */
     function mkFromPath($path)
     {
-        $return = false;
+        $path = new PathJoinUri([
+            'path'      => $path,
+            'separator' => $this->pathUri()->getPathSeparator()
+        ]);
 
+        if ($path->isAbsolute())
+            // prepend root dir to absolute paths
+            $path = $path->prepend(new PathJoinUri(
+                $this->getRootDir()->pathUri()->toString()
+            ))->normalize();
+
+        $path = $path->toString();
+        $return = false;
         if ($this->isDir($path))
             $return = new Directory($path);
         elseif ($this->isFile($path))
@@ -120,30 +194,6 @@ class FSLocal implements iFilesystem
     // Directory Implementation:
 
     /**
-     * Gets the current working directory
-     *
-     * - filesystem cwd result must get back
-     *   from class pathUri()
-     *
-     * @throws \Exception On Failure
-     * @return iDirectory
-     */
-    function getCwd()
-    {
-        $result = getcwd();
-        if ($result === false)
-            throw new \Exception(
-                'Failed To Get Current Working Directory.'
-                , null
-                , new \Exception(error_get_last()['message'])
-            );
-
-        $result = $this->getPathUri()->getBasepath();
-
-        return $this->mkFromPath($result->toString());
-    }
-
-    /**
      * List an array of files/directories path from the directory
      *
      * - get rid of ".", ".." from list
@@ -163,7 +213,7 @@ class FSLocal implements iFilesystem
 
         $this->validateFile($dir);
 
-        $dirname = $this->getPathUri()
+        $dirname = $this->pathUri()
             ->fromPathUri($dir->pathUri())
             ->toString()
         ;
@@ -197,7 +247,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($dir);
 
-        $dirname = $this->getPathUri()
+        $dirname = $this->pathUri()
             ->fromPathUri($dir->pathUri())
             ->toString()
         ;
@@ -225,7 +275,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -254,7 +304,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -287,7 +337,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -315,7 +365,7 @@ class FSLocal implements iFilesystem
 
         // Upon failure, an E_WARNING is emitted.
         $fperm = @fileperms(
-            $this->getPathUri()
+            $this->pathUri()
                 ->fromPathUri($file->pathUri())
                 ->toString()
         );
@@ -339,7 +389,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -364,7 +414,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -410,11 +460,11 @@ class FSLocal implements iFilesystem
         // source must be valid
         $this->validateFile($source);
 
-        $sourcePathStr = $this->getPathUri()
+        $sourcePathStr = $this->pathUri()
             ->fromPathUri($source->pathUri())
             ->toString();
 
-        $destPathStr   = $this->getPathUri()
+        $destPathStr   = $this->pathUri()
             ->fromPathUri($dest->pathUri())
             ->toString();
 
@@ -440,13 +490,13 @@ class FSLocal implements iFilesystem
                 /** @var iFile $source */
                 $copied = @copy(
                     $sourcePathStr
-                    , $destPathStr.'/'.$this->getPathUri()
+                    , $destPathStr.'/'.$this->pathUri()
                         ->fromPathUri($source->pathUri())
                         ->getFilename()
                 );
             else {
                 // Merge Folder
-                $destDirName = $destPathStr.'/'.$this->getPathUri()
+                $destDirName = $destPathStr.'/'.$this->pathUri()
                         ->fromPathUri($source->pathUri())
                         ->getFilename();
                 $copied = true; // we don't want rise error from here
@@ -603,7 +653,7 @@ class FSLocal implements iFilesystem
     {
         // Upon failure, an E_WARNING is emitted.
         $result = @file_exists(
-            $this->getPathUri()
+            $this->pathUri()
                 ->fromPathUri($file->pathUri())
                 ->toString()
         );
@@ -630,7 +680,7 @@ class FSLocal implements iFilesystem
         $append  = /*($append) ? FILE_APPEND :*/ 0;
         $append |= LOCK_EX; // to prevent anyone else writing to the file at the same time
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -658,7 +708,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -686,7 +736,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -720,7 +770,7 @@ class FSLocal implements iFilesystem
 
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -751,7 +801,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -780,7 +830,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -816,7 +866,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -845,7 +895,7 @@ class FSLocal implements iFilesystem
      */
     function isReadable(iCommonInfo $file)
     {
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -866,7 +916,7 @@ class FSLocal implements iFilesystem
      */
     function isWritable(iCommonInfo $file)
     {
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -892,13 +942,13 @@ class FSLocal implements iFilesystem
 
         $this->validateFile($target);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($link->pathUri())
             ->toString()
         ;
         // Upon failure, an E_WARNING is emitted.
         $result = @link(
-            $this->getPathUri()
+            $this->pathUri()
                 ->fromPathUri($target->pathUri())
                 ->toString()
             , $filename
@@ -923,7 +973,7 @@ class FSLocal implements iFilesystem
      */
     function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
     {
-        $dirname = $this->getPathUri()
+        $dirname = $this->pathUri()
             ->fromPathUri($dir->pathUri())
             ->toString()
         ;
@@ -954,7 +1004,7 @@ class FSLocal implements iFilesystem
          * directory name with multibyte character paths, the matching
          * locale must be set using the setlocale() function.
          */
-        $path = $this->getPathUri()
+        $path = $this->pathUri()
             ->setPath($file->pathUri()->getPath())
             ->toString();
 
@@ -979,7 +1029,7 @@ class FSLocal implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        $pathStr = $this->getPathUri()
+        $pathStr = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -1005,7 +1055,7 @@ class FSLocal implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        $pathStr = $this->getPathUri()
+        $pathStr = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -1029,7 +1079,7 @@ class FSLocal implements iFilesystem
          * locale must be set using the setlocale() function.
          */
 
-        $pathStr = $this->getPathUri()
+        $pathStr = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -1060,7 +1110,7 @@ class FSLocal implements iFilesystem
             $newName = ($this->dirUp($file)->pathUri()->toString())
                 .'/'. $newName;
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -1100,7 +1150,7 @@ class FSLocal implements iFilesystem
             }
 
         // Ensure That Folder Is Empty: Delete It
-        $dirName = $this->getPathUri()
+        $dirName = $this->pathUri()
             ->fromPathUri($dir->pathUri())
             ->toString()
         ;
@@ -1127,7 +1177,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toArray()
         ;
@@ -1156,7 +1206,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -1182,7 +1232,7 @@ class FSLocal implements iFilesystem
      */
     function linkRead(iLinkInfo $link)
     {
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($link->pathUri())
             ->toString()
         ;
@@ -1208,7 +1258,7 @@ class FSLocal implements iFilesystem
     {
         $this->validateFile($file);
 
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
@@ -1232,7 +1282,7 @@ class FSLocal implements iFilesystem
      */
     protected function validateFile(iCommonInfo $file)
     {
-        $filename = $this->getPathUri()
+        $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
