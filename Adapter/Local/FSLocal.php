@@ -135,13 +135,19 @@ class FSLocal implements iFilesystem
         }
         // <<<<<< }
 
-        $path = $cdPath->mask($rdPath)->toString();
-        $path = ($path == '')
-            // we are on root
-            ? $this->pathUri()->getSeparator()
-            : $path;
+        // Make Paths Absolute From Root
+        // if root is      [/var/www/data]
+        // and real cwd is [/var/www/data/]images
+        // we turn it into /images
+        $path = $cdPath->mask($rdPath)
+            ->prepend(new PathJoinUri(self::DS))
+            ->toString()
+        ;
 
-        return $this->mkFromPath($path);
+        $return = new Directory($path);
+        $return->setFilesystem($this);
+
+        return $return;
     }
 
     /**
@@ -170,6 +176,7 @@ class FSLocal implements iFilesystem
 
         // create filesystem node object
         $path = $path->toString();
+
         $return = false;
         if ($this->isDir($path))
             $return = new Directory;
@@ -1324,8 +1331,9 @@ class FSLocal implements iFilesystem
             ));
         elseif (!$this->isExists($file))
             throw new \Exception(sprintf(
-                'File "%s" Not Found.'
+                'File "%s" Not Found on "%s".'
                 , $filename
+                , $this->getCwd()->pathUri()->toString()
             ));
     }
 }
