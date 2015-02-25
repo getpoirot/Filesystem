@@ -242,19 +242,15 @@ class FSLocal implements iFilesystem
         if ($dir === null)
             $dir = $this->getCwd();
 
-        $this->validateFile($dir);
+        $dirRealPath = $this->__getRealIsoPath($dir);
 
-        $dirPathStr = $this->pathUri()
-            ->fromPathUri($dir->pathUri())
-            ->normalize()
-            ->toString()
-        ;
+        $this->__validateFilepath($dirRealPath);
 
-        $result  = scandir($dirPathStr, $sortingOrder);
+        $result  = scandir($dirRealPath, $sortingOrder);
         if ($result === false)
             throw new \Exception(sprintf(
                 'Failed Scan Directory To "%s".'
-                , $dirPathStr
+                , $dirRealPath
             ), null, new \Exception(error_get_last()['message']));
 
         // get rid of the dots
@@ -263,8 +259,8 @@ class FSLocal implements iFilesystem
         // append dir path to files
         array_walk($result, function(&$value, $key) {
             $value = $this->pathUri()
-                ->setBasepath($this->getRootPath())
                 ->fromArray($this->pathUri()->parse($value))
+                ->setBasepath($this->getRootPath())
                 ->allowOverrideBasepath(false)
             ;
         });
@@ -282,16 +278,14 @@ class FSLocal implements iFilesystem
      */
     function chDir(iDirectoryInfo $dir)
     {
-        $this->validateFile($dir);
+        $dirRealpath = $this->__getRealIsoPath($dir);
 
-        $dirname = $this->pathUri()
-            ->fromPathUri($dir->pathUri())
-            ->toString()
-        ;
-        if (chdir($dirname) === false)
+        $this->__validateFilepath($dirRealpath);
+
+        if (@chdir($dirRealpath) === false)
             throw new \Exception(sprintf(
                 'Failed Changing Directory To "%s".'
-                , $dirname
+                , $dirRealpath
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
@@ -310,7 +304,7 @@ class FSLocal implements iFilesystem
      */
     function chgrp(iCommonInfo $file, $group)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -339,7 +333,7 @@ class FSLocal implements iFilesystem
      */
     function getFileGroup(iCommonInfo $file)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -372,7 +366,7 @@ class FSLocal implements iFilesystem
      */
     function chmod(iCommonInfo $file, iFilePermissions $mode)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -398,7 +392,7 @@ class FSLocal implements iFilesystem
      */
     function getFilePerms(iCommonInfo $file)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         // Upon failure, an E_WARNING is emitted.
         $fperm = @fileperms(
@@ -424,7 +418,7 @@ class FSLocal implements iFilesystem
      */
     function chown(iCommonInfo $file, $user)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -449,7 +443,7 @@ class FSLocal implements iFilesystem
      */
     function getFileOwner(iCommonInfo $file)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -495,7 +489,7 @@ class FSLocal implements iFilesystem
     function copy(iCommonInfo $source, iCommon $dest)
     {
         // source must be valid
-        $this->validateFile($source);
+        $this->__validateFilepath($source);
 
         $sourcePathStr = $this->pathUri()
             ->fromPathUri($source->pathUri())
@@ -743,7 +737,7 @@ class FSLocal implements iFilesystem
      */
     function getFileContents(iFile $file, $maxlen = 0)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -771,7 +765,7 @@ class FSLocal implements iFilesystem
      */
     function getFileATime(iFileInfo $file)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -805,7 +799,7 @@ class FSLocal implements iFilesystem
     {
         // Note that on Windows systems, filectime will show the file creation time
 
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -836,7 +830,7 @@ class FSLocal implements iFilesystem
      */
     function getFileMTime(iFileInfo $file)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -865,7 +859,7 @@ class FSLocal implements iFilesystem
      */
     function getFileSize(iFileInfo $file)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -901,7 +895,7 @@ class FSLocal implements iFilesystem
      */
     function flock(iFileInfo $file, $lock = LOCK_EX)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -977,7 +971,7 @@ class FSLocal implements iFilesystem
     {
         $target = $link->getTarget();
 
-        $this->validateFile($target);
+        $this->__validateFilepath($target);
 
         $filename = $this->pathUri()
             ->fromPathUri($link->pathUri())
@@ -1173,7 +1167,7 @@ class FSLocal implements iFilesystem
      */
     function rmDir(iDirectoryInfo $dir)
     {
-        $this->validateFile($dir);
+        $this->__validateFilepath($dir);
 
         $lsDir = $this->scanDir($dir);
         if (!empty($lsDir))
@@ -1212,7 +1206,7 @@ class FSLocal implements iFilesystem
      */
     function chFileATime(iFile $file, $time = null)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -1241,7 +1235,7 @@ class FSLocal implements iFilesystem
      */
     function chFileMTime(iFile $file, $time = null)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -1293,7 +1287,7 @@ class FSLocal implements iFilesystem
      */
     function unlink(iFileInfo $file)
     {
-        $this->validateFile($file);
+        $this->__validateFilepath($file);
 
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -1311,30 +1305,56 @@ class FSLocal implements iFilesystem
     }
 
     /**
-     * - is file/folder
-     * - is exists
+     * Get Real Filesystem Path Of Nodes
      *
-     * @param iCommonInfo $file
+     * @param iCommonInfo $node
+     *
+     * @return string
+     */
+    protected function __getRealIsoPath(iCommonInfo $node)
+    {
+        $path = new PathJoinUri([
+            'path'      => $node->pathUri()->toString(),
+            'separator' => $node->pathUri()->getSeparator()
+        ]);
+
+        if (!$path->isAbsolute()) {
+            $cwdPath = new PathJoinUri([
+                'path'      => $this->getCwd()->pathUri()->toString(),
+                'separator' => $this->pathUri()->getSeparator()
+            ]);
+
+            $path = $cwdPath->append($path)
+                ->normalize();
+        }
+
+        // Relative Paths
+        $path = $this->pathUri()
+            ->setBasepath($this->getRootPath())
+            ->setPath($path)
+            ->allowOverrideBasepath(false)
+            ->normalize();
+
+        return $path->toString();
+    }
+
+    /**
+     * Validate the Real File Path is exists?
+     *
+     * @param string $realpath
+     *
      * @throws \Exception
      */
-    protected function validateFile(iCommonInfo $file)
+    protected function __validateFilepath($realpath)
     {
-        $filename = $this->pathUri()
-            ->fromPathUri($file->pathUri())
-            ->toString()
-        ;
+        // Upon failure, an E_WARNING is emitted.
+        $result = @file_exists($realpath);
+        clearstatcache();
 
-        if (!$this->isFile($file) && !$this->isDir($file))
+        if (!$result)
             throw new \Exception(sprintf(
-                'The Destination File "%s" Must Be a File Or Folder.'
-                , $filename
-            ));
-        elseif (!$this->isExists($file))
-            throw new \Exception(sprintf(
-                'File "%s" Not Found on "%s".'
-                , $filename
-                , $this->getCwd()->pathUri()->toString()
+                'File "%s" Not Found.'
+                , $realpath
             ));
     }
 }
- 
