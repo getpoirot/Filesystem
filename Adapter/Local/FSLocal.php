@@ -1222,9 +1222,11 @@ class FSLocal implements iFilesystem
                 , $filename
             ), null, new \Exception(error_get_last()['message']));
 
-        // TODO Make isolated result address
+        $pathIso = (new PathJoinUri($result))
+            ->mask($this->getRootPath())
+            ->toString();
 
-        return $this->mkFromPath($result);
+        return $this->mkFromPath($pathIso);
     }
 
     /**
