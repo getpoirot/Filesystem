@@ -483,16 +483,16 @@ class FSLocal implements iFilesystem
      */
     function copy(iCommonInfo $source, iCommon $dest)
     {
-        $sourcePathStr = $this->__getRealIsoPath($source);
+        $srcPathStr = $this->__getRealIsoPath($source);
         $destPathStr   = $this->__getRealIsoPath($dest);
 
         // source must be valid
-        $this->__validateFilepath($sourcePathStr);
+        $this->__validateFilepath($srcPathStr);
 
         if ($this->isDir($source) && !$this->isDir($dest))
             throw new \Exception(sprintf(
                 'Invalid Destination Provided, We Cant Copy A Directory "%s" To File "%s".'
-                , $sourcePathStr, $destPathStr
+                , $srcPathStr, $destPathStr
             ));
 
         if (!$this->isDir($dest) && !$this->isFile($dest))
@@ -503,28 +503,26 @@ class FSLocal implements iFilesystem
 
         $copied = false;
         if ($this->isDir($dest)) {
-            // Copy to directory
+            // Copy File to directory
             if (!$this->isExists($dest))
                 $this->mkDir($dest, new FilePermissions(0755));
 
             if ($this->isFile($source))
                 /** @var iFile $source */
                 $copied = @copy(
-                    $sourcePathStr
-                    , $destPathStr.'/'.$this->pathUri()
+                    $srcPathStr
+                    , $destPathStr.self::DS.$this->pathUri()
                         ->fromPathUri($source->pathUri())
                         ->getFilename()
                 );
             else {
-                // Merge Folder
-                $destDirName = $destPathStr.'/'.$this->pathUri()
-                        ->fromPathUri($source->pathUri())
-                        ->getFilename();
-                $copied = true; // we don't want rise error from here
+                // Copy Directory To Directory
                 foreach($this->scanDir($source) as $fd)
+                    ($copied = true) // we don't want rise error from here
+                    and
                     $this->copy(
                         $this->mkFromPath($fd)
-                        , new Directory($destDirName)
+                        , $dest
                     );
             }
         } else {
@@ -537,7 +535,7 @@ class FSLocal implements iFilesystem
             // } <<<
 
             $copied = copy(
-                $sourcePathStr
+                $srcPathStr
                 , $destPathStr
             );
         }
@@ -545,7 +543,7 @@ class FSLocal implements iFilesystem
         if (!$copied)
             throw new \Exception(sprintf(
                 'Error While Coping "%s" To "%s".'
-                , $sourcePathStr, $destPathStr
+                , $srcPathStr, $destPathStr
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
