@@ -676,8 +676,6 @@ class FSLocal implements iFilesystem
     {
         $filename = $this->__getRealIsoPath($cnode);
 
-        $this->__validateFilepath($filename);
-
         // Upon failure, an E_WARNING is emitted.
         $result = @file_exists($filename);
         clearstatcache();
