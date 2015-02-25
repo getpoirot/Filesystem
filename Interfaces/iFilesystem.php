@@ -511,10 +511,10 @@ interface iFilesystem
     /**
      * Deletes a file
      * 
-     * @param iFileInfo $file
+     * @param iFileInfo|iLinkInfo $file
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function unlink(iFileInfo $file);
+    function unlink($file);
 }

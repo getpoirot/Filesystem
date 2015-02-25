@@ -3,6 +3,7 @@ namespace Poirot\Filesystem\Adapter\Local;
 
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
+use Poirot\Filesystem\Adapter\Link;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -166,6 +167,8 @@ class FSLocal implements iFilesystem
             $return = new Directory;
         elseif ($this->isFile($path))
             $return = new File;
+        elseif ($this->isLink($path))
+            $return = new Link;
 
         if (!$return)
             throw new \Exception(sprintf(
@@ -181,6 +184,9 @@ class FSLocal implements iFilesystem
                     $this->pathUri()->parse($path)
                 )
         ;
+
+        if ($this->isLink($return))
+            $return->setTarget($this->linkRead($return));
 
         return $return;
     }
@@ -1232,13 +1238,21 @@ class FSLocal implements iFilesystem
     /**
      * Deletes a file
      *
-     * @param iFileInfo $file
+     * @param iFileInfo|iLinkInfo $file
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function unlink(iFileInfo $file)
+    function unlink($file)
     {
+        if (!$file instanceof iFileInfo
+            && !$file instanceof iLinkInfo
+        )
+            throw new \Exception(sprintf(
+                'iFileInfo or iLinkInfo instance must given, but "%s" passed.'
+                , is_object($file) ? get_class($file) : gettype($file)
+            ));
+
         $filename = $this->__getRealIsoPath($file);
 
         // Upon failure, an E_WARNING is emitted.
