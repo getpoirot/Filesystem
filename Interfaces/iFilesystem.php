@@ -110,14 +110,14 @@ interface iFilesystem
      * List an array of files/directories path from the directory
      *
      * - get rid of ".", ".." from list
-     * - append scanned directory as path to files list
-     *   [/path/to/scanned/dir/]file.ext
+     * - get relative path to current working directory
      *
      * @param iDirectoryInfo|null $dir          If Null Scan Current Working Directory
-     * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING|SCANDIR_SORT_DESCENDING
+     * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING
+     *                                         |SCANDIR_SORT_DESCENDING
      *
      * @throws \Exception On Failure
-     * @return iPathFileUri[]
+     * @return array
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = self::SCANDIR_SORT_NONE);
 

@@ -160,23 +160,7 @@ class FSLocal implements iFilesystem
      */
     function mkFromPath($path)
     {
-        $path = new PathJoinUri([
-            'path'      => $path,
-            'separator' => $this->pathUri()->getSeparator()
-        ]);
-
-        $origPath = clone $path;
-
-        // prepend root dir to absolute paths
-        if ($path->isAbsolute())
-            $path = $path->prepend(
-                new PathJoinUri($this->getRootPath()->toString())
-            )
-                ->normalize();
-
         // create filesystem node object
-        $path = $path->toString();
-
         $return = false;
         if ($this->isDir($path))
             $return = new Directory;
@@ -185,18 +169,17 @@ class FSLocal implements iFilesystem
 
         if (!$return)
             throw new \Exception(sprintf(
-                'Path "%s" not recognized.'
+                'Cant Make From Path "%s", not recognized.'
                 , $path
             ), null, new \Exception(error_get_last()['message']));
 
-        $return->setFilesystem($this)
+        $return
+            ->setFilesystem($this)
             ->pathUri()
                 ->setSeparator($this->pathUri()->getSeparator())
                 ->fromArray(
-                    $this->pathUri()->parse($origPath->toString()) // set path/filename.ext
+                    $this->pathUri()->parse($path)
                 )
-                ->setBasepath($this->getRootPath())
-                ->allowOverrideBasepath(false)
         ;
 
         return $return;
@@ -228,14 +211,14 @@ class FSLocal implements iFilesystem
      * List an array of files/directories path from the directory
      *
      * - get rid of ".", ".." from list
-     * - append scanned directory as path to files list
-     *   [/path/to/scanned/dir/]file.ext
+     * - get relative path to current working directory
      *
      * @param iDirectoryInfo|null $dir          If Null Scan Current Working Directory
-     * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING|SCANDIR_SORT_DESCENDING
+     * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING
+     *                                         |SCANDIR_SORT_DESCENDING
      *
      * @throws \Exception On Failure
-     * @return iPathFileUri[]
+     * @return array
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = self::SCANDIR_SORT_NONE)
     {
@@ -256,12 +239,36 @@ class FSLocal implements iFilesystem
         // get rid of the dots
         $result = array_diff($result, array('..', '.'));
 
+        // (cwd = "/modules/innClinic") joint (dir = "/config") ===> "/"
+        // (cwd = "/modules/innClinic") mask  (dir = "/config") ===> "config"
+        // ===> /config  :D
+
+        $joint =
+            (new PathJoinUri($dir->pathUri()->toString()))
+            ->joint(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
+            ->toString();
+        ;
+
+        if ($joint == $this->getCwd()->pathUri()->toString())
+            // The Path is within current working directory
+            $prependPath =
+                (new PathJoinUri($dir->pathUri()->toString()))
+                ->mask(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
+            ;
+        else
+            $prependPath =
+                (new PathJoinUri($dir->pathUri()->toString()))
+                    ->joint(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
+                    ->append((new PathJoinUri($dir->pathUri()->toString()))
+                        ->mask(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
+                    );
+            ;
+
         // append dir path to files
-        array_walk($result, function(&$value, $key) {
-            $value = $this->pathUri()
-                ->fromArray($this->pathUri()->parse($value))
-                ->setBasepath($this->getRootPath())
-                ->allowOverrideBasepath(false)
+        array_walk($result, function(&$value, $key) use ($prependPath) {
+            $value = (new PathJoinUri($value))
+                ->prepend($prependPath)
+                ->toString()
             ;
         });
 
@@ -560,7 +567,7 @@ class FSLocal implements iFilesystem
         $return = false;
 
         if (is_string($source))
-            $return = @is_file($source);
+            $return = @is_file($this->__getRealIsoPath($source));
 
         if(is_object($source))
             $return = $source instanceof iFileInfo;
@@ -584,7 +591,7 @@ class FSLocal implements iFilesystem
         $return = false;
 
         if (is_string($source))
-            $return = @is_dir($source);
+            $return = @is_dir($this->__getRealIsoPath($source));
 
         if(is_object($source))
             $return = $source instanceof iDirectoryInfo;
@@ -608,7 +615,7 @@ class FSLocal implements iFilesystem
         $return = false;
 
         if (is_string($source))
-            $return = @is_link($source);
+            $return = @is_link($this->__getRealIsoPath($source));
 
         if(is_object($source))
             $return = $source instanceof iLinkInfo;
@@ -661,13 +668,13 @@ class FSLocal implements iFilesystem
      *
      * ! return FALSE for symlinks pointing to non-existing files
      *
-     * @param iCommonInfo $file
+     * @param iCommonInfo $cnode
      *
      * @return boolean
      */
-    function isExists(iCommonInfo $file)
+    function isExists(iCommonInfo $cnode)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->__getRealIsoPath($cnode);
 
         $this->__validateFilepath($filename);
 
