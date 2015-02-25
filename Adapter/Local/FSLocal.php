@@ -943,12 +943,12 @@ class FSLocal implements iFilesystem
         $target = $link->getTarget();
 
         $targetname = $this->__getRealIsoPath($target);
-        $this->__validateFilepath($target);
+        $this->__validateFilepath($targetname);
 
         $filename = $this->__getRealIsoPath($link);
 
         // Upon failure, an E_WARNING is emitted.
-        $result = @link(
+        $result = @symlink(
             $targetname
             , $filename
         );
@@ -1001,7 +1001,10 @@ class FSLocal implements iFilesystem
          * locale must be set using the setlocale() function.
          */
         $path = $this->pathUri()
-            ->setPath($file->pathUri()->getPath())
+            ->fromPathUri($file->pathUri())
+            ->setBasename(null)
+            ->setExtension(null)
+            ->normalize()
             ->toString();
 
         $directory = $this->mkFromPath($path);
@@ -1095,12 +1098,12 @@ class FSLocal implements iFilesystem
         $pathInfo = (new PathFileUri($newName))->toArray();
         if (!isset($pathInfo['path']))
             $newName = ($this->dirUp($file)->pathUri()->toString())
-                .'/'. $newName;
+                .self::DS. $newName;
 
-        $filename = $this->pathUri()
-            ->fromPathUri($file->pathUri())
-            ->toString()
-        ;
+        $filename = $this->__getRealIsoPath($file);
+
+        $this->__validateFilepath($filename);
+
         if (!@rename($filename, $newName))
             throw new \Exception(sprintf(
                 'Failed To Rename "%s" File.'
@@ -1123,7 +1126,9 @@ class FSLocal implements iFilesystem
      */
     function rmDir(iDirectoryInfo $dir)
     {
-        $this->__validateFilepath($dir);
+        $dirName = $this->__getRealIsoPath($dir);
+
+        $this->__validateFilepath($dirName);
 
         $lsDir = $this->scanDir($dir);
         if (!empty($lsDir))
@@ -1137,11 +1142,6 @@ class FSLocal implements iFilesystem
             }
 
         // Ensure That Folder Is Empty: Delete It
-        $dirName = $this->pathUri()
-            ->fromPathUri($dir->pathUri())
-            ->toString()
-        ;
-
         if (!@rmdir($dirName))
             throw new \Exception(sprintf(
                 'Error While Deleting "%s" File.'
@@ -1222,6 +1222,8 @@ class FSLocal implements iFilesystem
                 , $filename
             ), null, new \Exception(error_get_last()['message']));
 
+        // TODO Make isolated result address
+
         return $this->mkFromPath($result);
     }
 
@@ -1236,8 +1238,6 @@ class FSLocal implements iFilesystem
     function unlink(iFileInfo $file)
     {
         $filename = $this->__getRealIsoPath($file);
-
-        $this->__validateFilepath($file);
 
         // Upon failure, an E_WARNING is emitted.
         $result = @unlink($filename);

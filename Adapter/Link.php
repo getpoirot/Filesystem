@@ -83,11 +83,12 @@ class Link extends AbstractCommonNode
     function setTarget($target)
     {
         if (!$target instanceof iDirectoryInfo
-            || !$target instanceof iFileInfo
+            && !$target instanceof iFileInfo
         )
             throw new \Exception(sprintf(
                 'Target must instance of "iDirectoryInfo" or "iFileInfo" but "%s" given.'
-            ), is_object($target) ? get_class($target) : gettype($target));
+                , is_object($target) ? get_class($target) : gettype($target)
+            ));
 
         $this->target = $target;
 
