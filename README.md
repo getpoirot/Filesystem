@@ -4,28 +4,44 @@ Filesystem abstraction.
 
 ## General Usage
 
-__Storage__
-
-Reading Files Only From Storage Home
-
 ```php
-$storageName = $storage->getBasename();
+// Create isolated filesystem: 
+// on /var/www/html/upload directory
+$fs = new FSLocal('/var/www/html/upload');
+$fs->chRootPath('/var/www/html/upload');
 
-echo sprintf('Reading Entire Files Lists On Home From %s Storage ..', $storageName);
-foreach($storage->lsContents() as $fsc) {
-    if ($storage->typeOf($fsc) === $storage::FS_TYPE_FILE)
-        echo $fsc->getBasename().'<br/>';
+// check folder is exists:
+if ($fs->isExists(new Directory('user')))
+    // change cwd to user directory
+    $fs->chDir(new Directory('user'));
+
+// get current working directory path:
+echo sprintf(
+    'Current Directory: "%s"'
+    , $fs->getCwd()->pathUri()->toString()
+);
+
+// Scan current working directory for files:
+foreach ($fs->getCwd()->scanDir() as $path) {
+    // make an object from path
+    $node = $fs->mkFromPath($path);
+    
+    echo '<br/>';
+    if (!$fs->isFile($node))
+        // check that is node file?
+        echo '<br>';
+    
+    // get filename
+    echo '[] '.($node->pathUri()->getFilename());
+    
+    if ($fs->isDir($node))
+        // check that is node dir?
+        echo '</br>'
+            .'<div style="padding-left: 20px;">'
+            // if node is dir, get list of files from
+            // Directory Object
+            .var_export($node->scanDir(), true)
+            .'</div>'
+        ;
 }
-```
-
-Mount Another Storage Into Home.(Storages can mount to any folder)
-
-```php
-$storage->mount(new LocalStorage([
-    'home_folder' => '/dev/user/test/'
-    'basename'    => 'LocalStorage'
-]));
-
-$storage->createFromPath('/LocalStorage')
-    ->getBasename();
 ```
