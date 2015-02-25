@@ -5,7 +5,7 @@ Filesystem abstraction.
 ## General Usage
 
 ```php
-// Create isolated filesystem: 
+// Create isolated filesystem:
 // on /var/www/html/upload directory
 $fs = new FSLocal('/var/www/html/upload');
 $fs->chRootPath('/var/www/html/upload');
@@ -14,6 +14,8 @@ $fs->chRootPath('/var/www/html/upload');
 if ($fs->isExists(new Directory('user')))
     // change cwd to user directory
     $fs->chDir(new Directory('user'));
+
+$fs->chDir($fs->getCwd()->dirUp());
 
 // get current working directory path:
 echo sprintf(
@@ -25,18 +27,18 @@ echo sprintf(
 foreach ($fs->getCwd()->scanDir() as $path) {
     // make an object from path
     $node = $fs->mkFromPath($path);
-    
+
     echo '<br/>';
     if (!$fs->isFile($node))
         // check that is node file?
-        echo '<br>';
-    
+        echo '<b>';
+
     // get filename
     echo '[] '.($node->pathUri()->getFilename());
-    
+
     if ($fs->isDir($node))
         // check that is node dir?
-        echo '</br>'
+        echo '</b>'
             .'<div style="padding-left: 20px;">'
             // if node is dir, get list of files from
             // Directory Object
@@ -44,4 +46,13 @@ foreach ($fs->getCwd()->scanDir() as $path) {
             .'</div>'
         ;
 }
+
+k($fs->getFileOwner($fs->mkFromPath('images/file.jpg')));
+
+$fs->copy(
+    $fs->mkFromPath('images/file.jpg')
+    , new File('backup/file.copy.jpg')
+);
+
+k($fs->getFreeSpace());
 ```
