@@ -15,7 +15,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Filesystem\FileFilePermissions;
+use Poirot\Filesystem\FilePermissions;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\PathFileUri;
 
@@ -344,7 +344,7 @@ class FSFtp implements
                 , $file->pathUri()->toString()
             ));
 
-        $perms = new FileFilePermissions();
+        $perms = new FilePermissions();
         $perms->fromString($info['rights']);
 
         return $perms;
@@ -508,7 +508,7 @@ class FSFtp implements
         if ($this->isDir($dest)) {
             // Copy to directory
             if (!$this->isExists($dest))
-                $this->mkDir($dest, new FileFilePermissions(0755));
+                $this->mkDir($dest, new FilePermissions(0755));
 
             if ($this->isFile($source)) {
                 /** @var iFile $source */
@@ -533,7 +533,7 @@ class FSFtp implements
             // make directories to destination to avoid error >>> {
             $destDir = $this->dirUp($dest);
             if (!$this->isExists($destDir))
-                $this->mkDir($destDir, new FileFilePermissions(0777));
+                $this->mkDir($destDir, new FilePermissions(0777));
             // } <<<
 
             // download and upload file again

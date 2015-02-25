@@ -3,7 +3,7 @@ namespace Poirot\Filesystem;
 
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 
-class FileFilePermissions implements iFilePermissions
+class FilePermissions implements iFilePermissions
 {
     /**
      * @var int Octal Permissions Combination

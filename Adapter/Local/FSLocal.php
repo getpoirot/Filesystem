@@ -12,7 +12,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
-use Poirot\Filesystem\FileFilePermissions;
+use Poirot\Filesystem\FilePermissions;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\Interfaces\iPathJoinedUri;
 use Poirot\PathUri\PathFileUri;
@@ -400,7 +400,7 @@ class FSLocal implements iFilesystem
         // Upon failure, an E_WARNING is emitted.
         $fperm = @fileperms($filename);
 
-        $perms = new FileFilePermissions();
+        $perms = new FilePermissions();
         $perms->grantPermission($fperm);
 
         return $perms;
@@ -505,7 +505,7 @@ class FSLocal implements iFilesystem
         if ($this->isDir($dest)) {
             // Copy to directory
             if (!$this->isExists($dest))
-                $this->mkDir($dest, new FileFilePermissions(0755));
+                $this->mkDir($dest, new FilePermissions(0755));
 
             if ($this->isFile($source))
                 /** @var iFile $source */
@@ -533,7 +533,7 @@ class FSLocal implements iFilesystem
             // make directories to destination to avoid error >>> {
             $destDir = $this->dirUp($dest);
             if (!$this->isExists($destDir))
-                $this->mkDir($destDir, new FileFilePermissions(0777));
+                $this->mkDir($destDir, new FilePermissions(0777));
             // } <<<
 
             $copied = copy(
