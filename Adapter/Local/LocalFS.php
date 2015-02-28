@@ -4,6 +4,7 @@ namespace Poirot\Filesystem\Adapter\Local;
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
 use Poirot\Filesystem\Adapter\Link;
+use Poirot\Filesystem\Exception\FileNotFoundException;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -14,6 +15,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\FilePermissions;
+use Poirot\Filesystem\Interfaces\iIsolatedFS;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\Interfaces\iPathJoinedUri;
 use Poirot\PathUri\PathFileUri;
@@ -24,7 +26,7 @@ use Poirot\PathUri\PathJoinUri;
  *         file/directory permission be as same as
  *         apache/php user
  */
-class FSLocal implements iFilesystem
+class LocalFS implements iIsolatedFS
 {
     /**
      * @var iPathJoinedUri
@@ -670,7 +672,7 @@ class FSLocal implements iFilesystem
      * - Returns the number of available bytes as a float
      * - Using Current Working Directory
      *
-     * @return float|FSLocal::DISKSPACE_*
+     * @return float|LocalFS::DISKSPACE_*
      */
     function getFreeSpace()
     {
@@ -690,7 +692,7 @@ class FSLocal implements iFilesystem
      * - Returns the number of available bytes as a float
      * - Using Current Working Directory
      *
-     * @return float|FSLocal::DISKSPACE_*
+     * @return float|LocalFS::DISKSPACE_*
      */
     function getTotalSpace()
     {
@@ -1350,7 +1352,7 @@ class FSLocal implements iFilesystem
      *
      * @param string $realpath
      *
-     * @throws \Exception
+     * @throws FileNotFoundException
      */
     protected function __validateFilepath($realpath)
     {
@@ -1359,7 +1361,7 @@ class FSLocal implements iFilesystem
         clearstatcache();
 
         if (!$result)
-            throw new \Exception(sprintf(
+            throw new FileNotFoundException(sprintf(
                 'File "%s" Not Found.'
                 , $realpath
             ));

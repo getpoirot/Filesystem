@@ -10,7 +10,6 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\PathUri\Interfaces\iPathFileUri;
-use Poirot\PathUri\Interfaces\iPathJoinedUri;
 
 interface iFilesystem
 {
@@ -29,32 +28,6 @@ interface iFilesystem
 
 
     /**
-     * Construct
-     *
-     * @param null|iPathJoinedUri|string $rootDir
-     */
-    function __construct($rootDir = null);
-
-    /**
-     * Changes Root Directory Path
-     *
-     * - root directory must be absolute
-     *
-     * @param string|iPathJoinedUri $dir
-     *
-     * @throws \Exception On Failure
-     * @return $this
-     */
-    function chRootPath($dir);
-
-    /**
-     * Get Root Directory Path
-     *
-     * @return iPathJoinedUri
-     */
-    function getRootPath();
-
-    /**
      * Gets the current working directory
      *
      * - filesystem cwd result must get back
@@ -64,6 +37,16 @@ interface iFilesystem
      * @return iDirectory
      */
     function getCwd();
+
+    /**
+     * Changes Filesystem current directory
+     *
+     * @param iDirectoryInfo $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function chDir(iDirectoryInfo $dir);
 
     /**
      * Make an Object From Existence Path Filesystem
@@ -95,16 +78,6 @@ interface iFilesystem
     function pathUri();
 
     // Directory Implementation:
-
-    /**
-     * Changes Filesystem current directory
-     *
-     * @param iDirectoryInfo $dir
-     *
-     * @throws \Exception On Failure
-     * @return $this
-     */
-    function chDir(iDirectoryInfo $dir);
 
     /**
      * List an array of files/directories path from the directory

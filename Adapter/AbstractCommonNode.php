@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Adapter;
 
-use Poirot\Filesystem\Adapter\Local\FSLocal;
+use Poirot\Filesystem\Adapter\Local\LocalFS;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
@@ -91,7 +91,7 @@ abstract class AbstractCommonNode
     function filesystem()
     {
         if (!$this->filesystem)
-            $this->filesystem = new FSLocal();
+            $this->filesystem = new LocalFS();
 
         return $this->filesystem;
     }
