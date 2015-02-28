@@ -32,8 +32,8 @@ class FSLocal implements iFilesystem
     protected $rootDir;
 
     /**
-     * cached dir path on latest chDir
-     * @var iDirectoryInfo
+     * cached real dir path on latest chDir
+     * @var string
      */
     protected $__lastCDir;
 
@@ -144,19 +144,28 @@ class FSLocal implements iFilesystem
                 , new \Exception(error_get_last()['message'])
             );
 
+        $rdPath = new PathJoinUri($this->getRootPath()->toString());
+
         // check cwd scope:
         if ($this->__lastCDir !== null
-            && $cwd !== $this->__getRealIsoPath($this->__lastCDir)
+            && $cwd !== $this->__lastCDir
         ) {
             // Current Directory Changed Outside of class scope
+            $ldPath  = new PathJoinUri([
+                'path'      => $this->__lastCDir,
+                'separator' => $this->pathUri()->getSeparator()
+            ]);
+            $path = $ldPath->mask($rdPath)
+                ->prepend(new PathJoinUri(self::DS))
+                ->toString()
+            ;
 
             // restore cwd:
-            $this->chDir($this->__lastCDir);
+            $this->chDir(new Directory($path));
 
             return $this->getCwd();
         }
 
-        $rdPath = new PathJoinUri($this->getRootPath()->toString());
         $cdPath  = new PathJoinUri([
             'path'      => $cwd,
             'separator' => $this->pathUri()->getSeparator()
@@ -197,7 +206,7 @@ class FSLocal implements iFilesystem
                 , $dirRealpath
             ), null, new \Exception(error_get_last()['message']));
 
-        $this->__lastCDir = $dir;
+        $this->__lastCDir = $dirRealpath;
 
         return $this;
     }
