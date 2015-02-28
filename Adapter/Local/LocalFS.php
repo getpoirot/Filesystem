@@ -13,7 +13,6 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
-use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\iIsolatedFS;
 use Poirot\PathUri\Interfaces\iPathFileUri;
