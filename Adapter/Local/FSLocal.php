@@ -32,6 +32,12 @@ class FSLocal implements iFilesystem
     protected $rootDir;
 
     /**
+     * cached dir path on latest chDir
+     * @var iDirectoryInfo
+     */
+    protected $__lastCDir;
+
+    /**
      * Construct
      *
      * @param null|iPathJoinedUri|string $rootDir
@@ -79,7 +85,26 @@ class FSLocal implements iFilesystem
                 'Dir path must be an absolute address, to an existence directory.'
             ));
 
+        // Set Root Dir:
         $this->rootDir = $dir;
+
+        // Finalize:
+
+        // Check that current working directory is within root path >>>>> {
+        $rdPath = new PathJoinUri($dir->toString());
+        $cdPath  = new PathJoinUri([
+            'path'      => getcwd(),
+            'separator' => $this->pathUri()->getSeparator()
+        ]);
+
+        // (root = /var/www/) mask (cwd = /var/www/html) === root
+        $trdPath = clone $rdPath;
+        if ($trdPath->joint($cdPath, false)->getPath() !== $rdPath->getPath()) {
+            // current directory is not within root directory
+            // change current directory to root
+            $this->chDir(new Directory('/'));
+        }
+        // <<<<<< }
 
         return $this;
     }
@@ -106,7 +131,7 @@ class FSLocal implements iFilesystem
      *
      * - if not chDir to root dir
      *
-     * @throws \Exception On Failure
+     * @throws \Exception On iFailure
      * @return iDirectory
      */
     function getCwd()
@@ -119,22 +144,23 @@ class FSLocal implements iFilesystem
                 , new \Exception(error_get_last()['message'])
             );
 
-        // Check that current working directory is within root path >>>>> {
+        // check cwd scope:
+        if ($this->__lastCDir !== null
+            && $cwd !== $this->__getRealIsoPath($this->__lastCDir)
+        ) {
+            // Current Directory Changed Outside of class scope
+
+            // restore cwd:
+            $this->chDir($this->__lastCDir);
+
+            return $this->getCwd();
+        }
+
         $rdPath = new PathJoinUri($this->getRootPath()->toString());
         $cdPath  = new PathJoinUri([
             'path'      => $cwd,
             'separator' => $this->pathUri()->getSeparator()
         ]);
-
-        // (root = /var/www/) mask (cwd = /var/www/html) === root
-        $trdPath = clone $rdPath;
-        if ($trdPath->joint($cdPath, false)->getPath() !== $rdPath->getPath()) {
-            // current directory is not within root directory
-            // change current directory to root
-            chdir($rdPath->toString());
-            return $this->getCwd();
-        }
-        // <<<<<< }
 
         // Make Paths Absolute From Root
         // if root is      [/var/www/data]
@@ -149,6 +175,31 @@ class FSLocal implements iFilesystem
         $return->setFilesystem($this);
 
         return $return;
+    }
+
+    /**
+     * Changes Filesystem current directory
+     *
+     * @param iDirectoryInfo $dir
+     *
+     * @throws \Exception On Failure
+     * @return $this
+     */
+    function chDir(iDirectoryInfo $dir)
+    {
+        $dirRealpath = $this->__getRealIsoPath($dir);
+
+        $this->__validateFilepath($dirRealpath);
+
+        if (@chdir($dirRealpath) === false)
+            throw new \Exception(sprintf(
+                'Failed Changing Directory To "%s".'
+                , $dirRealpath
+            ), null, new \Exception(error_get_last()['message']));
+
+        $this->__lastCDir = $dir;
+
+        return $this;
     }
 
     /**
@@ -279,29 +330,6 @@ class FSLocal implements iFilesystem
         });
 
         return $result;
-    }
-
-    /**
-     * Changes Filesystem current directory
-     *
-     * @param iDirectoryInfo $dir
-     *
-     * @throws \Exception On Failure
-     * @return $this
-     */
-    function chDir(iDirectoryInfo $dir)
-    {
-        $dirRealpath = $this->__getRealIsoPath($dir);
-
-        $this->__validateFilepath($dirRealpath);
-
-        if (@chdir($dirRealpath) === false)
-            throw new \Exception(sprintf(
-                'Failed Changing Directory To "%s".'
-                , $dirRealpath
-            ), null, new \Exception(error_get_last()['message']));
-
-        return $this;
     }
 
     // File Implementation:
