@@ -15,7 +15,9 @@ if ($fs->isExists(new Directory('user')))
     // change cwd to user directory
     $fs->chDir(new Directory('user'));
 
-$fs->chDir($fs->getCwd()->dirUp());
+chdir('/var');                        // You are always in cwd scope
+$fs->chDir($fs->getCwd()->dirUp());   // < ---- The action not failed
+                                      // if scope has changed from outside
 
 // get current working directory path:
 echo sprintf(
