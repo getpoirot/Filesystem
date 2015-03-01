@@ -16,7 +16,6 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\PathUri\Interfaces\iPathFileUri;
-use Poirot\PathUri\Interfaces\iPathJoinedUri;
 use Poirot\PathUri\PathFileUri;
 use Poirot\PathUri\PathJoinUri;
 
@@ -108,14 +107,14 @@ class LocalFS implements iFsBase
         $return
             ->setFilesystem($this)
             ->pathUri()
-                ->setSeparator($this->pathUri()->getSeparator())
+                ->setSeparator( $this->pathUri()->getSeparator() )
                 ->fromArray(
                     $this->pathUri()->parse($path)
                 )
         ;
 
         if ($this->isLink($return))
-            $return->setTarget($this->linkRead($return));
+            $return->setTarget( $this->linkRead($return) );
 
         return $return;
     }
@@ -146,7 +145,6 @@ class LocalFS implements iFsBase
      * List an array of files/directories path from the directory
      *
      * - get rid of ".", ".." from list
-     * - get relative path to current working directory
      *
      * @param iDirectoryInfo|null $dir          If Null Scan Current Working Directory
      * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING
@@ -160,7 +158,10 @@ class LocalFS implements iFsBase
         if ($dir === null)
             $dir = $this->getCwd();
 
-        $dirRealPath = $this->__getRealIsoPath($dir);
+        $dirRealPath = $this->pathUri()
+            ->fromPathUri($dir->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($dirRealPath);
 
@@ -178,7 +179,7 @@ class LocalFS implements iFsBase
         // (cwd = "/modules/innClinic") mask  (dir = "/config") ===> "config"
         // ===> /config  :D
 
-        $joint =
+        /*$joint =
             (new PathJoinUri($dir->pathUri()->toString()))
             ->joint(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
             ->toString();
@@ -205,7 +206,7 @@ class LocalFS implements iFsBase
                 ->prepend($prependPath)
                 ->toString()
             ;
-        });
+        });*/
 
         return $result;
     }
@@ -223,7 +224,10 @@ class LocalFS implements iFsBase
      */
     function chgrp(iCommonInfo $file, $group)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -250,7 +254,10 @@ class LocalFS implements iFsBase
      */
     function getFileGroup(iCommonInfo $file)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -281,7 +288,10 @@ class LocalFS implements iFsBase
      */
     function chmod(iCommonInfo $file, iFilePermissions $mode)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -305,7 +315,10 @@ class LocalFS implements iFsBase
      */
     function getFilePerms(iCommonInfo $file)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -329,7 +342,10 @@ class LocalFS implements iFsBase
      */
     function chown(iCommonInfo $file, $user)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -352,7 +368,10 @@ class LocalFS implements iFsBase
      */
     function getFileOwner(iCommonInfo $file)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -395,8 +414,15 @@ class LocalFS implements iFsBase
      */
     function copy(iCommonInfo $source, iCommon $dest)
     {
-        $srcPathStr = $this->__getRealIsoPath($source);
-        $destPathStr   = $this->__getRealIsoPath($dest);
+        $srcPathStr = $this->pathUri()
+            ->fromPathUri($source->pathUri())
+            ->toString()
+        ;
+
+        $destPathStr   = $this->pathUri()
+            ->fromPathUri($dest->pathUri())
+            ->toString()
+        ;
 
         // source must be valid
         $this->__validateFilepath($srcPathStr);
@@ -423,7 +449,7 @@ class LocalFS implements iFsBase
                 /** @var iFile $source */
                 $copied = @copy(
                     $srcPathStr
-                    , $destPathStr.self::DS.$this->pathUri()
+                    , $destPathStr .$this->pathUri()->getSeparator(). $this->pathUri()
                         ->fromPathUri($source->pathUri())
                         ->getFilename()
                 );
@@ -477,7 +503,7 @@ class LocalFS implements iFsBase
         $return = false;
 
         if (is_string($source))
-            $return = @is_file($this->__getRealIsoPath($source));
+            $return = @is_file($source);
 
         if(is_object($source))
             $return = $source instanceof iFileInfo;
@@ -501,7 +527,7 @@ class LocalFS implements iFsBase
         $return = false;
 
         if (is_string($source))
-            $return = @is_dir($this->__getRealIsoPath($source));
+            $return = @is_dir($source);
 
         if(is_object($source))
             $return = $source instanceof iDirectoryInfo;
@@ -525,7 +551,7 @@ class LocalFS implements iFsBase
         $return = false;
 
         if (is_string($source))
-            $return = @is_link($this->__getRealIsoPath($source));
+            $return = @is_link($source);
 
         if(is_object($source))
             $return = $source instanceof iLinkInfo;
@@ -544,7 +570,7 @@ class LocalFS implements iFsBase
     function getFreeSpace()
     {
         $result = @disk_free_space(
-            $this->getRootPath()->toString()
+            $this->getCwd()->pathUri()->toString()
         );
 
         if ($result === false)
@@ -564,7 +590,7 @@ class LocalFS implements iFsBase
     function getTotalSpace()
     {
         $result = @disk_total_space(
-            $this->getRootPath()->toString()
+            $this->getCwd()->pathUri()->toString()
         );
 
         if ($result === false)
@@ -584,7 +610,10 @@ class LocalFS implements iFsBase
      */
     function isExists(iCommonInfo $cnode)
     {
-        $filename = $this->__getRealIsoPath($cnode);
+        $filename = $this->pathUri()
+            ->fromPathUri($cnode->pathUri())
+            ->toString()
+        ;
 
         // Upon failure, an E_WARNING is emitted.
         $result = @file_exists($filename);
@@ -608,7 +637,10 @@ class LocalFS implements iFsBase
      */
     function putFileContents(iFile $file, $contents)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -638,7 +670,10 @@ class LocalFS implements iFsBase
      */
     function getFileContents(iFile $file, $maxlen = 0)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -663,7 +698,10 @@ class LocalFS implements iFsBase
      */
     function getFileATime(iFileInfo $file)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -695,7 +733,10 @@ class LocalFS implements iFsBase
     {
         // Note that on Windows systems, filectime will show the file creation time
 
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -724,8 +765,10 @@ class LocalFS implements iFsBase
      */
     function getFileMTime(iFileInfo $file)
     {
-        $filename = $this->__getRealIsoPath($file);
-
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
         $this->__validateFilepath($filename);
 
         // Upon failure, an E_WARNING is emitted.
@@ -751,7 +794,10 @@ class LocalFS implements iFsBase
      */
     function getFileSize(iFileInfo $file)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -785,7 +831,10 @@ class LocalFS implements iFsBase
      */
     function flock(iFileInfo $file, $lock = LOCK_EX)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -813,7 +862,10 @@ class LocalFS implements iFsBase
      */
     function isReadable(iCommonInfo $file)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         // Upon failure, an E_WARNING is emitted.
         $result = @is_readable($filename);
@@ -832,7 +884,10 @@ class LocalFS implements iFsBase
      */
     function isWritable(iCommonInfo $file)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         // Upon failure, an E_WARNING is emitted.
         $result = @is_writable($filename);
@@ -854,10 +909,17 @@ class LocalFS implements iFsBase
     {
         $target = $link->getTarget();
 
-        $targetname = $this->__getRealIsoPath($target);
+        $targetname = $this->pathUri()
+            ->fromPathUri($target->pathUri())
+            ->toString()
+        ;
+
         $this->__validateFilepath($targetname);
 
-        $filename = $this->__getRealIsoPath($link);
+        $filename = $this->pathUri()
+            ->fromPathUri($link->pathUri())
+            ->toString()
+        ;
 
         // Upon failure, an E_WARNING is emitted.
         $result = @symlink(
@@ -884,7 +946,10 @@ class LocalFS implements iFsBase
      */
     function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
     {
-        $dirname = $this->__getRealIsoPath($dir);
+        $dirname = $this->pathUri()
+            ->fromPathUri($dir->pathUri())
+            ->toString()
+        ;
 
         if (!@mkdir($dirname, $mode->getTotalPerms(), true))
             throw new \Exception(sprintf(
@@ -940,7 +1005,10 @@ class LocalFS implements iFsBase
          * locale must be set using the setlocale() function.
          */
 
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         return basename($pathStr);
     }
@@ -963,7 +1031,10 @@ class LocalFS implements iFsBase
          * locale must be set using the setlocale() function.
          */
 
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         return pathinfo($pathStr, PATHINFO_EXTENSION);
     }
@@ -984,7 +1055,10 @@ class LocalFS implements iFsBase
          * locale must be set using the setlocale() function.
          */
 
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         return pathinfo($pathStr, PATHINFO_FILENAME);
     }
@@ -1010,9 +1084,12 @@ class LocalFS implements iFsBase
         $pathInfo = (new PathFileUri($newName))->toArray();
         if (!isset($pathInfo['path']))
             $newName = ($this->dirUp($file)->pathUri()->toString())
-                .self::DS. $newName;
+                .$this->pathUri()->getSeparator(). $newName;
 
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($filename);
 
@@ -1038,7 +1115,10 @@ class LocalFS implements iFsBase
      */
     function rmDir(iDirectoryInfo $dir)
     {
-        $dirName = $this->__getRealIsoPath($dir);
+        $dirName = $this->pathUri()
+            ->fromPathUri($dir->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($dirName);
 
@@ -1074,7 +1154,10 @@ class LocalFS implements iFsBase
      */
     function chFileATime(iFile $file, $time = null)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($file);
 
@@ -1100,7 +1183,10 @@ class LocalFS implements iFsBase
      */
     function chFileMTime(iFile $file, $time = null)
     {
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($file);
 
@@ -1125,7 +1211,10 @@ class LocalFS implements iFsBase
      */
     function linkRead(iLinkInfo $link)
     {
-        $filename = $this->__getRealIsoPath($link);
+        $filename = $this->pathUri()
+            ->fromPathUri($link->pathUri())
+            ->toString()
+        ;
 
         $result = readlink($filename);
         if ($result === false)
@@ -1159,7 +1248,10 @@ class LocalFS implements iFsBase
                 , is_object($file) ? get_class($file) : gettype($file)
             ));
 
-        $filename = $this->__getRealIsoPath($file);
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
 
         // Upon failure, an E_WARNING is emitted.
         $result = @unlink($filename);

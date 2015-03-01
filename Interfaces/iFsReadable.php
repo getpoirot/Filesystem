@@ -74,7 +74,6 @@ interface iFsReadable
      * List an array of files/directories path from the directory
      *
      * - get rid of ".", ".." from list
-     * - get relative path to current working directory
      *
      * @param iDirectoryInfo|null $dir          If Null Scan Current Working Directory
      * @param int                 $sortingOrder SCANDIR_SORT_NONE|SCANDIR_SORT_ASCENDING
