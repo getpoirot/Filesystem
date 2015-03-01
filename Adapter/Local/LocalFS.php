@@ -14,7 +14,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\FilePermissions;
-use Poirot\Filesystem\Interfaces\iIsolatedFS;
+use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\Interfaces\iPathJoinedUri;
 use Poirot\PathUri\PathFileUri;
@@ -25,105 +25,8 @@ use Poirot\PathUri\PathJoinUri;
  *         file/directory permission be as same as
  *         apache/php user
  */
-class LocalFS implements iIsolatedFS
+class LocalFS implements iFsBase
 {
-    /**
-     * @var iPathJoinedUri
-     */
-    protected $rootDir;
-
-    /**
-     * cached real dir path on latest chDir
-     * @var string
-     */
-    protected $__lastCDir;
-
-    /**
-     * Construct
-     *
-     * @param null|iPathJoinedUri|string $rootDir
-     */
-    function __construct($rootDir = null)
-    {
-        if ($rootDir !== null)
-            $this->chRootPath($rootDir);
-    }
-
-    /**
-     * Changes Root Directory Path
-     *
-     * - root directory must be absolute
-     *
-     * @param string|iPathJoinedUri $dir
-     *
-     * @throws \Exception On Failure
-     * @return $this
-     */
-    function chRootPath($dir)
-    {
-        if (!is_string($dir) && !$dir instanceof iPathJoinedUri)
-            throw new \Exception(sprintf(
-                'Dir Path must be string or instanceof iPathJoinedUri but "%s" given.'
-                , is_object($dir) ? get_class($dir) : gettype($dir)
-            ));
-
-        if (is_string($dir))
-            $dir = new PathJoinUri([
-                'path'      => $dir,
-                'separator' => $this->pathUri()->getSeparator()
-            ]);
-
-        $dir->setSeparator(
-            $this->pathUri()->getSeparator()
-        );
-
-        $dir->normalize();
-
-        if (!$dir->isAbsolute()
-            || !is_dir($dir->toString())
-        )
-            throw new \Exception(sprintf(
-                'Dir path must be an absolute address, to an existence directory.'
-            ));
-
-        // Set Root Dir:
-        $this->rootDir = $dir;
-
-        // Finalize:
-
-        // Check that current working directory is within root path >>>>> {
-        $rdPath = new PathJoinUri($dir->toString());
-        $cdPath  = new PathJoinUri([
-            'path'      => getcwd(),
-            'separator' => $this->pathUri()->getSeparator()
-        ]);
-
-        // (root = /var/www/) mask (cwd = /var/www/html) === root
-        $trdPath = clone $rdPath;
-        if ($trdPath->joint($cdPath, false)->getPath() !== $rdPath->getPath()) {
-            // current directory is not within root directory
-            // change current directory to root
-            $this->chDir(new Directory('/'));
-        }
-        // <<<<<< }
-
-        return $this;
-    }
-
-    /**
-     * Get Root Directory Path
-     *
-     * @return iPathJoinedUri
-     */
-    function getRootPath()
-    {
-        if (!$this->rootDir)
-            // root "/"
-            $this->chRootPath(self::DS);
-
-        return $this->rootDir;
-    }
-
     /**
      * Gets the current working directory
      *
@@ -145,43 +48,7 @@ class LocalFS implements iIsolatedFS
                 , new \Exception(error_get_last()['message'])
             );
 
-        $rdPath = new PathJoinUri($this->getRootPath()->toString());
-
-        // check cwd scope:
-        if ($this->__lastCDir !== null
-            && $cwd !== $this->__lastCDir
-        ) {
-            // Current Directory Changed Outside of class scope
-            $ldPath  = new PathJoinUri([
-                'path'      => $this->__lastCDir,
-                'separator' => $this->pathUri()->getSeparator()
-            ]);
-            $path = $ldPath->mask($rdPath)
-                ->prepend(new PathJoinUri(self::DS))
-                ->toString()
-            ;
-
-            // restore cwd:
-            $this->chDir(new Directory($path));
-
-            return $this->getCwd();
-        }
-
-        $cdPath  = new PathJoinUri([
-            'path'      => $cwd,
-            'separator' => $this->pathUri()->getSeparator()
-        ]);
-
-        // Make Paths Absolute From Root
-        // if root is      [/var/www/data]
-        // and real cwd is [/var/www/data/]images
-        // we turn it into /images
-        $path = $cdPath->mask($rdPath)
-            ->prepend(new PathJoinUri(self::DS))
-            ->toString()
-        ;
-
-        $return = new Directory($path);
+        $return = new Directory($cwd);
         $return->setFilesystem($this);
 
         return $return;
@@ -197,7 +64,10 @@ class LocalFS implements iIsolatedFS
      */
     function chDir(iDirectoryInfo $dir)
     {
-        $dirRealpath = $this->__getRealIsoPath($dir);
+        $dirRealpath = $this->pathUri()
+            ->fromPathUri($dir->pathUri())
+            ->toString()
+        ;
 
         $this->__validateFilepath($dirRealpath);
 
@@ -206,8 +76,6 @@ class LocalFS implements iIsolatedFS
                 'Failed Changing Directory To "%s".'
                 , $dirRealpath
             ), null, new \Exception(error_get_last()['message']));
-
-        $this->__lastCDir = $dirRealpath;
 
         return $this;
     }
@@ -267,7 +135,7 @@ class LocalFS implements iIsolatedFS
     function pathUri()
     {
         $pathFileUri = new PathFileUri;
-        $pathFileUri->setSeparator(self::DS);
+        $pathFileUri->setSeparator(DIRECTORY_SEPARATOR);
 
         return $pathFileUri;
     }
@@ -1302,48 +1170,6 @@ class LocalFS implements iIsolatedFS
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
-    }
-
-    /**
-     * Get Real Filesystem Path Of Nodes
-     *
-     * @param iCommonInfo|iPathFileUri|iPathJoinedUri|string $node
-     *
-     * @return string
-     */
-    protected function __getRealIsoPath($node)
-    {
-        // Achieve Path Object:
-        if ($node instanceof iCommonInfo)
-            $path = new PathJoinUri([
-                'path'      => $node->pathUri()->toString(),
-                'separator' => $node->pathUri()->getSeparator()
-            ]);
-        elseif (is_string($node))
-            $path = new PathJoinUri([
-                'path'      => $node,
-                'separator' => $this->pathUri()->getSeparator()
-            ]);
-
-        // Get Isolated Real Filesystem Path To File:
-
-        if (!$path->isAbsolute()) {
-            $cwdPath = new PathJoinUri([
-                'path'      => $this->getCwd()->pathUri()->toString(),
-                'separator' => $this->pathUri()->getSeparator()
-            ]);
-
-            $path = $cwdPath->append($path)
-                ->normalize();
-        }
-
-        $path = $this->pathUri()
-            ->setBasepath($this->getRootPath())
-            ->setPath($path)
-            ->allowOverrideBasepath(false)
-            ->normalize();
-
-        return $path->toString();
     }
 
     /**

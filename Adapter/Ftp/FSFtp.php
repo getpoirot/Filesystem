@@ -14,13 +14,13 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
-use Poirot\Filesystem\Interfaces\iFilesystem;
+use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\Filesystem\FilePermissions;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\PathFileUri;
 
 class FSFtp implements
-    iFilesystem,
+    iFsBase,
     OptionsProviderInterface
 {
     /**

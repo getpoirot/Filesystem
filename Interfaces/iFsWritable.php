@@ -9,7 +9,10 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 
-interface iWritable extends iReadable
+interface iFsWritable
+    extends
+    iFsReadable,
+    iFilesystem
 {
     const DISKSPACE_NOT_COMPUTED = -1;
     const DISKSPACE_UNKNOWN      = -2;

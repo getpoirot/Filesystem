@@ -4,6 +4,7 @@ namespace Poirot\Filesystem\Adapter;
 use Poirot\Filesystem\Adapter\Local\LocalFS;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
+use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
 use Poirot\PathUri\Interfaces\iPathFileUri;
@@ -16,7 +17,7 @@ abstract class AbstractCommonNode
     iFilesystemProvider
 {
     /**
-     * @var iFilesystem
+     * @var iFsBase
      */
     protected $filesystem;
 

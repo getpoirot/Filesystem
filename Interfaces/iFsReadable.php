@@ -11,7 +11,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 
-interface iReadable
+interface iFsReadable
 {
     /* Care needed going from PHP 5.3 to 5.4, as the constant
        SCANDIR_SORT_DESCENDING is only defined from 5.4.
