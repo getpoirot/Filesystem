@@ -1223,11 +1223,7 @@ class LocalFS implements iFsBase
                 , $filename
             ), null, new \Exception(error_get_last()['message']));
 
-        $pathIso = (new PathJoinUri($result))
-            ->mask($this->getRootPath())
-            ->toString();
-
-        return $this->mkFromPath($pathIso);
+        return $this->mkFromPath($result);
     }
 
     /**
