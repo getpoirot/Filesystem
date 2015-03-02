@@ -7,17 +7,12 @@ Filesystem abstraction.
 ```php
 // Create isolated filesystem:
 // on /var/www/html/upload directory
-$fs = new FSLocal('/var/www/html/upload');
-$fs->chRootPath('/var/www/html/upload');
+$fs = new LocalFS;
 
 // check folder is exists:
 if ($fs->isExists(new Directory('user')))
     // change cwd to user directory
     $fs->chDir(new Directory('user'));
-
-chdir('/var');                        // You are always in cwd scope
-$fs->chDir($fs->getCwd()->dirUp());   // < ---- The action not failed
-                                      // if scope has changed from outside
 
 // get current working directory path:
 echo sprintf(
@@ -57,4 +52,22 @@ $fs->copy(
 );
 
 k($fs->getFreeSpace());
+```
+
+## Filesystem Wrappers
+
+__Isolated Filesystem Root Directory__
+
+All path actions are isolated on root directory as home
+
+```php
+$fs = new IsolatedWrapper(new LocalFS, '/var/www/html/data/user');
+$fs->chDir('media/audio');
+
+// You are always in cwd scope
+// if scope has changed from outside
+chdir('/var');
+$fs->getCwd(); // you are still in "/media/audio"
+
+$fs->chDir('/'); // you are now on "/var/www/html/data/user" of real filesystem
 ```
