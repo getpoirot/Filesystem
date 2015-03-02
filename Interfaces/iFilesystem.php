@@ -1,8 +1,10 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
+use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
@@ -32,8 +34,27 @@ use Poirot\PathUri\Interfaces\iPathFileUri;
  * @method $this chFileMTime(iFile $file, $time = null)
  * @method $this unlink($file)
  *
+ * @method iDirectory getCwd()
+ * @method $this chDir(iDirectoryInfo $dir)
+ * @method iCommonInfo mkFromPath($path)
+ * @method array scanDir(iDirectoryInfo $dir = null, $sortingOrder = iFsBase::SCANDIR_SORT_NONE)
+ * @method mixed getFileGroup(iCommonInfo $node)
+ * @method iFilePermissions getFilePerms(iCommonInfo $file)
+ * @method mixed getFileOwner(iCommonInfo $file)
+ * @method bool isFile($source)
+ * @method bool isDir($source)
+ * @method bool isLink($source)
+ * @method bool isExists(iCommonInfo $file)
+ * @method string getFileContents(iFile $file, $maxlen = 0)
+ * @method int getFileATime(iFileInfo $file)
+ * @method int getFileCTime(iFileInfo $file)
+ * @method int getFileMTime(iFileInfo $file)
+ * @method int getFileSize(iFileInfo $file)
+ * @method bool isReadable(iCommonInfo $file)
+ * @method Directory dirUp(iCommonInfo $file)
+ * @method iCommonInfo linkRead(iLinkInfo $link)
+ *
  * @method iPathFileUri pathUri()
- * @method iFsBase chDir(iDirectoryInfo $dir)
  *
  */
 interface iFilesystem 
