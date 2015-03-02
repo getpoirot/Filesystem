@@ -165,7 +165,7 @@ class LocalFS implements iFsBase
 
         $this->__validateFilepath($dirRealPath);
 
-        $result  = scandir($dirRealPath, $sortingOrder);
+        $result  = @scandir($dirRealPath, $sortingOrder);
         if ($result === false)
             throw new \Exception(sprintf(
                 'Failed Scan Directory To "%s".'
