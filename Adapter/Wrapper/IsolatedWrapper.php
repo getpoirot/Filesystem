@@ -191,7 +191,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function chDir(iDirectoryInfo $dir)
     {
-        $dirRealpath = $this->__getRealIsoPath($dir);
+        $dirRealpath = $this->__getRealPathFromIsolatedPath($dir);
 
         $this->__lastCDir = $dirRealpath;
 
@@ -208,10 +208,10 @@ class IsolatedWrapper extends BaseWrapper
      */
     function mkFromPath($path)
     {
-        $realPath = $this->__getRealIsoPath($path);
+        $realPath = $this->__getRealPathFromIsolatedPath($path);
         $nodeObj  = $this->gear()->mkFromPath($realPath);
 
-        return $this->__getIsoPathFromRealPath($nodeObj);
+        return $this->__getIsolatedPathNode($nodeObj);
     }
 
     /**
@@ -229,7 +229,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = iFsBase::SCANDIR_SORT_NONE)
     {
-        $pathStr = $this->__getRealIsoPath($dir);
+        $pathStr = $this->__getRealPathFromIsolatedPath($dir);
         $dir     = $this->__changeNodePathFromString($dir, $pathStr);
 
         return $this->gear()->scanDir($dir, $sortingOrder);
@@ -246,7 +246,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function chgrp(iCommonInfo $file, $group)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chgrp($file, $group);
@@ -264,7 +264,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFileGroup(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileGroup($file);
@@ -281,7 +281,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function chmod(iCommonInfo $file, iFilePermissions $mode)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chmod($file, $mode);
@@ -296,7 +296,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFilePerms(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFilePerms($file);
@@ -313,7 +313,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function chown(iCommonInfo $file, $user)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chown($file, $user);
@@ -329,7 +329,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFileOwner(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileOwner($file);
@@ -358,10 +358,10 @@ class IsolatedWrapper extends BaseWrapper
      */
     function copy(iCommonInfo $source, iCommon $dest)
     {
-        $pathStr = $this->__getRealIsoPath($source);
+        $pathStr = $this->__getRealPathFromIsolatedPath($source);
         $source  = $this->__changeNodePathFromString($source, $pathStr);
 
-        $pathStr = $this->__getRealIsoPath($dest);
+        $pathStr = $this->__getRealPathFromIsolatedPath($dest);
         $dest    = $this->__changeNodePathFromString($dest, $pathStr);
 
         return $this->gear()->copy($source, $dest);
@@ -381,7 +381,7 @@ class IsolatedWrapper extends BaseWrapper
     function isFile($source)
     {
         if (is_string($source))
-            $source = $this->__getRealIsoPath($source);
+            $source = $this->__getRealPathFromIsolatedPath($source);
 
         return $this->gear()->isFile($source);
     }
@@ -400,7 +400,7 @@ class IsolatedWrapper extends BaseWrapper
     function isDir($source)
     {
         if (is_string($source))
-            $source = $this->__getRealIsoPath($source);
+            $source = $this->__getRealPathFromIsolatedPath($source);
 
         return $this->gear()->isDir($source);
     }
@@ -419,7 +419,7 @@ class IsolatedWrapper extends BaseWrapper
     function isLink($source)
     {
         if (is_string($source))
-            $source = $this->__getRealIsoPath($source);
+            $source = $this->__getRealPathFromIsolatedPath($source);
 
         return $this->gear()->isLink($source);
     }
@@ -435,7 +435,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function isExists(iCommonInfo $cnode)
     {
-        $pathStr = $this->__getRealIsoPath($cnode);
+        $pathStr = $this->__getRealPathFromIsolatedPath($cnode);
         $file    = $this->__changeNodePathFromString($cnode, $pathStr);
 
         return $this->gear()->isExists($file);
@@ -456,7 +456,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function putFileContents(iFile $file, $contents)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->putFileContents($file, $contents);
@@ -473,7 +473,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFileContents(iFile $file, $maxlen = 0)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileContents($file, $maxlen);
@@ -489,7 +489,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFileATime(iFileInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileATime($file);
@@ -508,7 +508,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFileCTime(iFileInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileCTime($file);
@@ -526,7 +526,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFileMTime(iFileInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileMTime($file);
@@ -542,7 +542,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFileSize(iFileInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileSize($file);
@@ -563,7 +563,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function flock(iFileInfo $file, $lock = LOCK_EX)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->flock($file, $lock);
@@ -581,7 +581,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function isReadable(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->isReadable($file);
@@ -596,7 +596,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function isWritable(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->isWritable($file);
@@ -626,7 +626,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
     {
-        $pathStr = $this->__getRealIsoPath($dir);
+        $pathStr = $this->__getRealPathFromIsolatedPath($dir);
         $dir     = $this->__changeNodePathFromString($dir, $pathStr);
 
         return $this->gear()->mkDir($dir, $mode);
@@ -641,7 +641,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFilename(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFilename($file);
@@ -658,7 +658,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getFileExtension(iFileInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileExtension($file);
@@ -673,7 +673,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function getBasename(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getBasename($file);
@@ -697,7 +697,12 @@ class IsolatedWrapper extends BaseWrapper
      */
     function rename(iCommonInfo $file, $newName)
     {
+        $newName = $this->__getRealPathFromIsolatedPath($newName);
 
+        $fRealPath = $this->__getRealPathFromIsolatedPath($file);
+        $file      = $this->__changeNodePathFromString($file, $fRealPath);
+
+        return $this->gear()->rename($file, $newName);
     }
 
     /**
@@ -713,7 +718,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function rmDir(iDirectoryInfo $dir)
     {
-        $pathStr = $this->__getRealIsoPath($dir);
+        $pathStr = $this->__getRealPathFromIsolatedPath($dir);
         $dir     = $this->__changeNodePathFromString($dir, $pathStr);
 
         return $this->gear()->rmDir($dir);
@@ -730,7 +735,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function chFileATime(iFile $file, $time = null)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chFileATime($file, $time);
@@ -747,7 +752,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function chFileMTime(iFile $file, $time = null)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chFileMTime($file, $time);
@@ -763,7 +768,12 @@ class IsolatedWrapper extends BaseWrapper
      */
     function linkRead(iLinkInfo $link)
     {
+        $pathStr = $this->__getRealPathFromIsolatedPath($link);
+        $link    = $this->__changeNodePathFromString($link, $pathStr);
 
+        $return  = $this->gear()->linkRead($link);
+
+        return $this->__getIsolatedPathNode($return);
     }
 
     /**
@@ -776,7 +786,7 @@ class IsolatedWrapper extends BaseWrapper
      */
     function unlink($file)
     {
-        $pathStr = $this->__getRealIsoPath($file);
+        $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->unlink($file);
@@ -809,8 +819,10 @@ class IsolatedWrapper extends BaseWrapper
      *
      * @return iCommonInfo
      */
-    protected function __getIsoPathFromRealPath(iCommonInfo $node)
+    protected function __getIsolatedPathNode(iCommonInfo $node)
     {
+        $node = clone $node;
+
         $nodePathStr = $this->pathUri()
             ->fromPathUri($node->pathUri())
             ->toString()
@@ -820,9 +832,13 @@ class IsolatedWrapper extends BaseWrapper
             'path' => $nodePathStr,
             'separator' => $this->pathUri()->getSeparator()
         ]))
-            ->mask($this->getRootPath())
-            ->toString();
+            ->mask($this->getRootPath());
 
+        if($node->pathUri()->isAbsolute())
+            // /var/www/html/upload/help.pdf mask /var/www/html/upload ===> /help.pdf
+            $pathIso->prepend(new PathJoinUri([ 'path' => ['',] ]));
+
+        $pathIso = $pathIso->toString();
         $node->pathUri()
             ->reset()
             ->fromArray( $this->pathUri()->parse($pathIso) )
@@ -832,13 +848,13 @@ class IsolatedWrapper extends BaseWrapper
     }
 
     /**
-     * Get Real Filesystem Path From Real Path
+     * Get Real Filesystem Path String From Isolated Path
      *
      * @param iCommonInfo|iPathFileUri|iPathJoinedUri|string $node
      *
      * @return string
      */
-    protected function __getRealIsoPath($node)
+    protected function __getRealPathFromIsolatedPath($node)
     {
         // Achieve Path Object:
         if ($node instanceof iCommonInfo)
@@ -861,14 +877,16 @@ class IsolatedWrapper extends BaseWrapper
             ]);
 
             $path = $cwdPath->append($path)
-                ->normalize();
+                ->normalize()
+            ;
         }
 
         $path = $this->pathUri()
             ->setBasepath($this->getRootPath())
             ->setPath($path)
             ->allowOverrideBasepath(false)
-            ->normalize();
+            ->normalize()
+        ;
 
         return $path->toString();
     }
