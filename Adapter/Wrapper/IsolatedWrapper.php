@@ -1,6 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Adapter\Wrapper;
 
+use Poirot\Filesystem\Adapter\AbstractCommonNode;
 use Poirot\Filesystem\Adapter\BaseWrapper;
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
@@ -211,7 +212,11 @@ class IsolatedWrapper extends BaseWrapper
         $realPath = $this->__getRealPathFromIsolatedPath($path);
         $nodeObj  = $this->gear()->mkFromPath($realPath);
 
-        return $this->__getIsolatedPathNode($nodeObj);
+        $node     = $this->__getIsolatedPathNode($nodeObj);
+        if ($node instanceof AbstractCommonNode)
+            $node->setFilesystem($this);
+
+        return $node;
     }
 
     /**
