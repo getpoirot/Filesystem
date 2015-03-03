@@ -6,10 +6,23 @@ use Poirot\Filesystem\Interfaces\Filesystem\iStreamFile;
 
 interface iStreamFilesystem
 {
+    /*++
+    Stream File Open, Words Stand For:
+
+    R = Read                 | W = Write
+    -----------------------------------------------------------------------------
+    A = Pointer at end       | B = Pointer at beginning
+    -----------------------------------------------------------------------------
+    C = Create if not exists | X = Create file only if not exists, otherwise fail
+    -----------------------------------------------------------------------------
+    T = Truncate file
+
+    @see http://php.net/manual/en/function.fopen.php
+    ++*/
     const STREAM_RB    = 'r';
     const STREAM_RWB   = 'r+';
-    const STREAM_WBTC  = 'W';
-    const STREAM_RWBTC = 'W+';
+    const STREAM_WBCT  = 'W';
+    const STREAM_RWBCT = 'W+';
     const STREAM_WAC   = 'a';
     const STREAM_RWAC  = 'a+';
     const STREAM_WBX   = 'X';
@@ -24,11 +37,11 @@ interface iStreamFilesystem
      *   iFile scheme
      * - get resource from file, inject to iStream
      *
-     * @param iStreamFile $file File To Be Streamed
+     * @param iStream $file File To Be Streamed
      * @param string      $mode self::STREAM_*
      *
      * @throw \Exception On Failed
      * @return iStream
      */
-    function stream(iStreamFile $file, $mode);
+    function stream(iStream $file, $mode);
 }

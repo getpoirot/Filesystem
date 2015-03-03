@@ -1,8 +1,7 @@
 <?php
-namespace Poirot\Filesystem\Adapter\Wrapper;
+namespace Poirot\Filesystem\Wrapper;
 
 use Poirot\Filesystem\Adapter\AbstractCommonNode;
-use Poirot\Filesystem\Adapter\BaseWrapper;
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
@@ -18,7 +17,7 @@ use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\Interfaces\iPathJoinedUri;
 use Poirot\PathUri\PathJoinUri;
 
-class IsolatedWrapper extends BaseWrapper
+class IsolatedWrapper extends AbstractWrapper
 {
     /**
      * @var iPathJoinedUri
