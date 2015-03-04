@@ -144,9 +144,6 @@ class InMemoryFS implements iFsBase
         // Validating Node Tree:
         $seek = &$this->__seekTreeFromPath($dir->pathUri(), true);
 
-        if ($dir->pathUri()->toString() == '/var/www')
-            kd($seek);
-
         if ($seek === false || ($seek !== false && !$this->__fs_is_dir($seek)))
             throw new \Exception(sprintf(
                 'Failed Scan Directory To "%s".'
