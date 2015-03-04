@@ -2,7 +2,10 @@
 namespace Poirot\Filesystem\Adapter\InMemory;
 
 use Poirot\Filesystem\Adapter\Directory;
+use Poirot\Filesystem\Adapter\File;
+use Poirot\Filesystem\Adapter\Link;
 use Poirot\Filesystem\Exception\FileNotFoundException;
+use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -23,12 +26,19 @@ class InMemoryFS implements iFsBase
     protected $tree = [
         '/' => [
             '__meta__' => [
-                'type' => 'dir',
+                'type'       => 'dir',
+                'owner'      => 'root',
+                'group'      => 'root',
+                'permission' => 0755,
+                'atime'      => null/*time()*/,
+                'mtime'      => null/*time()*/,
+                'ctime'      => null/*time()*/,
             ]
             /*
-            'nameOfDirectory' => [
+            'nameOfFile' => [
                 '__meta__' => [
-                    'type' => 'dir',
+                    'type' => 'file',
+                    'content' => '',
                 ]
             ]
             */
@@ -70,7 +80,7 @@ class InMemoryFS implements iFsBase
             ->fromPathUri($dir->pathUri());
 
         $seek = &$this->__seekTreeFromPath($dir->pathUri(), true);
-        if (!$this->__fs_is_dir($seek))
+        if ($seek === false || ($seek !== false && !$this->__fs_is_dir($seek)))
             throw new \Exception(sprintf(
                 'Failed Changing Directory To "%s".'
                 , $dirPath->toString()
@@ -99,7 +109,34 @@ class InMemoryFS implements iFsBase
      */
     function mkFromPath($path)
     {
-        // TODO Implement Feature
+        // create filesystem node object
+        $return = false;
+        if ($this->isDir($path))
+            $return = new Directory;
+        elseif ($this->isFile($path))
+            $return = new File;
+        elseif ($this->isLink($path))
+            $return = new Link;
+
+        if (!$return)
+            throw new \Exception(sprintf(
+                'Cant Make From Path "%s", not recognized.'
+                , $path
+            ), null, new \Exception(error_get_last()['message']));
+
+        $return
+            ->setFilesystem($this)
+            ->pathUri()
+            ->setSeparator( $this->pathUri()->getSeparator() )
+            ->fromArray(
+                $this->pathUri()->parse($path)
+            )
+        ;
+
+        if ($this->isLink($return))
+            $return->setTarget( $this->linkRead($return) );
+
+        return $return;
     }
 
     /**
@@ -283,7 +320,69 @@ class InMemoryFS implements iFsBase
      */
     function copy(iCommonInfo $source, iCommon $dest)
     {
-        // TODO Implement Feature
+        $srcPathStr =
+            $this->pathUri()
+            ->fromPathUri($source->pathUri())
+            ->toString()
+        ;
+
+        $dstPathStr = $this->pathUri()
+            ->fromPathUri($dest->pathUri())
+            ->toString()
+        ;
+
+        // source must be valid
+        $srcNode = &$this->__seekTreeFromPath($source->pathUri(), true);
+
+        if ($this->isDir($source) && !$this->isDir($dest))
+            throw new \Exception(sprintf(
+                'Invalid Destination Provided, We Cant Copy A Directory "%s" To File "%s".'
+                , $srcPathStr, $dstPathStr
+            ));
+
+        if (!$this->isDir($dest) && !$this->isFile($dest))
+            throw new \Exception(sprintf(
+                'Destination at "%s" Must be a File Or Directory For Copy.'
+                , $dstPathStr
+            ));
+
+        if ($this->isDir($dest)) {
+            // Copy File to directory
+            if (!$this->isExists($dest))
+                $this->mkDir($dest, new FilePermissions(0755));
+
+            if ($this->isFile($source)) {
+                $dstNode = &$this->__seekTreeFromPath(
+                    $dest->pathUri()
+                    ->setBasename($source->pathUri()->getBasename())
+                    ->setExtension($source->pathUri()->getExtension())
+                );
+
+                $dstNode[$source->pathUri()->getFilename()] = $srcNode;
+            }
+            else {
+                // Copy Directory To Directory
+                foreach($this->scanDir($source) as $fd)
+                    $this->copy(
+                        $this->mkFromPath($fd)
+                        , $dest
+                    );
+            }
+        } else {
+            // Copy File To Destination(file)
+
+            // make directories to destination to avoid error >>> {
+            $destDir = $this->dirUp($dest);
+            if (!$this->isExists($destDir))
+                $this->mkDir($destDir, new FilePermissions(0755));
+            // } <<<
+
+            $dstNode = &$this->__seekTreeFromPath($destDir->pathUri());
+
+            $dstNode[$source->pathUri()->getFilename()] = $srcNode;
+        }
+
+        return $this;
     }
 
     /**
@@ -299,7 +398,22 @@ class InMemoryFS implements iFsBase
      */
     function isFile($source)
     {
-        // TODO Implement Feature
+        $return = false;
+
+        if (is_string($source)) {
+            $pathUri = $this->pathUri()
+                ->fromArray($this->pathUri()->parse($source));
+
+            $seek = &$this->__seekTreeFromPath($pathUri);
+            if ($seek !== false)
+                if ( $this->__fs_is_file($seek) )
+                    $return = true;
+        }
+
+        if(is_object($source))
+            $return = $source instanceof iFileInfo;
+
+        return $return;
     }
 
     /**
@@ -346,7 +460,22 @@ class InMemoryFS implements iFsBase
      */
     function isLink($source)
     {
-        // TODO Implement Feature
+        $return = false;
+
+        if (is_string($source)) {
+            $pathUri = $this->pathUri()
+                ->fromArray($this->pathUri()->parse($source));
+
+            $seek = &$this->__seekTreeFromPath($pathUri);
+            if ($seek !== false)
+                if (isset($seek['__meta__']) && isset($seek['__meta__']['type']))
+                    $return = ( $seek['__meta__']['type'] == 'link' );
+        }
+
+        if(is_object($source))
+            $return = $source instanceof iLinkInfo;
+
+        return $return;
     }
 
     /**
@@ -386,7 +515,7 @@ class InMemoryFS implements iFsBase
      */
     function isExists(iCommonInfo $cnode)
     {
-        $seek = $this->__seekTreeFromPath($cnode);
+        $seek = $this->__seekTreeFromPath($cnode->pathUri());
 
         return ($seek !== false);
     }
@@ -406,7 +535,29 @@ class InMemoryFS implements iFsBase
      */
     function putFileContents(iFile $file, $contents)
     {
-        // TODO Implement Feature
+        $dir   = $file
+            ->setFilesystem($this)
+            ->dirUp();
+
+        $seek  = &$this->__seekTreeFromPath($dir->pathUri(), true);
+
+        $filename = $file->pathUri()->getFilename();
+        $seek[$filename] = [
+            '__meta__' => [
+                'type'       => 'file',
+                'content'    => $contents,
+                'owner'      => 'root',
+                'group'      => 'root',
+                'permission' => 0755,
+                'atime'      => time(),
+                'mtime'      => time(),
+                'ctime'      => time(),
+            ],
+        ];
+
+        $file->setContents($contents);
+
+        return $this;
     }
 
     /**
@@ -420,7 +571,18 @@ class InMemoryFS implements iFsBase
      */
     function getFileContents(iFile $file, $maxlen = 0)
     {
-        // TODO Implement Feature
+        $seek = &$this->__seekTreeFromPath($file->pathUri());
+        if (!$this->__fs_is_file($seek))
+            throw new \Exception(sprintf(
+                'Failed To Read Contents Of "%s" File.'
+                , $file->pathUri()->toString()
+            ));
+
+        $content = null;
+        if (isset($seek['__meta__']['content']))
+            $content = $seek['__meta__']['content'];
+
+        return $content;
     }
 
     /**
@@ -588,7 +750,16 @@ class InMemoryFS implements iFsBase
      */
     function dirUp(iCommonInfo $file)
     {
-        // TODO Implement Feature
+        $path = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->setBasename(null)
+            ->setExtension(null)
+            ->normalize()
+            ->toString();
+
+        $directory = $this->mkFromPath($path);
+
+        return $directory;
     }
 
     /**
@@ -792,7 +963,7 @@ class InMemoryFS implements iFsBase
     }
 
     /**
-     * Given a filesystem node object and return path
+     * Given a path file object and return path
      * steps map from home to folder in array
      * ['/', 'var', 'www']
      *
@@ -816,10 +987,6 @@ class InMemoryFS implements iFsBase
 
         $paths = $pathUri->getPath();
 
-        /*// shift off home or absolute from array ['', ]
-        // cause all addresses is absolute and have empty sign
-        array_shift($paths);*/
-
         return $paths;
     }
 
@@ -836,6 +1003,23 @@ class InMemoryFS implements iFsBase
 
         if (isset($node['__meta__']) && isset($node['__meta__']['type']))
             $return = ( $node['__meta__']['type'] == 'dir' );
+
+        return $return;
+    }
+
+    /**
+     * Check that given node is dir?
+     *
+     * @param array $node Tree Node
+     *
+     * @return bool
+     */
+    protected function __fs_is_file(array $node)
+    {
+        $return = false;
+
+        if (isset($node['__meta__']) && isset($node['__meta__']['type']))
+            $return = ( $node['__meta__']['type'] == 'file' );
 
         return $return;
     }
