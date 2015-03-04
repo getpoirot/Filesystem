@@ -639,7 +639,14 @@ class InMemoryFS implements iFsBase
      */
     function getFileSize(iFileInfo $file)
     {
-        // TODO Implement Feature
+        $seek = &$this->__seekTreeFromPath($file->pathUri(), true);
+        if (!$this->__fs_is_file($seek))
+            throw new \Exception(sprintf(
+                'Failed To Get Size Of "%s" File.'
+                , $file->pathUri()->toString()
+            ));
+
+        return mb_strlen($seek['__meta__']['content'], '8bit');
     }
 
     /**
