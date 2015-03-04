@@ -21,13 +21,18 @@ class InMemoryFS implements iFsBase
     protected $cwdPath = '/';
 
     protected $tree = [
-        /*
-        'nameOfDirectory' => [
+        '/' => [
             '__meta__' => [
                 'type' => 'dir',
             ]
+            /*
+            'nameOfDirectory' => [
+                '__meta__' => [
+                    'type' => 'dir',
+                ]
+            ]
+            */
         ]
-        */
     ];
 
     protected $__cachedSeekResolve = [];
@@ -71,7 +76,15 @@ class InMemoryFS implements iFsBase
                 , $dirPath->toString()
             ));
 
-        $this->cwdPath = $dirPath->toString();
+        // Absolute paths from home for current directories
+        $cwd = $this->getCwd()->pathUri()->getPath()
+            ->append(new PathJoinUri([
+                'path'       => $dirPath->toString(),
+                'separator' => $this->pathUri()->getSeparator()
+            ]))
+            ->toString();
+
+        $this->cwdPath = $cwd;
 
         return $this;
     }
@@ -125,7 +138,45 @@ class InMemoryFS implements iFsBase
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = self::SCANDIR_SORT_NONE)
     {
-        // TODO Implement Feature
+        if ($dir === null)
+            $dir = $this->getCwd();
+
+        // Validating Node Tree:
+        $seek = &$this->__seekTreeFromPath($dir->pathUri(), true);
+
+        if ($dir->pathUri()->toString() == '/var/www')
+            kd($seek);
+
+        if ($seek === false || ($seek !== false && !$this->__fs_is_dir($seek)))
+            throw new \Exception(sprintf(
+                'Failed Scan Directory To "%s".'
+                , $dir->pathUri()->toString()
+            ));
+
+        // Get List:
+        $return = []; reset($seek);
+        while ($curr = current($seek)) {
+            $name = key($seek);
+            $name == '__meta__' ?: // filter __meta__ from directory list
+                $return[] = $name;
+
+            next($seek);
+        }
+
+        // Sort Items:
+        switch($sortingOrder) {
+            case self::SCANDIR_SORT_ASCENDING:
+                sort($return);
+                break;
+            case self::SCANDIR_SORT_DESCENDING:
+                rsort($return);
+                break;
+            case self::SCANDIR_SORT_NONE:
+                // ignored
+                break;
+        }
+
+        return $return;
     }
 
     // File Implementation:
@@ -267,7 +318,22 @@ class InMemoryFS implements iFsBase
      */
     function isDir($source)
     {
-        // TODO Implement Feature
+        $return = false;
+
+        if (is_string($source)) {
+            $pathUri = $this->pathUri()
+                ->fromArray($this->pathUri()->parse($source));
+
+            $seek = &$this->__seekTreeFromPath($pathUri);
+            if ($seek !== false)
+                if ( $this->__fs_is_dir($seek) )
+                    $return = true;
+        }
+
+        if(is_object($source))
+            $return = $source instanceof iDirectoryInfo;
+
+        return $return;
     }
 
     /**
@@ -296,7 +362,7 @@ class InMemoryFS implements iFsBase
      */
     function getFreeSpace()
     {
-        // TODO Implement Feature
+        return self::DISKSPACE_UNKNOWN;
     }
 
     /**
@@ -309,7 +375,7 @@ class InMemoryFS implements iFsBase
      */
     function getTotalSpace()
     {
-        // TODO Implement Feature
+        return self::DISKSPACE_UNKNOWN;
     }
 
     /**
@@ -323,7 +389,9 @@ class InMemoryFS implements iFsBase
      */
     function isExists(iCommonInfo $cnode)
     {
-        // TODO Implement Feature
+        $seek = $this->__seekTreeFromPath($cnode);
+
+        return ($seek !== false);
     }
 
     /**
@@ -486,7 +554,30 @@ class InMemoryFS implements iFsBase
      */
     function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
     {
-        // TODO Implement Feature
+        $paths = $this->__parseToPathStepsArray($dir->pathUri());
+
+        $tree = &$this->tree;
+        while ($curr = array_shift($paths)) {
+            if (!array_key_exists($curr, $tree))
+                $tree[$curr] = [
+                    '__meta__' => [
+                        'type'        => 'dir',
+                        'permissions' => $mode->getTotalPerms()
+                    ],
+                ];
+
+            if (array_key_exists($curr, $tree))
+                // ensure that not same name exists as file
+                if ($tree[$curr]['__meta__']['type'] !== 'dir')
+                    throw new \Exception(sprintf(
+                        'cannot create directory ‘%s’: File exists',
+                        $curr
+                    ));
+                else
+                    $tree = &$tree[$curr];
+        }
+
+        return $this;
     }
 
     /**
@@ -512,7 +603,12 @@ class InMemoryFS implements iFsBase
      */
     function getFilename(iCommonInfo $file)
     {
-        // TODO Implement Feature
+        $pathStr = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+
+        return basename($pathStr);
     }
 
     /**
@@ -526,7 +622,12 @@ class InMemoryFS implements iFsBase
      */
     function getFileExtension(iFileInfo $file)
     {
-        // TODO Implement Feature
+        $pathStr = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+
+        return pathinfo($pathStr, PATHINFO_EXTENSION);
     }
 
     /**
@@ -538,7 +639,12 @@ class InMemoryFS implements iFsBase
      */
     function getBasename(iCommonInfo $file)
     {
-        // TODO Implement Feature
+        $pathStr = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+
+        return pathinfo($pathStr, PATHINFO_FILENAME);
     }
 
     /**
@@ -654,16 +760,51 @@ class InMemoryFS implements iFsBase
     {
         $path = clone $path;
 
+        // Initialize:
+        $paths = $this->__parseToPathStepsArray($path);
+
         // Cached:
-        $hash = md5($path->normalize()->toString());
-        if (array_key_exists($hash, $this->__cachedSeekResolve)) {
-            k('From Cache');
+        $hash = (new PathJoinUri())->setPath($paths)->toString();
+        if (array_key_exists($hash, $this->__cachedSeekResolve))
             return $this->__cachedSeekResolve[$hash];
+
+
+        // Seek to tree:
+        reset($this->tree);
+        $seek = &$this->tree;
+        while ($curr = array_shift($paths)) {
+            if (!array_key_exists($curr, $seek)) {
+                $return = false;
+                return $return;
+            }
+
+            $seek = &$seek[$curr];
         }
 
+        // check throw:
+        if ($seek === false && $throw)
+            throw new FileNotFoundException(sprintf(
+                'File "%s" Not Found.'
+                , $this->pathUri()->fromPathUri($path)->toString()
+            ));
 
-        // Initialize:
+        if ($seek !== false)
+            $this->__cachedSeekResolve[$hash] = &$seek;
 
+        return $seek;
+    }
+
+    /**
+     * Given a filesystem node object and return path
+     * steps map from home to folder in array
+     * ['/', 'var', 'www']
+     *
+     * @param iPathFileUri $path
+     *
+     * @return array
+     */
+    protected function __parseToPathStepsArray(iPathFileUri $path)
+    {
         $pathUri = new PathJoinUri([
             'path'      => $path->normalize()->toString(),
             'separator' => $this->pathUri()->getSeparator()
@@ -678,32 +819,11 @@ class InMemoryFS implements iFsBase
 
         $paths = $pathUri->getPath();
 
-        // shift off home or absolute from array ['', ]
+        /*// shift off home or absolute from array ['', ]
         // cause all addresses is absolute and have empty sign
-        array_shift($paths);
+        array_shift($paths);*/
 
-        // Seek to tree:
-        $seek = &$this->tree;
-        while ($curr = array_shift($paths)) {
-            if (!array_key_exists($curr, $seek)) {
-                $seek = false;
-                break;
-            }
-
-            $seek = &$this->tree[$curr];
-        }
-
-        // check throw:
-        if ($seek === false && $throw)
-            throw new FileNotFoundException(sprintf(
-                'File "%s" Not Found.'
-                , $this->pathUri()->fromPathUri($path)->toString()
-            ));
-
-        if ($seek !== false)
-            $this->__cachedSeekResolve[$hash] = &$seek;
-
-        return $seek;
+        return $paths;
     }
 
     /**
