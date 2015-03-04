@@ -840,7 +840,39 @@ class InMemoryFS implements iFsBase
      */
     function rename(iCommonInfo $file, $newName)
     {
-        // TODO Implement Feature
+        $newPathUri = $this->pathUri()->fromArray(
+            $this->pathUri()->parse($newName)
+        );
+        if (!$newPathUri->isAbsolute())
+            // append file directory
+            $newPathUri->getPath()->prepend(
+                new PathJoinUri([
+                    'path' => $this->dirUp($file)->pathUri()->toString(),
+                    'separator' => $this->pathUri()->getSeparator()
+                ])
+            );
+
+        // Make Directories path to new destination if not exists:
+        $dstPath = $this->pathUri()    // only path directories to node
+            ->fromPathUri($newPathUri)
+            ->setBasename(null)
+            ->setExtension(null)
+            ->normalize()
+        ;
+        $this->mkDir(new Directory($dstPath->toString()), new FilePermissions(0755));
+
+        // Rename:
+        $seekSrc = &$this->__seekTreeFromPath($file->pathUri());
+        $seekDst = &$this->__seekTreeFromPath($dstPath);
+
+        $srcVal = $seekSrc;
+        $seekDst[$newPathUri->getFilename()] = $srcVal;
+
+        // Remove Previous Source Node:
+        $seekSrc = &$this->__seekTreeFromPath($file->dirUp()->pathUri());
+        unset($seekSrc[$file->pathUri()->getFilename()]);
+
+        return $this;
     }
 
     /**
@@ -934,6 +966,8 @@ class InMemoryFS implements iFsBase
     protected function &__seekTreeFromPath(iPathFileUri $path, $throw = false)
     {
         $path = clone $path;
+        $path = $this->pathUri()->fromPathUri($path);
+        $path->normalize();
 
         // Initialize:
         $paths = $this->__parseToPathStepsArray($path);
