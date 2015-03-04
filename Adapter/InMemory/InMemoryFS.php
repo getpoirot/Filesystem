@@ -888,7 +888,24 @@ class InMemoryFS implements iFsBase
      */
     function rmDir(iDirectoryInfo $dir)
     {
-        // TODO Implement Feature
+        $seek    = &$this->__seekTreeFromPath($dir->dirUp()->pathUri(), true);
+        $dirName = $dir->pathUri()->getFilename();
+        $nodeDir = (array_key_exists($dirName, $seek))
+            ? $seek[$dirName]
+            : false;
+
+        if (
+            $nodeDir == false
+            || !$this->__fs_is_dir($nodeDir)
+        )
+            throw new \Exception(sprintf(
+                'Error While Deleting "%s" Directory.'
+                , $dir->pathUri()->toString()
+            ));
+
+        unset($seek[$dirName]);
+
+        return $this;
     }
 
     /**
