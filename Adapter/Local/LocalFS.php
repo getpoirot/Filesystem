@@ -932,7 +932,7 @@ class LocalFS implements iFsBase
                 , $filename
             ), null, new \Exception(error_get_last()['message']));
 
-        return $result;
+        return $this;
     }
 
     /**
