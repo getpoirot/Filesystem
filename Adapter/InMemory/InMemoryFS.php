@@ -80,7 +80,7 @@ class InMemoryFS implements iFsBase
             ->fromPathUri($dir->pathUri());
 
         $seek = &$this->__seekTreeFromPath($dir->pathUri(), true);
-        if ($seek === false || ($seek !== false && !$this->__fs_is_dir($seek)))
+        if ($seek === false || ($seek !== false && !$this->__fs_get_meta($seek, 'type') == 'dir'))
             throw new \Exception(sprintf(
                 'Failed Changing Directory To "%s".'
                 , $dirPath->toString()
@@ -181,7 +181,7 @@ class InMemoryFS implements iFsBase
         // Validating Node Tree:
         $seek = &$this->__seekTreeFromPath($dir->pathUri(), true);
 
-        if ($seek === false || ($seek !== false && !$this->__fs_is_dir($seek)))
+        if ($seek === false || ($seek !== false && !$this->__fs_get_meta($seek, 'type') == 'dir'))
             throw new \Exception(sprintf(
                 'Failed Scan Directory To "%s".'
                 , $dir->pathUri()->toString()
@@ -406,7 +406,7 @@ class InMemoryFS implements iFsBase
 
             $seek = &$this->__seekTreeFromPath($pathUri);
             if ($seek !== false)
-                if ( $this->__fs_is_file($seek) )
+                if ( $this->__fs_get_meta($seek, 'type') == 'file' )
                     $return = true;
         }
 
@@ -437,7 +437,7 @@ class InMemoryFS implements iFsBase
 
             $seek = &$this->__seekTreeFromPath($pathUri);
             if ($seek !== false)
-                if ( $this->__fs_is_dir($seek) )
+                if ( $this->__fs_get_meta($seek, 'type') == 'dir' )
                     $return = true;
         }
 
@@ -572,7 +572,7 @@ class InMemoryFS implements iFsBase
     function getFileContents(iFile $file, $maxlen = 0)
     {
         $seek = &$this->__seekTreeFromPath($file->pathUri());
-        if (!$this->__fs_is_file($seek))
+        if (!$this->__fs_get_meta($seek, 'type') == 'file')
             throw new \Exception(sprintf(
                 'Failed To Read Contents Of "%s" File.'
                 , $file->pathUri()->toString()
@@ -640,7 +640,7 @@ class InMemoryFS implements iFsBase
     function getFileSize(iFileInfo $file)
     {
         $seek = &$this->__seekTreeFromPath($file->pathUri(), true);
-        if (!$this->__fs_is_file($seek))
+        if (!$this->__fs_get_meta($seek, 'type') == 'file')
             throw new \Exception(sprintf(
                 'Failed To Get Size Of "%s" File.'
                 , $file->pathUri()->toString()
@@ -706,7 +706,35 @@ class InMemoryFS implements iFsBase
      */
     function mkLink(iLinkInfo $link)
     {
-        // TODO Implement Feature
+        // achieve link target:
+        $target     = $link->getTarget();
+        $targetPath = $this->pathUri()
+            ->fromPathUri($target->pathUri())
+        ;
+
+        $targetSeek = &$this->__seekTreeFromPath($targetPath, true);
+
+        // create link to target:
+        $dir   = $link
+            ->setFilesystem($this)
+            ->dirUp();
+
+        $seek     = &$this->__seekTreeFromPath($dir->pathUri(), true);
+        $filename = $link->pathUri()->getFilename();
+        $seek[$filename] = [
+            '__meta__' => [
+                'type'       => 'link',
+                'target'     => $targetSeek,
+                'owner'      => 'root',
+                'group'      => 'root',
+                'permission' => 0755,
+                'atime'      => time(),
+                'mtime'      => time(),
+                'ctime'      => time(),
+            ],
+        ];
+
+        return $this;
     }
 
     /**
@@ -896,7 +924,7 @@ class InMemoryFS implements iFsBase
 
         if (
             $nodeDir == false
-            || !$this->__fs_is_dir($nodeDir)
+            || !$this->__fs_get_meta($nodeDir, 'type') == 'dir'
         )
             throw new \Exception(sprintf(
                 'Error While Deleting "%s" Directory.'
@@ -959,7 +987,33 @@ class InMemoryFS implements iFsBase
      */
     function unlink($file)
     {
-        // TODO Implement Feature
+        if (!$file instanceof iFileInfo
+            && !$file instanceof iLinkInfo
+        )
+            throw new \Exception(sprintf(
+                'iFileInfo or iLinkInfo instance must given, but "%s" passed.'
+                , is_object($file) ? get_class($file) : gettype($file)
+            ));
+
+        $seek     = &$this->__seekTreeFromPath($file->dirUp()->pathUri(), true);
+        $fileName = $file->pathUri()->getFilename();
+        $nodeFile  = (array_key_exists($fileName, $seek))
+            ? $seek[$fileName]
+            : false;
+
+        if (
+            $nodeFile == false
+            || ! $this->__fs_get_meta($nodeFile, 'type') == 'file'
+            || ! $this->__fs_get_meta($nodeFile, 'type') == 'link'
+        )
+            throw new \Exception(sprintf(
+                'Error While Deleting "%s" File.'
+                , $file->pathUri()->toString()
+            ));
+
+        unset($seek[$fileName]);
+
+        return $this;
     }
 
     /**
@@ -1049,35 +1103,20 @@ class InMemoryFS implements iFsBase
     }
 
     /**
-     * Check that given node is dir?
+     * Get Meta Attributes from node
      *
-     * @param array $node Tree Node
+     * @param array  $node     Node Array
+     * @param string $metaAttr Meta Attribute
+     * @param bool   $default
      *
-     * @return bool
+     * @return mixed
      */
-    protected function __fs_is_dir(array $node)
+    protected function __fs_get_meta(array $node, $metaAttr, $default = false)
     {
-        $return = false;
+        $return = $default;
 
-        if (isset($node['__meta__']) && isset($node['__meta__']['type']))
-            $return = ( $node['__meta__']['type'] == 'dir' );
-
-        return $return;
-    }
-
-    /**
-     * Check that given node is dir?
-     *
-     * @param array $node Tree Node
-     *
-     * @return bool
-     */
-    protected function __fs_is_file(array $node)
-    {
-        $return = false;
-
-        if (isset($node['__meta__']) && isset($node['__meta__']['type']))
-            $return = ( $node['__meta__']['type'] == 'file' );
+        if (isset($node['__meta__']) && isset($node['__meta__'][$metaAttr]))
+            $return = $node['__meta__'][$metaAttr];
 
         return $return;
     }
