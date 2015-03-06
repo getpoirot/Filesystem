@@ -1,6 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Interfaces;
 
+use Poirot\Filesystem\Interfaces\Filesystem\File\iFileContentDelivery;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectoryInfo;
@@ -98,8 +99,10 @@ interface iFsWritable
      *
      * - If filename does not exist, the file is created
      *
+     * ! fails if you try to put a file in a directory that doesn't exist.
+     *
      * @param iFile  $file
-     * @param string $contents
+     * @param string|iFileContentDelivery $contents
      *
      * @throws \Exception On Failure
      * @return $this

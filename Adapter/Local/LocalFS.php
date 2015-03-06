@@ -5,6 +5,7 @@ use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
 use Poirot\Filesystem\Adapter\Link;
 use Poirot\Filesystem\Exception\FileNotFoundException;
+use Poirot\Filesystem\Interfaces\Filesystem\File\iFileContentDelivery;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommon;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
@@ -644,7 +645,7 @@ class LocalFS implements iFsBase
      * ! fails if you try to put a file in a directory that doesn't exist.
      *
      * @param iFile  $file
-     * @param string $contents
+     * @param string|iFileContentDelivery $contents
      *
      * @throws \Exception On Failure
      * @return $this
@@ -659,7 +660,7 @@ class LocalFS implements iFsBase
         $append  = /*($append) ? FILE_APPEND :*/ 0;
         $append |= LOCK_EX; // to prevent anyone else writing to the file at the same time
 
-        if(!file_put_contents($filename, $contents, $append)) // file will be created if not exists
+        if(file_put_contents($filename, $contents, $append) === false) // file will be created if not exists
             throw new \Exception(sprintf(
                 'Failed To Put "%s" File Contents.'
                 , $filename
