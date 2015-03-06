@@ -1,6 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Adapter;
 
+use Poirot\Filesystem\Interfaces\Filesystem\File\iFileContentDelivery;
 use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
 use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
@@ -217,13 +218,13 @@ class File extends AbstractCommonNode
      *
      * ! check permissions, getPerms
      *
-     * @param string $contents Contents
+     * @param string|iFileContentDelivery $contents Contents
      *
      * @return $this
      */
     function setContents($contents)
     {
-        $this->_fcontent = (string) $contents;
+        $this->_fcontent = $contents;
 
         return $this;
     }
