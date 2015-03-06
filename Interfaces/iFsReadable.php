@@ -157,7 +157,9 @@ interface iFsReadable
     /**
      * Checks whether a file or directory exists
      *
-     * return FALSE for symlinks pointing to non-existing files
+     * - we got an object as arguments, then i can check for
+     *   ::isDir, isFile::, based on object and return the
+     *   result on last
      *
      * @param iCommonInfo $file
      *

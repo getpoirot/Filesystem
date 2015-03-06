@@ -515,9 +515,28 @@ class InMemoryFS implements iFsBase
      */
     function isExists(iCommonInfo $cnode)
     {
-        $seek = $this->__seekTreeFromPath($cnode->pathUri());
+        $seek   = $this->__seekTreeFromPath($cnode->pathUri());
+        $result = ($seek !== false);
 
-        return ($seek !== false);
+        $cnode = clone $cnode;
+        $filename = $cnode
+            ->pathUri()
+            ->normalize()
+            ->toString();
+
+        switch ($cnode) {
+            case $cnode instanceof iDirectoryInfo:
+                $result = $this->isDir($filename);
+                break;
+            case $cnode instanceof iFileInfo:
+                $result = $this->isFile($filename);
+                break;
+            case $cnode instanceof iLinkInfo:
+                $result = $this->isLink($filename);
+                break;
+        }
+
+        return $result;
     }
 
     /**

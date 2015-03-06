@@ -602,7 +602,9 @@ class LocalFS implements iFsBase
     /**
      * Checks whether a file or directory exists
      *
-     * ! return FALSE for symlinks pointing to non-existing files
+     * - we got an object as arguments, then i can check for
+     *   ::isDir, isFile::, based on object and return the
+     *   result on last
      *
      * @param iCommonInfo $cnode
      *
@@ -618,6 +620,18 @@ class LocalFS implements iFsBase
         // Upon failure, an E_WARNING is emitted.
         $result = @file_exists($filename);
         clearstatcache();
+
+        switch ($cnode) {
+            case $cnode instanceof iDirectoryInfo:
+                $result = $this->isDir($filename);
+                break;
+            case $cnode instanceof iFileInfo:
+                $result = $this->isFile($filename);
+                break;
+            case $cnode instanceof iLinkInfo:
+                $result = $this->isLink($filename);
+                break;
+        }
 
         return $result;
     }
@@ -641,9 +655,6 @@ class LocalFS implements iFsBase
             ->fromPathUri($file->pathUri())
             ->toString()
         ;
-
-        $this->__validateFilepath($filename);
-
 
         $append  = /*($append) ? FILE_APPEND :*/ 0;
         $append |= LOCK_EX; // to prevent anyone else writing to the file at the same time
