@@ -675,7 +675,7 @@ class LocalFS implements iFsBase
      * Reads entire file into a string
      *
      * @param iFile $file
-     * @param int $maxlen Maximum length of data read
+     * @param int   $maxlen Maximum length of data read
      *
      * @throws \Exception On Failure
      * @return string

@@ -64,7 +64,7 @@ class FSFtpOptions extends AbstractOptions
      * @throws \Exception
      * @return $this
      */
-    function fromOption(/*FtpOptions*/ $options) // php is a donkey, why strict_error
+    function fromSimilar(/*FtpOptions*/ $options) // php is a donkey, why strict_error
     {                                            // when FtpOptions is extended AbstractOptions
         parent::fromOption($options);
 
