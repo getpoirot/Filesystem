@@ -130,3 +130,35 @@ print_r($htmlDirectory->scanDir(new Directory('user')));
 die('>_');
 ```
 
+## Using File Content Delivery
+
+It uses to implement content delivery fo reading large files content, 
+generating fake content or storing content of files on memory in lazy mode 
+to reduce memory size on contents.
+
+Mostly Can Used In Combination With InMemory File System:
+
+```php
+// map InMemory File Content To Existence Local File
+// always fetch latest file content on reading
+$sc = new WrapperClient('file:///var/www/data/user/about.txt', 'r');
+
+// or reading google index
+// the file content when reading is always google updated content
+$sc = new WrapperClient('http://google.com', 'r');
+
+$fs = new InMemoryFS;
+$fs->mkDir(new Directory('Backup'));
+$fs->putFileContents(
+    new File('Backup\\myFile.tst')
+    , new StreamContentDelivery($sc)
+);
+
+$fs->chDir(new Directory('Backup'));
+if ($fs->isFile('myFile.tst')) {
+    $content = $fs->getFileContents($fs->mkFromPath('myFile.tst'));
+
+    echo $content;
+}
+```
+
