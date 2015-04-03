@@ -3,6 +3,7 @@ namespace Poirot\Filesystem\Util;
 
 use Poirot\Core\AbstractOptions;
 use Poirot\Filesystem\Adapter\Directory;
+use Poirot\Filesystem\Adapter\File;
 use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iLink;
 use Poirot\Filesystem\Interfaces\iFilesystem;
@@ -42,6 +43,11 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     protected $dir_opendir_path;
     protected $dir_opendir_counter = 0; // using as pointer
+
+    protected $stream_open_path;
+    protected $stream_open_mode;
+    protected $stream_open_opts;
+    protected $stream_read_position;
 
     /**
      * Construct
@@ -115,6 +121,145 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         $this->_filesystem = self::$__wrappers[$scheme];
     }
 
+    // Implement Stream Wrapper:
+    /**
+     * Open file or URL.
+     * This method is called immediately after the wrapper is initialized (f.e.
+     * by fopen() and file_get_contents()).
+     *
+     * @param   string  $path           Specifies the URL that was passed to the
+     *                                  original function.
+     * @param   string  $mode           The mode used to open the file, as
+     *                                  detailed for fopen().
+     * @param   int     $options        Holds additional flags set by the
+     *                                  streams API. It can hold one or more of
+     *                                  the following values OR'd together:
+     *                                    * STREAM_USE_PATH, if path is relative,
+     *                                      search for the resource using the
+     *                                      include_path;
+     *                                    * STREAM_REPORT_ERRORS, if this is
+     *                                    set, you are responsible for raising
+     *                                    errors using trigger_error during
+     *                                    opening the stream. If this is not
+     *                                    set, you should not raise any errors.
+     * @param   string  &$openedPath    If the $path is opened successfully, and
+     *                                  STREAM_USE_PATH is set in $options,
+     *                                  $openedPath should be set to the full
+     *                                  path of the file/resource that was
+     *                                  actually opened.
+     * @return  bool
+     */
+    function stream_open($path, $mode, $options, &$opened_path)
+    {
+        $this->__initCurrFsFromPath($path);
+
+        $path = $this->__cleanUpPath($path);
+
+        $this->stream_open_path = $path;
+        $this->stream_open_mode = $mode;
+        $this->stream_open_opts = $options;
+
+        if ($options & STREAM_USE_PATH)
+            $opened_path = $path;
+
+        return true;
+    }
+
+    /**
+     * Close a resource.
+     * This method is called in response to fclose().
+     * All resources that were locked, or allocated, by the wrapper should be
+     * released.
+     *
+     * @return  void
+     */
+    function stream_close()
+    {
+        $this->stream_open_path = null;
+        $this->stream_open_mode = null;
+        $this->stream_open_opts = null;
+
+        $this->stream_read_position = 0;
+    }
+
+    /**
+     * Write to stream.
+     * This method is called in response to fwrite().
+     *
+     * @param string $data
+     *
+     * @return int
+     */
+    function stream_write($data)
+    {
+        if ($this->stream_open_path === null)
+            return false;
+
+        // TODO implement stream open mode
+        // TODO implement stream aware filesystem
+
+        $file = new File($this->stream_open_path);
+        $this->_filesystem->putFileContents($file, $data);
+
+        $size = $file->getSize();
+        $this->stream_read_position += $size;
+
+        return $size;
+    }
+
+    /**
+     * Read from stream.
+     * This method is called in response to fread() and fgets().
+     *
+     * @param   int     $count    How many bytes of data from the current
+     *                            position should be returned.
+     * @return  string
+     */
+    function stream_read($count)
+    {
+        if ($this->stream_open_path === null)
+            return false;
+
+        // TODO implement stream open mode
+        // TODO implement stream aware filesystem
+
+        $file    = $this->_filesystem->mkFromPath($this->stream_open_path);
+        $content = $this->_filesystem->getFileContents($file);
+
+        $this->stream_read_position += $file->getSize();
+
+        return $content;
+    }
+
+    /**
+     * Tests for end-of-file on a file pointer.
+     * This method is called in response to feof().
+     *
+     * @return  bool
+     */
+    function stream_eof()
+    {
+        if ($this->stream_open_path === null)
+            return true;
+
+        // TODO implement stream open mode
+        // TODO implement stream aware filesystem
+
+        $file    = $this->_filesystem->mkFromPath($this->stream_open_path);
+
+        return ($file->getSize() >= $this->stream_read_position);
+    }
+
+    /**
+     * Retrieve information about a file resource.
+     * This method is called in response to fstat()
+     *
+     * @return array
+     */
+    function stream_stat()
+    {
+        return $this->url_stat($this->stream_open_path, 0);
+    }
 
     // Implement Directories:
 
