@@ -37,7 +37,7 @@ class InMemoryFS implements iFsBase
             /*
             'nameOfFile' => [
                 '__meta__' => [
-                    'type' => 'file',
+                    'type'    => 'file',
                     'content' => '',
                 ]
             ]
@@ -241,7 +241,17 @@ class InMemoryFS implements iFsBase
      */
     function getFileGroup(iCommonInfo $file)
     {
-        // TODO Implement Feature
+        $pathUri = $this->pathUri()
+            ->fromPathUri($file->pathUri());
+
+        $seek = &$this->__seekTreeFromPath($pathUri);
+        if ($seek === false)
+            throw new FileNotFoundException(sprintf(
+                '"%s" Not Found.'
+                , $pathUri->toString()
+            ));
+
+        return $this->__fs_get_meta($seek, 'group');
     }
 
     /**
@@ -263,11 +273,22 @@ class InMemoryFS implements iFsBase
      *
      * @param iCommonInfo $file
      *
+     * @throws FileNotFoundException
      * @return iFilePermissions
      */
     function getFilePerms(iCommonInfo $file)
     {
-        // TODO Implement Feature
+        $pathUri = $this->pathUri()
+            ->fromPathUri($file->pathUri());
+
+        $seek = &$this->__seekTreeFromPath($pathUri);
+        if ($seek === false)
+            throw new FileNotFoundException(sprintf(
+                '"%s" Not Found.'
+                , $pathUri->toString()
+            ));
+
+        return $this->__fs_get_meta($seek, 'permission');
     }
 
     /**
@@ -294,7 +315,17 @@ class InMemoryFS implements iFsBase
      */
     function getFileOwner(iCommonInfo $file)
     {
-        // TODO Implement Feature
+        $pathUri = $this->pathUri()
+            ->fromPathUri($file->pathUri());
+
+        $seek = &$this->__seekTreeFromPath($pathUri);
+        if ($seek === false)
+            throw new FileNotFoundException(sprintf(
+                '"%s" Not Found.'
+                , $pathUri->toString()
+            ));
+
+        return $this->__fs_get_meta($seek, 'owner');
     }
 
     /**
@@ -597,9 +628,7 @@ class InMemoryFS implements iFsBase
                 , $file->pathUri()->toString()
             ));
 
-        $content = null;
-        if (isset($seek['__meta__']['content']))
-            $content = $seek['__meta__']['content'];
+        $content = $this->__fs_get_meta($seek, 'content');
 
         return $content;
     }
@@ -614,7 +643,17 @@ class InMemoryFS implements iFsBase
      */
     function getFileATime(iFileInfo $file)
     {
-        // TODO Implement Feature
+        $pathUri = $this->pathUri()
+            ->fromPathUri($file->pathUri());
+
+        $seek = &$this->__seekTreeFromPath($pathUri);
+        if ($seek === false)
+            throw new FileNotFoundException(sprintf(
+                '"%s" Not Found.'
+                , $pathUri->toString()
+            ));
+
+        return $this->__fs_get_meta($seek, 'atime');
     }
 
     /**
@@ -630,7 +669,17 @@ class InMemoryFS implements iFsBase
      */
     function getFileCTime(iFileInfo $file)
     {
-        // TODO Implement Feature
+        $pathUri = $this->pathUri()
+            ->fromPathUri($file->pathUri());
+
+        $seek = &$this->__seekTreeFromPath($pathUri);
+        if ($seek === false)
+            throw new FileNotFoundException(sprintf(
+                '"%s" Not Found.'
+                , $pathUri->toString()
+            ));
+
+        return $this->__fs_get_meta($seek, 'ctime');
     }
 
     /**
@@ -645,7 +694,17 @@ class InMemoryFS implements iFsBase
      */
     function getFileMTime(iFileInfo $file)
     {
-        // TODO Implement Feature
+        $pathUri = $this->pathUri()
+            ->fromPathUri($file->pathUri());
+
+        $seek = &$this->__seekTreeFromPath($pathUri);
+        if ($seek === false)
+            throw new FileNotFoundException(sprintf(
+                '"%s" Not Found.'
+                , $pathUri->toString()
+            ));
+
+        return $this->__fs_get_meta($seek, 'mtime');
     }
 
     /**
@@ -658,14 +717,9 @@ class InMemoryFS implements iFsBase
      */
     function getFileSize(iFileInfo $file)
     {
-        $seek = &$this->__seekTreeFromPath($file->pathUri(), true);
-        if (!$this->__fs_get_meta($seek, 'type') == 'file')
-            throw new \Exception(sprintf(
-                'Failed To Get Size Of "%s" File.'
-                , $file->pathUri()->toString()
-            ));
+        $content = $this->getFileContents($file);
 
-        return mb_strlen($seek['__meta__']['content'], '8bit');
+        return mb_strlen($content, '8bit');
     }
 
     /**
@@ -700,7 +754,7 @@ class InMemoryFS implements iFsBase
      */
     function isReadable(iCommonInfo $file)
     {
-        // TODO Implement Feature
+        return true;
     }
 
     /**
@@ -712,7 +766,7 @@ class InMemoryFS implements iFsBase
      */
     function isWritable(iCommonInfo $file)
     {
-        // TODO Implement Feature
+        return true;
     }
 
     /**
