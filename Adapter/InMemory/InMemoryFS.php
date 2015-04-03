@@ -819,8 +819,11 @@ class InMemoryFS implements iFsBase
      * @throws \Exception On Failure
      * @return $this
      */
-    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
+    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode = null)
     {
+        if ($mode === null)
+            $mode = new FilePermissions(0755); // todo use static default permission
+
         $paths = $this->__parseToPathStepsArray($dir->pathUri());
 
         $tree = &$this->tree;

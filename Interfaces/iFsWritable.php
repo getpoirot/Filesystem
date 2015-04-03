@@ -152,7 +152,7 @@ interface iFsWritable
      * @throws \Exception On Failure
      * @return $this
      */
-    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode);
+    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode = null);
 
     /**
      * Rename File Or Directory
