@@ -162,3 +162,44 @@ if ($fs->isFile('myFile.tst')) {
 }
 ```
 
+## Using Filesystem As PHP Stream Wrapper
+
+```php
+// register sama:// as php stream wrapper
+$samaFs = new InMemoryFS;
+$fsaw   = new FilesystemAsStreamWrapper($samaFs, 'sama');
+SWrapperManager::register($fsaw);
+
+// making new directory on sama:// filesystem ...............\
+mkdir('sama:///Backup');
+
+if (!$samaFs->isExists(new Directory('/Backup')))
+    die('Directory Not Found.');
+
+if ($dh = opendir('sama:///')) {
+    rewinddir($dh);
+    while (($file = readdir($dh)) !== false)
+        echo "filename: $file " . "\n";
+
+    closedir($dh);
+}
+
+// Rename Directory
+rename('sama:///Backup', 'sama:///backup');
+
+// Remove Directory
+rmdir('sama:///backup');
+
+// Open File With Handler .....................................\
+$fh = fopen('sama://test-file.txt', iSRAccessMode::MODE_RWB);
+
+fwrite($fh, 'This is Test Content Of File', 100);
+
+echo fread($fh, 1000); // output: This is Test Content Of File
+
+unlink('sama://test-file.txt');
+
+k($samaFs->scanDir());
+
+die('>_');
+```
