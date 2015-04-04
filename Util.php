@@ -69,7 +69,10 @@ class Util
         }
 
         if ($flags !== null) {
-            $return = $return[$flagArrays[$flags]];
+            $flagName = $flagArrays[$flags];
+            $return   = array_key_exists($flagName, $return)
+                ? $return[$flagName]
+                : false;
         }
 
         return $return;
