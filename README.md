@@ -170,6 +170,10 @@ $samaFs = new InMemoryFS;
 $fsaw   = new FilesystemAsStreamWrapper($samaFs, 'sama');
 SWrapperManager::register($fsaw);
 
+// register another wrapper for local filesystem that isolated on specific path
+$isoLocal = new IsolatedWrapper(new LocalFS, '/var/www/html/upload');
+SWrapperManager::register(new FilesystemAsStreamWrapper($isoLocal, 'local'));
+
 // making new directory on sama:// filesystem ...............\
 mkdir('sama:///Backup');
 
@@ -204,8 +208,12 @@ fwrite($fh, 'This is Test Content Of File', 100);
 echo fread($fh, 1000); // output: This is Test Content Of File
 
 // Interaction Between Virtual Filesystem Wrapper And Local .........\
-copy('sama:///test-file.txt', 'file:///var/www/html/upload/test-file.txt');
+copy('sama:///test-file.txt', 'local:///backup/test-file.txt');
 
+// copy from isolated local filesystem
+copy('local:///backup/test-file.txt', 'file:///var/www/html/upload/test-file.txt');
+
+// delete file from virtual filesystem
 unlink('sama:///test-file.txt');
 
 k($samaFs->scanDir());
