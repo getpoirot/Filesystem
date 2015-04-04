@@ -45,6 +45,7 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
     protected $dir_opendir_counter = 0; // using as pointer
 
     protected $stream_open_path;
+    protected $stream_open_orgpath;
     protected $stream_open_mode;
     protected $stream_open_opts;
     protected $stream_read_position;
@@ -110,7 +111,7 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
     {
         // Set Current Wrapper Label:
         $scheme = Util::urlParse($path, PHP_URL_SCHEME);
-        if (!array_key_exists($scheme, self::$__wrappers))
+        if (empty($scheme) || !array_key_exists($scheme, self::$__wrappers))
             throw new \Exception(sprintf(
                 'Invalid Wrapper "%s".'
                 , $scheme
@@ -151,11 +152,18 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     function stream_open($path, $mode, $options, &$opened_path)
     {
-        $this->__initCurrFsFromPath($path);
+        try {
+            $this->__initCurrFsFromPath($path);
+        } catch (\Exception $e)
+        {
+            // Wrapper not supported.
+            return false;
+        }
 
-        $path = $this->__cleanUpPath($path);
+        $cpath = $this->__cleanUpPath($path);
 
-        $this->stream_open_path = $path;
+        $this->stream_open_orgpath = $path;
+        $this->stream_open_path = $cpath;
         $this->stream_open_mode = $mode;
         $this->stream_open_opts = $options;
 
@@ -258,7 +266,9 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     function stream_stat()
     {
-        return $this->url_stat($this->stream_open_path, 0);
+        $return = $this->url_stat($this->stream_open_orgpath, 0);
+
+        return $return;
     }
 
     // Implement Directories:
@@ -277,7 +287,25 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         $this->__initCurrFsFromPath($path);
 
         $path = $this->__cleanUpPath($path);
-        $this->_filesystem->mkDir(new Directory($path), new FilePermissions($mode));
+        if ($this->_filesystem->isDir($path))
+            trigger_error(sprintf(
+                'mkdir(): File "%s" exists'
+                , $path
+            ), E_USER_WARNING);
+        else {
+            try {
+                $this->_filesystem->mkDir(new Directory($path), new FilePermissions($mode));
+            }
+            catch (\Exception $e)
+            {
+                trigger_error(sprintf(
+                    '%s'
+                    , $e->getMessage()
+                ), E_USER_WARNING);
+
+                return false;
+            }
+        }
 
         return true;
     }
@@ -313,8 +341,14 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         $this->__initCurrFsFromPath($path);
         $path = $this->__cleanUpPath($path);
 
-        if (!$this->_filesystem->isDir($path))
+        if (!$this->_filesystem->isDir($path)) {
+            trigger_error(sprintf(
+                'opendir(%s): failed to open dir: No such file or directory'
+                , $path
+            ), E_USER_WARNING);
+
             return false;
+        }
 
         $this->dir_opendir_path    = $path;
         $this->dir_opendir_counter = 0;
@@ -337,10 +371,16 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
 
         $return = false;
 
-        $scDir = $this->_filesystem->scanDir(new Directory($this->dir_opendir_path));
-        if (count($scDir) > $this->dir_opendir_counter) {
-            $return = $scDir[$this->dir_opendir_counter];
-            $this->dir_opendir_counter++;
+        try {
+            $scDir = $this->_filesystem->scanDir(new Directory($this->dir_opendir_path));
+
+            if (count($scDir) > $this->dir_opendir_counter) {
+                $return = $scDir[$this->dir_opendir_counter];
+                $this->dir_opendir_counter++;
+            }
+        } catch (\Exception $e)
+        {
+            // false returned
         }
 
         return $return;
