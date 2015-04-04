@@ -96,4 +96,11 @@ abstract class AbstractCommonNode
 
         return $this->filesystem;
     }
+
+    function __clone()
+    {
+        foreach ($this as &$var)
+            if (is_object($var))
+                $var = clone $var;
+    }
 }
