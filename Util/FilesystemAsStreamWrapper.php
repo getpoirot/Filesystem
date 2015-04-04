@@ -50,6 +50,8 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
     protected $stream_open_opts;
     protected $stream_read_position;
 
+    protected $stream_write_buff;
+
     /**
      * Construct
      *
@@ -184,6 +186,7 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
     function stream_close()
     {
         $this->stream_open_path = null;
+        $this->stream_open_orgpath = null;
         $this->stream_open_mode = null;
         $this->stream_open_opts = null;
 
@@ -206,11 +209,16 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         // TODO implement stream open mode
         // TODO implement stream aware filesystem
 
-        $file = new File($this->stream_open_path);
-        $this->_filesystem->putFileContents($file, $data);
+        $this->stream_write_buff = $data;
+        $size = mb_strlen($data, '8bit');
 
-        $size = $file->getSize();
-        $this->stream_read_position += $size;
+        try{
+            $file = new File($this->stream_open_path);
+            $this->_filesystem->putFileContents($file, $this->stream_write_buff);
+        } catch (\Exception $e)
+        {
+            return false;
+        }
 
         return $size;
     }
@@ -225,7 +233,7 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     function stream_read($count)
     {
-        if ($this->stream_open_path === null)
+        if ($this->stream_eof() || $this->stream_open_path === null)
             return false;
 
         // TODO implement stream open mode
@@ -255,7 +263,54 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
 
         $file    = $this->_filesystem->mkFromPath($this->stream_open_path);
 
-        return ($file->getSize() >= $this->stream_read_position);
+        return ($this->stream_read_position >= $file->getSize());
+    }
+
+    /**
+     * Seek to specific location in a stream.
+     * This method is called in response to fseek().
+     * The read/write position of the stream should be updated according to the
+     * $offset and $whence.
+     *
+     * @param   int     $offset    The stream offset to seek to.
+     * @param   int     $whence    Possible values:
+     *                               * SEEK_SET to set position equal to $offset
+     *                                 bytes ;
+     *                               * SEEK_CUR to set position to current
+     *                                 location plus $offsete ;
+     *                               * SEEK_END to set position to end-of-file
+     *                                 plus $offset.
+     * @return  bool
+     */
+    function stream_seek($offset, $whence = SEEK_SET )
+    {
+        kd(__FUNCTION__);
+    }
+
+    /**
+     * Retrieve the current position of a stream.
+     * This method is called in response to ftell()
+     *
+     * @return int
+     */
+    function stream_tell()
+    {
+        kd(__FUNCTION__);
+    }
+
+    /**
+     * Flush the output.
+     * This method is called in response to fflush().
+     * If we have cached data in our stream but not yet stored it into the
+     * underlying storage, we should do so now.
+     *
+     * @return  bool
+     */
+    function stream_flush()
+    {
+
+
+        return true;
     }
 
     /**
@@ -269,6 +324,100 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         $return = $this->url_stat($this->stream_open_orgpath, 0);
 
         return $return;
+    }
+
+    /**
+     * @param string  $path
+     * @param int     $option
+     * @param mixed   $value
+     *
+     * @return bool
+     */
+    function stream_metadata($path, $option, $value )
+    {
+        kd(__FUNCTION__);
+    }
+
+    /**
+     * Truncate a stream to a given length.
+     *
+     * @param int $new_size
+     *
+     * @return bool
+     */
+    function stream_truncate($new_size)
+    {
+        kd(__FUNCTION__);
+    }
+
+    /**
+     * Advisory file locking.
+     * This method is called in response to flock(), when file_put_contents()
+     * (when flags contains LOCK_EX), stream_set_blocking() and when closing the
+     * stream (LOCK_UN).
+     *
+     * @param   int     $operation    Operation is one the following:
+     *                                  * LOCK_SH to acquire a shared lock (reader) ;
+     *                                  * LOCK_EX to acquire an exclusive lock (writer) ;
+     *                                  * LOCK_UN to release a lock (shared or exclusive) ;
+     *                                  * LOCK_NB if we don't want flock() to
+     *                                    block while locking (not supported on
+     *                                    Windows).
+     * @return  bool
+     */
+    function stream_lock($operation)
+    {
+        kd(__FUNCTION__);
+    }
+
+    /**
+     * Change stream options.
+     * This method is called to set options on the stream.
+     *
+     * @param   int     $option    One of:
+     *                               * STREAM_OPTION_BLOCKING, the method was
+     *                                 called in response to
+     *                                 stream_set_blocking() ;
+     *                               * STREAM_OPTION_READ_TIMEOUT, the method
+     *                                 was called in response to
+     *                                 stream_set_timeout() ;
+     *                               * STREAM_OPTION_WRITE_BUFFER, the method
+     *                                 was called in response to
+     *                                 stream_set_write_buffer().
+     * @param   int     $arg1      If $option is:
+     *                               * STREAM_OPTION_BLOCKING: requested blocking
+     *                                 mode (1 meaning block, 0 not blocking) ;
+     *                               * STREAM_OPTION_READ_TIMEOUT: the timeout
+     *                                 in seconds ;
+     *                               * STREAM_OPTION_WRITE_BUFFER: buffer mode
+     *                                 (STREAM_BUFFER_NONE or
+     *                                 STREAM_BUFFER_FULL).
+     * @param   int     $arg2      If $option is:
+     *                               * STREAM_OPTION_BLOCKING: this option is
+     *                                 not set ;
+     *                               * STREAM_OPTION_READ_TIMEOUT: the timeout
+     *                                 in microseconds ;
+     *                               * STREAM_OPTION_WRITE_BUFFER: the requested
+     *                                 buffer size.
+     * @return  bool
+     */
+    function stream_set_option($option, $arg1, $arg2)
+    {
+        kd(__FUNCTION__);
+    }
+
+    /**
+     * Retrieve the underlaying resource.
+     *
+     * @param   int     $castAs    Can be STREAM_CAST_FOR_SELECT when
+     *                             stream_select() is calling stream_cast() or
+     *                             STREAM_CAST_AS_STREAM when stream_cast() is
+     *                             called for other uses.
+     * @return  resource
+     */
+    function stream_cast($cast_as)
+    {
+        kd(__FUNCTION__);
     }
 
     // Implement Directories:

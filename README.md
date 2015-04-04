@@ -176,6 +176,7 @@ mkdir('sama:///Backup');
 if (!$samaFs->isExists(new Directory('/Backup')))
     die('Directory Not Found.');
 
+// list directory ............................................\
 if ($dh = opendir('sama:///')) {
     rewinddir($dh);
     while (($file = readdir($dh)) !== false)
@@ -184,20 +185,28 @@ if ($dh = opendir('sama:///')) {
     closedir($dh);
 }
 
-// Rename Directory
+// or
+$dirList = scandir('sama:///');
+var_dump($dirList);
+
+// Rename Directory ...........................................\
 rename('sama:///Backup', 'sama:///backup');
 
-// Remove Directory
+// Remove Directory ...........................................\
 rmdir('sama:///backup');
 
 // Open File With Handler .....................................\
-$fh = fopen('sama://test-file.txt', iSRAccessMode::MODE_RWB);
+$fh = fopen('sama:///test-file.txt', iSRAccessMode::MODE_RWB);
 
+// write content on file
 fwrite($fh, 'This is Test Content Of File', 100);
 
 echo fread($fh, 1000); // output: This is Test Content Of File
 
-unlink('sama://test-file.txt');
+// Interaction Between Virtual Filesystem Wrapper And Local .........\
+copy('sama:///test-file.txt', 'file:///var/www/html/upload/test-file.txt');
+
+unlink('sama:///test-file.txt');
 
 k($samaFs->scanDir());
 
