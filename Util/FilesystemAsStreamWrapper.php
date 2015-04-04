@@ -215,6 +215,8 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         try{
             $file = new File($this->stream_open_path);
             $this->_filesystem->putFileContents($file, $this->stream_write_buff);
+
+            $this->stream_write_buff = null;
         } catch (\Exception $e)
         {
             return false;
@@ -308,7 +310,8 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     function stream_flush()
     {
-
+        if ($this->stream_write_buff !== null)
+            $this->stream_write($this->stream_write_buff);
 
         return true;
     }
@@ -664,21 +667,54 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
                 $source = $source->getTarget();
         }
 
+        if (is_callable([$this->_filesystem, 'getStat'])) {
+            kd($this->_filesystem->getStat($source));
+            return $this->_filesystem->getStat($source);
+        }
+
         $retArr = [
-            'dev' => null, # device number
-            'ino' => null, # inode number *
-            'mode' => null, # inode protection mode
-            'nlink' => null, # number of links
-            'uid' => $source->getOwner(), # userid of owner *
-            'gid' => $source->getGroup(), # groupid of owner *
-            'rdev' => null, # device type, if inode device
-            'size' => ($this->_filesystem->isFile($source))  ? $source->getSize()  : 0, # size in bytes
-            'atime' => ($this->_filesystem->isFile($source)) ? $source->getATime() : 0, # time of last access (Unix timestamp)
-            'mtime' => ($this->_filesystem->isFile($source)) ? $source->getMTime() : 0, # time of last modification (Unix timestamp)
-            'ctime' => ($this->_filesystem->isFile($source)) ? $source->getCTime() : 0, # time of last inode change (Unix timestamp)
-            'blksize' => -1, # blocksize of filesystem IO **
-            'blocks' => 0,   # number of 512-byte blocks allocated **
+            # device number
+            0     => null,
+            'dev' => null,
+            # inode number *
+            1     => null,
+            'ino' => null,
+            # inode protection mode
+            2      => null,
+            'mode' => null,
+            # number of links
+            3       => null,
+            'nlink' => null,
+            # userid of owner *
+            4     => $source->getOwner(),
+            'uid' => $source->getOwner(),
+            # groupid of owner *
+            5     => $source->getGroup(),
+            'gid' => $source->getGroup(),
+            # device type, if inode device
+            6      => null,
+            'rdev' => null,
+            # size in bytes
+            7      => ($this->_filesystem->isFile($source))  ? $source->getSize()  : 0,
+            'size' => ($this->_filesystem->isFile($source))  ? $source->getSize()  : 0,
+            # time of last access (Unix timestamp)
+            8       => ($this->_filesystem->isFile($source)) ? $source->getATime() : 0,
+            'atime' => ($this->_filesystem->isFile($source)) ? $source->getATime() : 0,
+            # time of last modification (Unix timestamp)
+            9       => ($this->_filesystem->isFile($source)) ? $source->getMTime() : 0,
+            'mtime' => ($this->_filesystem->isFile($source)) ? $source->getMTime() : 0,
+            # time of last inode change (Unix timestamp)
+            10      => ($this->_filesystem->isFile($source)) ? $source->getCTime() : 0,
+            'ctime' => ($this->_filesystem->isFile($source)) ? $source->getCTime() : 0,
+            # blocksize of filesystem IO **
+            11        => -1,
+            'blksize' => -1,
+            # number of 512-byte blocks allocated **
+            12       => 0,
+            'blocks' => 0,
         ];
+
+        kd($retArr);
 
         return $retArr;
     }

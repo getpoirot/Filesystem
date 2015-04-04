@@ -47,6 +47,28 @@ class IsolatedWrapper extends AbstractWrapper
     }
 
     /**
+     * Proxy call to wrapped filesystem
+     *
+     * @param string $method
+     * @param array $arguments
+     *
+     * @return mixed
+     */
+    function __call($method, $arguments)
+    {
+        foreach($arguments as $i => $arg) {
+            if ($arg instanceof iCommonInfo) {
+                // Change PathUri File Node Common Arguments
+                $pathStr = $this->__getRealPathFromIsolatedPath($arg);
+                $node    = $this->__changeNodePathFromString($arg, $pathStr);
+                $arguments[$i] = $node;
+            }
+        }
+
+        return parent::__call($method, $arguments);
+    }
+
+    /**
      * Changes Root Directory Path
      *
      * - root directory must be absolute
@@ -628,7 +650,7 @@ class IsolatedWrapper extends AbstractWrapper
      * @throws \Exception On Failure
      * @return $this
      */
-    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode)
+    function mkDir(iDirectoryInfo $dir, iFilePermissions $mode = null)
     {
         $pathStr = $this->__getRealPathFromIsolatedPath($dir);
         $dir     = $this->__changeNodePathFromString($dir, $pathStr);

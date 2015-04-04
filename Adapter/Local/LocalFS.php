@@ -16,6 +16,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\iFsBase;
+use Poirot\Filesystem\Interfaces\iFsLocal;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\PathFileUri;
 use Poirot\PathUri\PathJoinUri;
@@ -25,7 +26,7 @@ use Poirot\PathUri\PathJoinUri;
  *         file/directory permission be as same as
  *         apache/php user
  */
-class LocalFS implements iFsBase
+class LocalFS implements iFsLocal
 {
     /**
      * Gets the current working directory
@@ -1273,6 +1274,37 @@ class LocalFS implements iFsBase
             ), null, new \Exception(error_get_last()['message']));
 
         return $this;
+    }
+
+    /**
+     * Gives information about a file
+     *
+     * @link http://php.net/manual/en/function.stat.php
+     *
+     * @param iCommonInfo $node
+     *
+     * @throws FileNotFoundException
+     * @throws \Exception
+     * @return array
+     */
+    function getStat(iCommonInfo $node)
+    {
+        $filename = $this->pathUri()
+            ->fromPathUri($node->pathUri())
+            ->toString()
+        ;
+
+        $this->__validateFilepath($filename);
+
+        // Upon failure, an E_WARNING is emitted.
+        $result = stat($filename);
+        if ($result === false)
+            throw new \Exception(sprintf(
+                'Failed To Get Stat Of "%s" File.'
+                , $filename
+            ), null, new \Exception(error_get_last()['message']));
+
+        return $result;
     }
 
     /**
