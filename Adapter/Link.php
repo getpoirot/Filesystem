@@ -18,29 +18,6 @@ class Link extends AbstractCommonNode
     protected $target;
 
     /**
-     * Gets the owner of the file
-     *
-     * @return mixed
-     */
-    function getOwner()
-    {
-        return $this->filesystem()->getFileOwner($this);
-    }
-
-    /**
-     * Gets file permissions
-     * Should return an or combination of the PERMISSIONS
-     *
-     * exp. from storage WRITABLE|EXECUTABLE
-     *
-     * @return iFilePermissions
-     */
-    function getPerms()
-    {
-        return $this->filesystem()->getFilePerms($this);
-    }
-
-    /**
      * Gets the file group
      *
      * @return mixed
@@ -60,16 +37,6 @@ class Link extends AbstractCommonNode
     function dirUp()
     {
         return $this->filesystem()->dirUp($this);
-    }
-
-    /**
-     * Tells if file is readable
-     *
-     * @return bool
-     */
-    function isReadable()
-    {
-        return $this->filesystem()->isReadable($this);
     }
 
     /**

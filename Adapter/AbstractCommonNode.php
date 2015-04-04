@@ -3,6 +3,7 @@ namespace Poirot\Filesystem\Adapter;
 
 use Poirot\Filesystem\Adapter\Local\LocalFS;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
@@ -70,6 +71,69 @@ abstract class AbstractCommonNode
             ;
 
         return $this->pathUri;
+    }
+
+    /**
+     * Gets the owner of the file
+     *
+     * @return mixed
+     */
+    function getOwner()
+    {
+        return $this->filesystem()->getFileOwner($this);
+    }
+
+    /**
+     * Gets file permissions
+     * Should return an or combination of the PERMISSIONS
+     *
+     * exp. from storage WRITABLE|EXECUTABLE
+     *
+     * @return iFilePermissions
+     */
+    function getPerms()
+    {
+        return $this->filesystem()->getFilePerms($this);
+    }
+
+    /**
+     * Gets last access time of the file
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getATime()
+    {
+        return $this->filesystem()->getATime($this);
+    }
+
+    /**
+     * Returns the inode change time for the file
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getCTime()
+    {
+        return $this->filesystem()->getCTime($this);
+    }
+
+    /**
+     * Gets the last modified time
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getMTime()
+    {
+        return $this->filesystem()->getMTime($this);
+    }
+
+    /**
+     * Tells if file is readable
+     *
+     * @return bool
+     */
+    function isReadable()
+    {
+        return $this->filesystem()->isReadable($this);
     }
 
     /**

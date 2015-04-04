@@ -43,6 +43,27 @@ interface iCommonInfo
     function getPerms();
 
     /**
+     * Gets last access time of the file
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getATime();
+
+    /**
+     * Returns the inode change time for the file
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getCTime();
+
+    /**
+     * Gets the last modified time
+     *
+     * @return int Unix-TimeStamp
+     */
+    function getMTime();
+
+    /**
      * Returns parent directory's path
      *
      * /etc/passwd => /etc

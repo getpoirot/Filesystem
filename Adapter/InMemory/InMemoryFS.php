@@ -636,12 +636,12 @@ class InMemoryFS implements iFsBase
     /**
      * Gets last access time of file
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileATime(iFileInfo $file)
+    function getATime(iCommonInfo $file)
     {
         $pathUri = $this->pathUri()
             ->fromPathUri($file->pathUri());
@@ -662,12 +662,12 @@ class InMemoryFS implements iFsBase
      * ! when the permissions, owner, group, or other
      *   metadata from the inode is updated
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileCTime(iFileInfo $file)
+    function getCTime(iCommonInfo $file)
     {
         $pathUri = $this->pathUri()
             ->fromPathUri($file->pathUri());
@@ -687,12 +687,12 @@ class InMemoryFS implements iFsBase
      *
      * ! the time when the content of the file was changed
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileMTime(iFileInfo $file)
+    function getMTime(iCommonInfo $file)
     {
         $pathUri = $this->pathUri()
             ->fromPathUri($file->pathUri());

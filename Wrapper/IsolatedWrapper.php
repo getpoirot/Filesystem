@@ -508,17 +508,17 @@ class IsolatedWrapper extends AbstractWrapper
     /**
      * Gets last access time of file
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileATime(iFileInfo $file)
+    function getATime(iCommonInfo $file)
     {
         $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
-        return $this->gear()->getFileATime($file);
+        return $this->gear()->getATime($file);
     }
 
     /**
@@ -527,17 +527,17 @@ class IsolatedWrapper extends AbstractWrapper
      * ! when the permissions, owner, group, or other
      *   metadata from the inode is updated
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileCTime(iFileInfo $file)
+    function getCTime(iCommonInfo $file)
     {
         $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
-        return $this->gear()->getFileCTime($file);
+        return $this->gear()->getCTime($file);
     }
 
     /**
@@ -545,17 +545,17 @@ class IsolatedWrapper extends AbstractWrapper
      *
      * ! the time when the content of the file was changed
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileMTime(iFileInfo $file)
+    function getMTime(iCommonInfo $file)
     {
         $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
-        return $this->gear()->getFileMTime($file);
+        return $this->gear()->getMTime($file);
     }
 
     /**

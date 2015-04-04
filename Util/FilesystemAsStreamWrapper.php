@@ -668,7 +668,6 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         }
 
         if (is_callable([$this->_filesystem, 'getStat'])) {
-            kd($this->_filesystem->getStat($source));
             return $this->_filesystem->getStat($source);
         }
 
@@ -698,14 +697,14 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
             7      => ($this->_filesystem->isFile($source))  ? $source->getSize()  : 0,
             'size' => ($this->_filesystem->isFile($source))  ? $source->getSize()  : 0,
             # time of last access (Unix timestamp)
-            8       => ($this->_filesystem->isFile($source)) ? $source->getATime() : 0,
-            'atime' => ($this->_filesystem->isFile($source)) ? $source->getATime() : 0,
+            8       => $source->getATime(),
+            'atime' => $source->getATime(),
             # time of last modification (Unix timestamp)
-            9       => ($this->_filesystem->isFile($source)) ? $source->getMTime() : 0,
-            'mtime' => ($this->_filesystem->isFile($source)) ? $source->getMTime() : 0,
+            9       => $source->getMTime(),
+            'mtime' => $source->getMTime(),
             # time of last inode change (Unix timestamp)
-            10      => ($this->_filesystem->isFile($source)) ? $source->getCTime() : 0,
-            'ctime' => ($this->_filesystem->isFile($source)) ? $source->getCTime() : 0,
+            10      => $source->getCTime(),
+            'ctime' => $source->getCTime(),
             # blocksize of filesystem IO **
             11        => -1,
             'blksize' => -1,
@@ -713,8 +712,6 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
             12       => 0,
             'blocks' => 0,
         ];
-
-        kd($retArr);
 
         return $retArr;
     }

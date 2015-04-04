@@ -15,11 +15,9 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\FilePermissions;
-use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\Filesystem\Interfaces\iFsLocal;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\PathFileUri;
-use Poirot\PathUri\PathJoinUri;
 
 /**
  * ! Note: In PHP Most Of Filesystem actions need
@@ -704,12 +702,12 @@ class LocalFS implements iFsLocal
     /**
      * Gets last access time of file
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileATime(iFileInfo $file)
+    function getATime(iCommonInfo $file)
     {
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -737,12 +735,12 @@ class LocalFS implements iFsLocal
      * ! when the permissions, owner, group, or other
      *   metadata from the inode is updated
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileCTime(iFileInfo $file)
+    function getCTime(iCommonInfo $file)
     {
         // Note that on Windows systems, filectime will show the file creation time
 
@@ -771,12 +769,12 @@ class LocalFS implements iFsLocal
      *
      * ! the time when the content of the file was changed
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileMTime(iFileInfo $file)
+    function getMTime(iCommonInfo $file)
     {
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())

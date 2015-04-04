@@ -783,7 +783,7 @@ class FSFtp implements
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileMTime(iFileInfo $file)
+    function getMTime(iFileInfo $file)
     {
         $filename = $file->pathUri()->toString();
         // Upon failure, an E_WARNING is emitted.

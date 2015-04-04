@@ -181,12 +181,12 @@ interface iFsReadable
     /**
      * Gets last access time of file
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileATime(iFileInfo $file);
+    function getATime(iCommonInfo $file);
 
     /**
      * Gets inode change time of file
@@ -194,24 +194,24 @@ interface iFsReadable
      * ! when the permissions, owner, group, or other
      *   metadata from the inode is updated
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileCTime(iFileInfo $file);
+    function getCTime(iCommonInfo $file);
 
     /**
      * Gets file modification time
      *
      * ! the time when the content of the file was changed
      *
-     * @param iFileInfo $file
+     * @param iCommonInfo $file
      *
      * @throws \Exception On Failure
      * @return int timestamp Unix timestamp
      */
-    function getFileMTime(iFileInfo $file);
+    function getMTime(iCommonInfo $file);
 
     /**
      * Gets file size

@@ -30,16 +30,6 @@ class File extends AbstractCommonNode
     }
 
     /**
-     * Gets the owner of the file
-     *
-     * @return mixed
-     */
-    function getOwner()
-    {
-        return $this->filesystem()->getFileOwner($this);
-    }
-
-    /**
      * Changes file mode
      *
      * @param iFilePermissions $mode
@@ -51,19 +41,6 @@ class File extends AbstractCommonNode
         $this->filesystem()->chmod($this, $mode);
 
         return $this;
-    }
-
-    /**
-     * Gets file permissions
-     * Should return an or combination of the PERMISSIONS
-     *
-     * exp. from storage WRITABLE|EXECUTABLE
-     *
-     * @return iFilePermissions
-     */
-    function getPerms()
-    {
-        return $this->filesystem()->getFilePerms($this);
     }
 
     /**
@@ -158,16 +135,6 @@ class File extends AbstractCommonNode
     function isWritable()
     {
         return $this->filesystem()->isWritable($this);
-    }
-
-    /**
-     * Tells if file is readable
-     *
-     * @return bool
-     */
-    function isReadable()
-    {
-        return $this->filesystem()->isReadable($this);
     }
 
     /**
@@ -285,35 +252,5 @@ class File extends AbstractCommonNode
     function getSize()
     {
         return $this->filesystem()->getFileSize($this);
-    }
-
-    /**
-     * Gets last access time of the file
-     *
-     * @return int Unix-TimeStamp
-     */
-    function getATime()
-    {
-        return $this->filesystem()->getFileATime($this);
-    }
-
-    /**
-     * Returns the inode change time for the file
-     *
-     * @return int Unix-TimeStamp
-     */
-    function getCTime()
-    {
-        return $this->filesystem()->getFileCTime($this);
-    }
-
-    /**
-     * Gets the last modified time
-     *
-     * @return int Unix-TimeStamp
-     */
-    function getMTime()
-    {
-        return $this->filesystem()->getFileMTime($this);
     }
 }
