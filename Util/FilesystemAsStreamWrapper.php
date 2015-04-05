@@ -12,19 +12,38 @@ use Poirot\Stream\Wrapper\AbstractWrapper;
 
 class FilesystemAsStreamWrapper extends AbstractWrapper
 {
-    /*
+    /**
      * For stat() mode bits:
      * ! to detect is_dir, is_file, ....
      *
      * if ($fstats[mode] & 040000)
      * ... this must be a directory
      *
-     * @see http://www.manpagez.com/man/2/stat/
+     * @link http://www.manpagez.com/man/2/stat/
      */
-    const  S_IFMT  = 0170000;  /* type of file */
-    const  S_IFDIR = 0040000;  /* directory */
-    const  S_IFREG = 0100000;  /* regular */
-    const  S_IFLNK = 0120000;  /* symbolic link */
+    const S_IFMT   = 0170000;   // bitmask for the file type bitfields
+    const S_IFSOCK = 0140000;   // socket
+    const S_IFLNK  = 0120000;   // symbolic link
+    const S_IFREG  = 0100000;   // regular file
+    const S_IFBLK  = 0060000;   // block device
+    const S_IFDIR  = 0040000;   // directory
+    const S_IFCHR  = 0020000;   // character device
+    const S_IFIFO  = 0010000;   // fifo
+    const S_ISUID  = 0004000;   // set UID bit
+    const S_ISGID  = 0002000;   // set GID bit (see below)
+    const S_ISVTX  = 0001000;   // sticky bit (see below)
+    const S_IRWXU  =   00700;   // mask for file owner permissions
+    const S_IRUSR  =   00400;   // owner has read permission
+    const S_IWUSR  =   00200;   // owner has write permission
+    const S_IXUSR  =   00100;   // owner has execute permission
+    const S_IRWXG  =   00070;   // mask for group permissions
+    const S_IRGRP  =   00040;   // group has read permission
+    const S_IWGRP  =   00020;   // group has write permission
+    const S_IXGRP  =   00010;   // group has execute permission
+    const S_IRWXO  =   00007;   // mask for permissions for others (not in group)
+    const S_IROTH  =   00004;   // others have read permission
+    const S_IWOTH  =   00002;   // others have write permisson
+    const S_IXOTH  =   00001;   // others have execute permission
 
     /**
      * @var array[iFilesystem]
@@ -685,6 +704,7 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
             return $this->_filesystem->getStat($source);
         }
 
+        // Mode Stat Bit:
         $mode = ($this->_filesystem->isDir($source))
             // dir
             ? self::S_IFDIR
@@ -700,6 +720,11 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
                     : false
                 )
             );
+        # check execution
+        $mode |= self::S_IXUSR;
+
+        # check is readable
+        $mode |= self::S_IRUSR;
 
         $retArr = [
             # device number
