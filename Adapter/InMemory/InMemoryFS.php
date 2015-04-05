@@ -24,28 +24,78 @@ class InMemoryFS implements iFsBase
     protected $cwdPath = '/';
 
     protected $tree = [
+        /*
         '/' => [
             '__meta__' => [
                 'type'       => 'dir',
                 'owner'      => 'root',
                 'group'      => 'root',
                 'permission' => 0755,
-                'atime'      => null/*time()*/,
-                'mtime'      => null/*time()*/,
-                'ctime'      => null/*time()*/,
+                'atime'      => null, # time(),
+                'mtime'      => null, # time(),
+                'ctime'      => null, # time(),
             ]
-            /*
-            'nameOfFile' => [
+            , 'nameOfFile' => [
                 '__meta__' => [
                     'type'    => 'file',
                     'content' => '',
                 ]
             ]
-            */
         ]
+        */
     ];
 
+    protected static $def_owner;
+    protected static $def_group;
+
     protected $__cachedSeekResolve = [];
+
+    /**
+     * Construct
+     *
+     */
+    function __construct()
+    {
+        $this->tree = [
+            '/' => [
+                '__meta__' => [
+                    'type'       => 'dir',
+                    'owner'      => self::getDefOwner(),
+                    'group'      => self::getDefGroup(),
+                    'permission' => 0755,
+                    'atime'      => null, # time(),
+                    'mtime'      => null, # time(),
+                    'ctime'      => null, # time(),
+                ]
+            ]
+        ];
+    }
+
+    static function getDefOwner()
+    {
+        if (self::$def_owner === null)
+            self::setDefOwner(getmyuid());
+
+        return self::$def_owner;
+    }
+
+    static function setDefOwner($owner)
+    {
+        self::$def_owner = $owner;
+    }
+
+    static function getDefGroup()
+    {
+        if (self::$def_owner === null)
+            self::setDefGroup(getmygid());
+
+        return self::$def_owner;
+    }
+
+    static function setDefGroup($group)
+    {
+        self::$def_group = $group;
+    }
 
     /**
      * Gets the current working directory
@@ -605,8 +655,8 @@ class InMemoryFS implements iFsBase
             '__meta__' => [
                 'type'       => 'file',
                 'content'    => $contents,
-                'owner'      => 'root',
-                'group'      => 'root',
+                'owner'      => self::getDefOwner(),
+                'group'      => self::getDefGroup(),
                 'permission' => 0755,
                 'atime'      => time(),
                 'mtime'      => time(),
@@ -807,8 +857,8 @@ class InMemoryFS implements iFsBase
             '__meta__' => [
                 'type'       => 'link',
                 'target'     => $targetSeek,
-                'owner'      => 'root',
-                'group'      => 'root',
+                'owner'      => self::getDefOwner(),
+                'group'      => self::getDefGroup(),
                 'permission' => 0755,
                 'atime'      => time(),
                 'mtime'      => time(),
@@ -842,8 +892,8 @@ class InMemoryFS implements iFsBase
                     '__meta__' => [
                         'type'        => 'dir',
                         'permissions' => $mode->getTotalPerms(),
-                        'owner'      => 'root',
-                        'group'      => 'root',
+                        'owner'      => self::getDefOwner(),
+                        'group'      => self::getDefGroup(),
                         'atime'      => time(),
                         'mtime'      => time(),
                         'ctime'      => time(),
