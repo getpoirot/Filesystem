@@ -721,10 +721,16 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
                 )
             );
         # check execution
-        $mode |= self::S_IXUSR;
+        if ($this->_filesystem->isReadable($source))
+            // TODO check executable
+            $mode |= self::S_IXUSR; // executable by owner
 
         # check is readable
-        $mode |= self::S_IRUSR;
+        if ($this->_filesystem->isReadable($source))
+            $mode |= self::S_IRUSR; // readable by owner
+
+        if ($this->_filesystem->isWritable($source))
+            $mode |= self::S_IWUSR; // writable by owner
 
         $retArr = [
             # device number
