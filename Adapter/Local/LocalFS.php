@@ -1160,13 +1160,17 @@ class LocalFS implements iFsLocal
     /**
      * Sets access time of file
      *
-     * @param iFile $file
-     * @param null  $time
+     * ! Prior to PHP 5.3.0 it was not possible to change
+     *   the modification time of a directory with this
+     *   function under Windows.
+     *
+     * @param iCommonInfo $file
+     * @param null        $time
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chFileATime(iFile $file, $time = null)
+    function chATime(iCommonInfo $file, $time = null)
     {
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
@@ -1189,13 +1193,17 @@ class LocalFS implements iFsLocal
     /**
      * Sets modification time of file
      *
-     * @param iFile $file
-     * @param null  $time
+     * ! Prior to PHP 5.3.0 it was not possible to change
+     *   the modification time of a directory with this
+     *   function under Windows.
+     *
+     * @param iCommonInfo $file
+     * @param null        $time
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chFileMTime(iFile $file, $time = null)
+    function chMTime(iCommonInfo $file, $time = null)
     {
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())

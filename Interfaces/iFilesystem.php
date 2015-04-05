@@ -30,8 +30,8 @@ use Poirot\PathUri\Interfaces\iPathFileUri;
  * @method $this mkDir(iDirectoryInfo $dir, iFilePermissions $mode = null)
  * @method $this rename(iCommonInfo $file, $newName)
  * @method $this rmDir(iDirectoryInfo $dir)
- * @method $this chFileATime(iFile $file, $time = null)
- * @method $this chFileMTime(iFile $file, $time = null)
+ * @method $this chATime(iCommonInfo $file, $time = null)
+ * @method $this chMTime(iCommonInfo $file, $time = null)
  * @method $this unlink($file)
  *
  * @method iDirectory getCwd()
