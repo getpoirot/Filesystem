@@ -28,18 +28,6 @@ class Link extends AbstractCommonNode
     }
 
     /**
-     * Returns parent directory's path
-     *
-     * /etc/passwd => /etc
-     *
-     * @return iDirectory
-     */
-    function dirUp()
-    {
-        return $this->filesystem()->dirUp($this);
-    }
-
-    /**
      * Gets the target of a link
      *
      * @param iFile|iDirectory $target Target

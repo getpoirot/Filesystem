@@ -68,18 +68,6 @@ class File extends AbstractCommonNode
     }
 
     /**
-     * Returns parent directory's path
-     *
-     * /etc/passwd => /etc
-     *
-     * @return iDirectory
-     */
-    function dirUp()
-    {
-        return $this->filesystem()->dirUp($this);
-    }
-
-    /**
      * Copy to new directory
      *
      * - Merge if directory exists

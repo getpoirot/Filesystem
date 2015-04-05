@@ -76,18 +76,6 @@ class Directory extends AbstractCommonNode
     }
 
     /**
-     * Returns parent directory's path
-     *
-     * /etc/passwd => /etc
-     *
-     * @return iDirectory
-     */
-    function dirUp()
-    {
-        return $this->filesystem()->dirUp($this);
-    }
-
-    /**
      * Delete a directory from storage
      *
      * @return bool

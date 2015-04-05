@@ -3,6 +3,7 @@ namespace Poirot\Filesystem\Adapter;
 
 use Poirot\Filesystem\Adapter\Local\LocalFS;
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
+use Poirot\Filesystem\Interfaces\Filesystem\iDirectory;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFsBase;
@@ -71,6 +72,18 @@ abstract class AbstractCommonNode
             ;
 
         return $this->pathUri;
+    }
+
+    /**
+     * Returns parent directory's path
+     *
+     * /etc/passwd => /etc
+     *
+     * @return iDirectory
+     */
+    function dirUp()
+    {
+        return $this->filesystem()->dirUp($this);
     }
 
     /**
