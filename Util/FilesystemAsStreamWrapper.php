@@ -7,7 +7,10 @@ use Poirot\Filesystem\Adapter\File;
 use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iLink;
 use Poirot\Filesystem\Interfaces\iFilesystem;
+use Poirot\Filesystem\Interfaces\iFsStreamable;
 use Poirot\Filesystem\Util;
+use Poirot\Stream\Interfaces\iSResource;
+use Poirot\Stream\Streamable;
 use Poirot\Stream\Wrapper\AbstractWrapper;
 
 class FilesystemAsStreamWrapper extends AbstractWrapper
@@ -84,6 +87,8 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
     protected $stream_read_position;
 
     protected $stream_write_buff;
+    protected $__attained_stream_res;
+
 
     /**
      * Construct
@@ -227,6 +232,23 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
     }
 
     /**
+     * @throws \Exception
+     * @return iSResource
+     */
+    protected function __attainStreamRes()
+    {
+        if ($this->stream_open_path === null)
+            throw new \Exception('Not have open Stream.');
+
+        if (!$this->__attained_stream_res) {
+            $file = $this->_filesystem->mkFromPath($this->stream_open_path);
+            $this->__attained_stream_res = $this->_filesystem->mkStreamFrom($file);
+        }
+
+        return $this->__attained_stream_res;
+    }
+
+    /**
      * Write to stream.
      * This method is called in response to fwrite().
      *
@@ -239,16 +261,17 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         if ($this->stream_open_path === null)
             return false;
 
-        // TODO implement stream open mode
-        // TODO implement stream aware filesystem
+        try {
+            if ($this->_filesystem instanceof iFsStreamable)
+                return $this->__stream_write_stream($data);
 
-        $this->stream_write_buff = $data;
-        $size = mb_strlen($data, '8bit');
+            // write solid:
 
-        try{
+            // TODO implement stream open mode
             $file = new File($this->stream_open_path);
+            $this->stream_write_buff = $data;
+            $size = mb_strlen($data, '8bit');
             $this->_filesystem->putFileContents($file, $this->stream_write_buff);
-
             $this->stream_write_buff = null;
         } catch (\Exception $e)
         {
@@ -257,6 +280,16 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
 
         return $size;
     }
+
+        protected function __stream_write_stream($data)
+        {
+            $sRes = $this->__attainStreamRes();
+            $strm = new Streamable($sRes);
+
+            $strm->write($data);
+
+            return $strm->getTransCount();
+        }
 
     /**
      * Read from stream.
@@ -268,19 +301,34 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     function stream_read($count)
     {
-        if ($this->stream_eof() || $this->stream_open_path === null)
+        if ($this->stream_open_path === null)
             return false;
 
+        if ($this->_filesystem instanceof iFsStreamable)
+            return $this->__stream_read_stream($count);
+
+
         // TODO implement stream open mode
-        // TODO implement stream aware filesystem
+        if ($this->stream_eof())
+            return false;
 
         $file    = $this->_filesystem->mkFromPath($this->stream_open_path);
         $content = $this->_filesystem->getFileContents($file);
-
         $this->stream_read_position += $file->getSize();
 
         return $content;
     }
+
+        protected function __stream_read_stream($count)
+        {
+            $sRes    = $this->__attainStreamRes();
+            $strm    = new Streamable($sRes);
+            $content = $strm->read($count);
+
+            $this->stream_read_position += $strm->getTransCount();
+
+            return $content;
+        }
 
     /**
      * Tests for end-of-file on a file pointer.
@@ -293,8 +341,11 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
         if ($this->stream_open_path === null)
             return true;
 
-        // TODO implement stream open mode
-        // TODO implement stream aware filesystem
+        if ($this->_filesystem instanceof iFsStreamable) {
+            $sRes = $this->__attainStreamRes();
+
+            return $sRes->isEOF();
+        }
 
         $file    = $this->_filesystem->mkFromPath($this->stream_open_path);
 
@@ -319,9 +370,21 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     function stream_seek($offset, $whence = SEEK_SET )
     {
-        kd(__FUNCTION__);
-    }
+        if ($this->stream_open_path === null)
+            return false;
 
+        if (!$this->_filesystem instanceof iFsStreamable)
+            return false;
+
+        $sRes = $this->__attainStreamRes();
+        if (!$sRes->isSeekable())
+            return false;
+
+        $strm = new Streamable($sRes);
+        $strm->seek($offset, $whence);
+
+        return true;
+    }
     /**
      * Retrieve the current position of a stream.
      * This method is called in response to ftell()
@@ -330,7 +393,17 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     function stream_tell()
     {
-        kd(__FUNCTION__);
+        if ($this->stream_open_path === null)
+            return false;
+
+        if (!$this->_filesystem instanceof iFsStreamable)
+            return false;
+
+        $sRes = $this->__attainStreamRes();
+        if (!$sRes->isSeekable())
+            return false;
+
+        return $sRes->getCurrOffset();
     }
 
     /**
@@ -453,7 +526,15 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
      */
     function stream_cast($cast_as)
     {
-        kd(__FUNCTION__);
+        if ($this->stream_open_path === null)
+            return false;
+
+        if (!$this->_filesystem instanceof iFsStreamable)
+            return false;
+
+        $sRes = $this->__attainStreamRes();
+
+        return $sRes->getRHandler();
     }
 
     // Implement Directories:
