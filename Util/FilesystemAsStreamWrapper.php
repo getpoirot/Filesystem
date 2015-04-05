@@ -12,6 +12,20 @@ use Poirot\Stream\Wrapper\AbstractWrapper;
 
 class FilesystemAsStreamWrapper extends AbstractWrapper
 {
+    /*
+     * For stat() mode bits:
+     * ! to detect is_dir, is_file, ....
+     *
+     * if ($fstats[mode] & 040000)
+     * ... this must be a directory
+     *
+     * @see http://www.manpagez.com/man/2/stat/
+     */
+    const  S_IFMT  = 0170000;  /* type of file */
+    const  S_IFDIR = 0040000;  /* directory */
+    const  S_IFREG = 0100000;  /* regular */
+    const  S_IFLNK = 0120000;  /* symbolic link */
+
     /**
      * @var array[iFilesystem]
      */
@@ -671,6 +685,22 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
             return $this->_filesystem->getStat($source);
         }
 
+        $mode = ($this->_filesystem->isDir($source))
+            // dir
+            ? self::S_IFDIR
+            : (
+                ($this->_filesystem->isLink($source))
+                // link
+                ? self::S_IFLNK
+                :(
+                    ($this->_filesystem->isFile($source))
+                    // file
+                    ? self::S_IFREG
+                    // unknown
+                    : false
+                )
+            );
+
         $retArr = [
             # device number
             0     => null,
@@ -679,8 +709,8 @@ class FilesystemAsStreamWrapper extends AbstractWrapper
             1     => null,
             'ino' => null,
             # inode protection mode
-            2      => null,
-            'mode' => null,
+            2      => $mode,
+            'mode' => $mode,
             # number of links
             3       => null,
             'nlink' => null,
