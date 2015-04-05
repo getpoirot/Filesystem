@@ -189,6 +189,10 @@ if ($dh = opendir('sama:///')) {
     closedir($dh);
 }
 
+// check given path is directory
+if (!is_dir('sama:///Backup'))
+    die('Script Not Dead!');
+
 // or
 $dirList = scandir('sama:///');
 var_dump($dirList);
@@ -199,13 +203,45 @@ rename('sama:///Backup', 'sama:///backup');
 // Remove Directory ...........................................\
 rmdir('sama:///backup');
 
-// Open File With Handler .....................................\
+// Write new file content .....................................\
 $fh = fopen('sama:///test-file.txt', iSRAccessMode::MODE_RWB);
-
-// write content on file
 fwrite($fh, 'This is Test Content Of File', 100);
 
-echo fread($fh, 1000); // output: This is Test Content Of File
+// or
+
+file_put_contents('sama:///new-file.txt', "The second content provided.\r\n");
+
+if (!is_file('sama:///new-file.txt'))
+    die('Script Not Dead!');
+
+// Read contents of file ......................................\
+# echo fread($fh, 1000); // output: This is Test Content Of File
+
+// Output all remaining data on a file pointer
+# fpassthru($fh);
+
+# rewind($fh);
+while (($buffer = fgets($fh, 4096)) !== false) {
+    echo $buffer;
+}
+echo '<br/>';
+
+var_dump(feof($fh));
+
+if (is_readable('sama:///new-file.txt'))
+{
+    // This section will run
+    $content = file_get_contents('sama:///new-file.txt');
+    echo $content;
+}
+
+$lines = file('sama:///test-file.txt');
+k($lines);
+
+rewind($fh);
+while (false !== $char = fgetc($fh))
+    echo $char;
+
 
 // Interaction Between Virtual Filesystem Wrapper And Local .........\
 copy('sama:///test-file.txt', 'local:///backup/test-file.txt');
