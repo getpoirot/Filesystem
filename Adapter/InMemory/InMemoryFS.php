@@ -226,7 +226,10 @@ class InMemoryFS implements iFsBase
      */
     function chgrp(iCommonInfo $file, $group)
     {
-        // TODO Implement Feature
+        $seek = &$this->__seekTreeFromPath($file->pathUri(), true);
+        $this->__changeMetaProp($seek, 'group', $group);
+
+        return $this;
     }
 
     /**
@@ -265,7 +268,10 @@ class InMemoryFS implements iFsBase
      */
     function chmod(iCommonInfo $file, iFilePermissions $mode)
     {
-        // TODO Implement Feature
+        $seek = &$this->__seekTreeFromPath($file->pathUri(), true);
+        $this->__changeMetaProp($seek, 'mode', $mode->getTotalPerms());
+
+        return $this;
     }
 
     /**
@@ -302,7 +308,10 @@ class InMemoryFS implements iFsBase
      */
     function chown(iCommonInfo $file, $user)
     {
-        // TODO Implement Feature
+        $seek = &$this->__seekTreeFromPath($file->pathUri(), true);
+        $this->__changeMetaProp($seek, 'owner', $user);
+
+        return $this;
     }
 
     /**
@@ -832,7 +841,12 @@ class InMemoryFS implements iFsBase
                 $tree[$curr] = [
                     '__meta__' => [
                         'type'        => 'dir',
-                        'permissions' => $mode->getTotalPerms()
+                        'permissions' => $mode->getTotalPerms(),
+                        'owner'      => 'root',
+                        'group'      => 'root',
+                        'atime'      => time(),
+                        'mtime'      => time(),
+                        'ctime'      => time(),
                     ],
                 ];
 
@@ -1015,29 +1029,41 @@ class InMemoryFS implements iFsBase
     /**
      * Sets access time of file
      *
-     * @param iFile $file
-     * @param null  $time
+     * @param iCommonInfo $file
+     * @param null        $time
      *
      * @throws \Exception On Failure
+     *
      * @return $this
      */
-    function chFileATime(iFile $file, $time = null)
+    function chATime(iCommonInfo $file, $time = null)
     {
-        // TODO Implement Feature
+        ($time !== null) ?: $time = time();
+
+        $seek = &$this->__seekTreeFromPath($file->pathUri(), true);
+        $this->__changeMetaProp($seek, 'atime', $time);
+
+        return $this;
     }
 
     /**
      * Sets modification time of file
      *
-     * @param iFile $file
-     * @param null  $time
+     * @param iCommonInfo $file
+     * @param null        $time
      *
      * @throws \Exception On Failure
+     *
      * @return $this
      */
-    function chFileMTime(iFile $file, $time = null)
+    function chMTime(iCommonInfo $file, $time = null)
     {
-        // TODO Implement Feature
+        ($time !== null) ?: $time = time();
+
+        $seek = &$this->__seekTreeFromPath($file->pathUri(), true);
+        $this->__changeMetaProp($seek, 'mtime', $time);
+
+        return $this;
     }
 
     /**
@@ -1090,6 +1116,23 @@ class InMemoryFS implements iFsBase
         unset($seek[$fileName]);
 
         return $this;
+    }
+
+    /**
+     * Change Node Meta Properties
+     *
+     * @param array  $node
+     * @param string $prop
+     * @param mixed  $value
+     *
+     * @throws \Exception
+     */
+    protected function __changeMetaProp(array &$node, $prop, $value)
+    {
+        if (! isset($node['__meta__']))
+            throw new \Exception('Invalid Node.');
+
+        $node['__meta__'][$prop] = $value;
     }
 
     /**
