@@ -18,6 +18,10 @@ use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\iFsLocal;
 use Poirot\PathUri\Interfaces\iPathFileUri;
 use Poirot\PathUri\PathFileUri;
+use Poirot\Stream\Interfaces\iSResource;
+use Poirot\Stream\Interfaces\Resource\iSRAccessMode;
+use Poirot\Stream\Resource\SROpenMode;
+use Poirot\Stream\WrapperClient;
 
 /**
  * ! Note: In PHP Most Of Filesystem actions need
@@ -117,6 +121,32 @@ class LocalFS implements iFsLocal
             $return->setTarget( $this->linkRead($return) );
 
         return $return;
+    }
+
+    /**
+     * Make Stream Resource From File Location
+     *
+     * - create stream resource from file location
+     *
+     * @param iFileInfo     $file
+     * @param iSRAccessMode $mode Open mode
+     *
+     * @return iSResource
+     */
+    function mkStreamFrom(iFileInfo $file, iSRAccessMode $mode = null)
+    {
+        $filename = $this->pathUri()
+            ->fromPathUri($file->pathUri())
+            ->toString()
+        ;
+
+        $this->__validateFilepath($filename);
+
+        ($mode !== null) ?: $mode = (new SROpenMode(iSRAccessMode::MODE_RB))->asBinary();
+
+        $wc = new WrapperClient('file://'.$filename, $mode);
+
+        return $wc->getConnect();
     }
 
     /**

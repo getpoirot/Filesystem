@@ -3,7 +3,7 @@ namespace Poirot\Filesystem\Interfaces;
 
 use Poirot\Filesystem\Interfaces\Filesystem\iCommonInfo;
 
-interface iFsLocal extends iFsBase
+interface iFsLocal extends iFsBase, iFsStreamable
 {
     /**
      * Gives information about a file
