@@ -753,35 +753,35 @@ class IsolatedWrapper extends AbstractWrapper
     /**
      * Sets access time of file
      *
-     * @param iFile $file
-     * @param null  $time
+     * @param iCommonInfo $file
+     * @param null        $time
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chFileATime(iFile $file, $time = null)
+    function chATime(iCommonInfo $file, $time = null)
     {
         $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
-        return $this->gear()->chFileATime($file, $time);
+        return $this->gear()->chATime($file, $time);
     }
 
     /**
      * Sets modification time of file
      *
-     * @param iFile $file
-     * @param null  $time
+     * @param iCommonInfo $file
+     * @param null        $time
      *
      * @throws \Exception On Failure
      * @return $this
      */
-    function chFileMTime(iFile $file, $time = null)
+    function chMTime(iCommonInfo $file, $time = null)
     {
         $pathStr = $this->__getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
-        return $this->gear()->chFileMTime($file, $time);
+        return $this->gear()->chMTime($file, $time);
     }
 
     /**
