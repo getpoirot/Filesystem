@@ -18,6 +18,8 @@ use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\iFsLocal;
 use Poirot\PathUri\FilePathUri;
 use Poirot\PathUri\Interfaces\iFilePathUri;
+use Poirot\PathUri\SeqPathJoinUri;
+use Poirot\Stream\Interfaces\Context\iSContext;
 use Poirot\Stream\Interfaces\iSResource;
 use Poirot\Stream\Interfaces\Resource\iSRAccessMode;
 use Poirot\Stream\Resource\SROpenMode;
@@ -128,13 +130,26 @@ class LocalFS implements iFsLocal
      *
      * - create stream resource from file location
      *
-     * @param iFileInfo     $file
-     * @param iSRAccessMode $mode Open mode
+     * @param iFileInfo                     $file
+     * @param iSRAccessMode|string          $openMode Open mode
+     * @param iSContext|array|resource|null $context  Context Options
      *
      * @return iSResource
      */
-    function mkStreamFrom(iFileInfo $file, iSRAccessMode $mode = null)
+    function mkStreamFrom(iFileInfo $file, $openMode = iSRAccessMode::MODE_RB, $context = null)
     {
+        $file = clone $file;
+
+        $pathUri = $file->pathUri();
+
+        if (!$pathUri->isAbsolute())
+            // !! We need absolute path for file:// stream wrappers
+            // Append current working directory
+            $pathUri->prepend(new SeqPathJoinUri([
+                'path'      => $this->getCwd()->pathUri()->toString(),
+                'separator' => $this->pathUri()->getSeparator()
+            ]));
+
         $filename = $this->pathUri()
             ->fromPathUri($file->pathUri())
             ->toString()
@@ -142,9 +157,18 @@ class LocalFS implements iFsLocal
 
         $this->__validateFilepath($filename);
 
-        ($mode !== null) ?: $mode = (new SROpenMode(iSRAccessMode::MODE_RB))->asBinary();
+        if (is_string($openMode))
+            $openMode = new SROpenMode($openMode);
 
-        $wc = new WrapperClient('file://'.$filename, $mode);
+        if (! $openMode instanceof iSRAccessMode)
+            throw new \InvalidArgumentException(sprintf(
+                'OpenMode must instance of iSRAccessMode or string, "%s" given.'
+                , is_object($openMode) ? get_class($openMode) : gettype($openMode)
+            ));
+
+        $openMode->asBinary();
+
+        $wc = new WrapperClient('file://'.$filename, $openMode);
 
         return $wc->getConnect();
     }
