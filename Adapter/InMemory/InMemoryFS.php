@@ -15,9 +15,9 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFsBase;
-use Poirot\PathUri\Interfaces\iPathFileUri;
-use Poirot\PathUri\PathFileUri;
-use Poirot\PathUri\PathJoinUri;
+use Poirot\PathUri\Interfaces\iFilePathUri;
+use Poirot\PathUri\FilePathUri;
+use Poirot\PathUri\SeqPathJoinUri;
 
 class InMemoryFS implements iFsBase
 {
@@ -138,7 +138,7 @@ class InMemoryFS implements iFsBase
 
         // Absolute paths from home for current directories
         $cwd = $this->getCwd()->pathUri()->getPath()
-            ->append(new PathJoinUri([
+            ->append(new SeqPathJoinUri([
                 'path'       => $dirPath->toString(),
                 'separator' => $this->pathUri()->getSeparator()
             ]))
@@ -199,14 +199,14 @@ class InMemoryFS implements iFsBase
      *   pathUri
      *
      * @throws \Exception
-     * @return iPathFileUri
+     * @return iFilePathUri
      */
     function pathUri()
     {
-        $pathFileUri = new PathFileUri;
-        $pathFileUri->setSeparator(DIRECTORY_SEPARATOR);
+        $FilePathUri = new FilePathUri;
+        $FilePathUri->setSeparator(DIRECTORY_SEPARATOR);
 
-        return $pathFileUri;
+        return $FilePathUri;
     }
 
     // Directory Implementation:
@@ -1014,7 +1014,7 @@ class InMemoryFS implements iFsBase
         if (!$newPathUri->isAbsolute())
             // append file directory
             $newPathUri->getPath()->prepend(
-                new PathJoinUri([
+                new SeqPathJoinUri([
                     'path' => $this->dirUp($file)->pathUri()->toString(),
                     'separator' => $this->pathUri()->getSeparator()
                 ])
@@ -1197,13 +1197,13 @@ class InMemoryFS implements iFsBase
      *       $this->tree['nameOfDirectory']['newFile'] = ['__meta__' => ['type' => 'file']];
      *       you always see latest data, because of reference
      *
-     * @param iPathFileUri $path Path To File Or Dir
+     * @param iFilePathUri $path Path To File Or Dir
      * @param bool $throw Throw Exception
      *
      * @throws FileNotFoundException
      * @return array|bool
      */
-    protected function &__seekTreeFromPath(iPathFileUri $path, $throw = false)
+    protected function &__seekTreeFromPath(iFilePathUri $path, $throw = false)
     {
         $path = clone $path;
         $path = $this->pathUri()->fromPathUri($path);
@@ -1213,7 +1213,7 @@ class InMemoryFS implements iFsBase
         $paths = $this->__parseToPathStepsArray($path);
 
         // Cached:
-        $hash = (new PathJoinUri())->setPath($paths)->toString();
+        $hash = (new SeqPathJoinUri())->setPath($paths)->toString();
         if (array_key_exists($hash, $this->__cachedSeekResolve))
             return $this->__cachedSeekResolve[$hash];
 
@@ -1248,20 +1248,20 @@ class InMemoryFS implements iFsBase
      * steps map from home to folder in array
      * ['/', 'var', 'www']
      *
-     * @param iPathFileUri $path
+     * @param iFilePathUri $path
      *
      * @return array
      */
-    protected function __parseToPathStepsArray(iPathFileUri $path)
+    protected function __parseToPathStepsArray(iFilePathUri $path)
     {
-        $pathUri = new PathJoinUri([
+        $pathUri = new SeqPathJoinUri([
             'path'      => $path->normalize()->toString(),
             'separator' => $this->pathUri()->getSeparator()
         ]);
 
         if (!$pathUri->isAbsolute())
             // Append current working directory
-            $pathUri->prepend(new PathJoinUri([
+            $pathUri->prepend(new SeqPathJoinUri([
                 'path'      => $this->getCwd()->pathUri()->toString(),
                 'separator' => $this->pathUri()->getSeparator()
             ]));

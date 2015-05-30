@@ -13,9 +13,9 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFsBase;
-use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\Interfaces\iFilePathUri;
 use Poirot\PathUri\Interfaces\iPathJoinedUri;
-use Poirot\PathUri\PathJoinUri;
+use Poirot\PathUri\SeqPathJoinUri;
 
 class IsolatedWrapper extends AbstractWrapper
 {
@@ -87,7 +87,7 @@ class IsolatedWrapper extends AbstractWrapper
             ));
 
         if (is_string($dir))
-            $dir = new PathJoinUri([
+            $dir = new SeqPathJoinUri([
                 'path'      => $dir,
                 'separator' => $this->pathUri()->getSeparator()
             ]);
@@ -111,8 +111,8 @@ class IsolatedWrapper extends AbstractWrapper
         // Finalize:
 
         // Check that current working directory is within root path >>>>> {
-        $rdPath = new PathJoinUri($dir->toString());
-        $cdPath  = new PathJoinUri([
+        $rdPath = new SeqPathJoinUri($dir->toString());
+        $cdPath  = new SeqPathJoinUri([
             'path'      => $this->gear()->getCwd()->pathUri()->toString(),
             #'separator' => $this->pathUri()->getSeparator()
         ]);
@@ -138,7 +138,7 @@ class IsolatedWrapper extends AbstractWrapper
     {
         if (!$this->rootDir)
             // root "/"
-            $this->chRootPath(new PathJoinUri(
+            $this->chRootPath(new SeqPathJoinUri(
                 [ 'path' => [''] ]
             ));
 
@@ -161,19 +161,19 @@ class IsolatedWrapper extends AbstractWrapper
         $dirObj = $this->gear()->getCwd();
         $cwd    = $dirObj->pathUri()->toString();
 
-        $rdPath = new PathJoinUri($this->getRootPath()->toString());
+        $rdPath = new SeqPathJoinUri($this->getRootPath()->toString());
 
         // check cwd scope:
         if ($this->__lastCDir !== null
             && $cwd !== $this->__lastCDir
         ) {
             // Current Directory Changed Outside of class scope
-            $ldPath  = new PathJoinUri([
+            $ldPath  = new SeqPathJoinUri([
                 'path'      => $this->__lastCDir,
                 'separator' => $this->pathUri()->getSeparator()
             ]);
             $path = $ldPath->mask($rdPath)
-                ->prepend(new PathJoinUri($this->pathUri()->getSeparator()))
+                ->prepend(new SeqPathJoinUri($this->pathUri()->getSeparator()))
                 ->toString()
             ;
 
@@ -183,7 +183,7 @@ class IsolatedWrapper extends AbstractWrapper
             return $this->getCwd();
         }
 
-        $cdPath  = new PathJoinUri([
+        $cdPath  = new SeqPathJoinUri([
             'path'      => $cwd,
             'separator' => $this->pathUri()->getSeparator()
         ]);
@@ -193,7 +193,7 @@ class IsolatedWrapper extends AbstractWrapper
         // and real cwd is [/var/www/data/]images
         // we turn it into /images
         $path = $cdPath->mask($rdPath)
-            ->prepend(new PathJoinUri($this->pathUri()->getSeparator()))
+            ->prepend(new SeqPathJoinUri($this->pathUri()->getSeparator()))
             ->toString()
         ;
 
@@ -854,7 +854,7 @@ class IsolatedWrapper extends AbstractWrapper
             ->toString()
         ;
 
-        $pathIso = (new PathJoinUri([
+        $pathIso = (new SeqPathJoinUri([
             'path' => $nodePathStr,
             'separator' => $this->pathUri()->getSeparator()
         ]))
@@ -862,7 +862,7 @@ class IsolatedWrapper extends AbstractWrapper
 
         if($node->pathUri()->isAbsolute())
             // /var/www/html/upload/help.pdf mask /var/www/html/upload ===> /help.pdf
-            $pathIso->prepend(new PathJoinUri([ 'path' => ['',] ]));
+            $pathIso->prepend(new SeqPathJoinUri([ 'path' => ['',] ]));
 
         $pathIso = $pathIso->toString();
         $node->pathUri()
@@ -876,7 +876,7 @@ class IsolatedWrapper extends AbstractWrapper
     /**
      * Get Real Filesystem Path String From Isolated Path
      *
-     * @param iCommonInfo|iPathFileUri|iPathJoinedUri|string $node
+     * @param iCommonInfo|iFilePathUri|iPathJoinedUri|string $node
      *
      * @return string
      */
@@ -884,12 +884,12 @@ class IsolatedWrapper extends AbstractWrapper
     {
         // Achieve Path Object:
         if ($node instanceof iCommonInfo)
-            $path = new PathJoinUri([
+            $path = new SeqPathJoinUri([
                 'path'      => $node->pathUri()->toString(),
                 'separator' => $node->pathUri()->getSeparator()
             ]);
         elseif (is_string($node))
-            $path = new PathJoinUri([
+            $path = new SeqPathJoinUri([
                 'path'      => $node,
                 'separator' => $this->pathUri()->getSeparator()
             ]);
@@ -897,7 +897,7 @@ class IsolatedWrapper extends AbstractWrapper
         // Get Isolated Real Filesystem Path To File:
 
         if (!$path->isAbsolute()) {
-            $cwdPath = new PathJoinUri([
+            $cwdPath = new SeqPathJoinUri([
                 'path'      => $this->getCwd()->pathUri()->toString(),
                 'separator' => $this->pathUri()->getSeparator()
             ]);

@@ -16,8 +16,8 @@ use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\FilePermissions;
 use Poirot\Filesystem\Interfaces\iFsLocal;
-use Poirot\PathUri\Interfaces\iPathFileUri;
-use Poirot\PathUri\PathFileUri;
+use Poirot\PathUri\FilePathUri;
+use Poirot\PathUri\Interfaces\iFilePathUri;
 use Poirot\Stream\Interfaces\iSResource;
 use Poirot\Stream\Interfaces\Resource\iSRAccessMode;
 use Poirot\Stream\Resource\SROpenMode;
@@ -159,14 +159,14 @@ class LocalFS implements iFsLocal
      *   pathUri
      *
      * @throws \Exception
-     * @return iPathFileUri
+     * @return iFilePathUri
      */
     function pathUri()
     {
-        $pathFileUri = new PathFileUri;
-        $pathFileUri->setSeparator(DIRECTORY_SEPARATOR);
+        $FilePathUri = new FilePathUri;
+        $FilePathUri->setSeparator(DIRECTORY_SEPARATOR);
 
-        return $pathFileUri;
+        return $FilePathUri;
     }
 
     // Directory Implementation:
@@ -210,29 +210,29 @@ class LocalFS implements iFsLocal
         // ===> /config  :D
 
         /*$joint =
-            (new PathJoinUri($dir->pathUri()->toString()))
-            ->joint(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
+            (new SeqPathJoinUri($dir->pathUri()->toString()))
+            ->joint(new SeqPathJoinUri($this->getCwd()->pathUri()->toString()), false)
             ->toString();
         ;
 
         if ($joint == $this->getCwd()->pathUri()->toString())
             // The Path is within current working directory
             $prependPath =
-                (new PathJoinUri($dir->pathUri()->toString()))
-                ->mask(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
+                (new SeqPathJoinUri($dir->pathUri()->toString()))
+                ->mask(new SeqPathJoinUri($this->getCwd()->pathUri()->toString()), false)
             ;
         else
             $prependPath =
-                (new PathJoinUri($dir->pathUri()->toString()))
-                    ->joint(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
-                    ->append((new PathJoinUri($dir->pathUri()->toString()))
-                        ->mask(new PathJoinUri($this->getCwd()->pathUri()->toString()), false)
+                (new SeqPathJoinUri($dir->pathUri()->toString()))
+                    ->joint(new SeqPathJoinUri($this->getCwd()->pathUri()->toString()), false)
+                    ->append((new SeqPathJoinUri($dir->pathUri()->toString()))
+                        ->mask(new SeqPathJoinUri($this->getCwd()->pathUri()->toString()), false)
                     );
             ;
 
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($prependPath) {
-            $value = (new PathJoinUri($value))
+            $value = (new SeqPathJoinUri($value))
                 ->prepend($prependPath)
                 ->toString()
             ;
@@ -1125,7 +1125,7 @@ class LocalFS implements iFsLocal
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = (new PathFileUri($newName))->toArray();
+        $pathInfo = (new FilePathUri($newName))->toArray();
         if (!isset($pathInfo['path']))
             $newName = ($this->dirUp($file)->pathUri()->toString())
                 .$this->pathUri()->getSeparator(). $newName;

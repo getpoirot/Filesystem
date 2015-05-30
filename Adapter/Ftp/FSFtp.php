@@ -16,8 +16,8 @@ use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\Filesystem\FilePermissions;
-use Poirot\PathUri\Interfaces\iPathFileUri;
-use Poirot\PathUri\PathFileUri;
+use Poirot\PathUri\Interfaces\iFilePathUri;
+use Poirot\PathUri\FilePathUri;
 
 class FSFtp implements
     iFsBase,
@@ -41,7 +41,7 @@ class FSFtp implements
     public $refreshResource = false;
 
     /**
-     * @var PathFileUri
+     * @var FilePathUri
      */
     protected $pathUri;
 
@@ -182,12 +182,12 @@ class FSFtp implements
      * - it used to build/parse uri address to file
      *   by filesystem
      *
-     * @return iPathFileUri
+     * @return iFilePathUri
      */
     function getPathUri()
     {
         if (!$this->pathUri)
-            $this->pathUri = new PathFileUri;
+            $this->pathUri = new FilePathUri;
 
         return $this->pathUri;
     }
@@ -235,14 +235,14 @@ class FSFtp implements
 
         // append dir path to files
         array_walk($result, function(&$value, $key) use ($dirname)  {
-            $value = @end(explode('/', $value)); // PathFileUri
-            $value = $dirname.'/'.$value;        // PathFileUri
+            $value = @end(explode('/', $value)); // FilePathUri
+            $value = $dirname.'/'.$value;        // FilePathUri
         });
 
         // get rid of the dots
         $result = array_diff($result, array(
-            $dirname.'/..', // PathFileUri
-            $dirname.'/.'   // PathFileUri
+            $dirname.'/..', // FilePathUri
+            $dirname.'/.'   // FilePathUri
             )
         );
 
@@ -936,7 +936,7 @@ class FSFtp implements
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $pathInfo = (new PathFileUri($newName))->toArray();
+        $pathInfo = (new FilePathUri($newName))->toArray();
         if (!isset($pathInfo['path']))
             $newName = $this->dirUp($file)->pathUri()->toString()
                 .'/'. $newName;

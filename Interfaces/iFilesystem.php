@@ -10,7 +10,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
-use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\Interfaces\iFilePathUri;
 
 /**
  * @method string getFilename(iCommonInfo $file)
@@ -54,7 +54,7 @@ use Poirot\PathUri\Interfaces\iPathFileUri;
  * @method Directory dirUp(iCommonInfo $file)
  * @method iCommonInfo linkRead(iLinkInfo $link)
  *
- * @method iPathFileUri pathUri()
+ * @method iFilePathUri pathUri()
  *
  */
 interface iFilesystem 

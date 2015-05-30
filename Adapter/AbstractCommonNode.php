@@ -9,8 +9,8 @@ use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\Filesystem\Interfaces\iFilesystemAware;
 use Poirot\Filesystem\Interfaces\iFilesystemProvider;
-use Poirot\PathUri\Interfaces\iPathFileUri;
-use Poirot\PathUri\PathFileUri;
+use Poirot\PathUri\Interfaces\iFilePathUri;
+use Poirot\PathUri\FilePathUri;
 
 abstract class AbstractCommonNode
     implements
@@ -24,19 +24,19 @@ abstract class AbstractCommonNode
     protected $filesystem;
 
     /**
-     * @var iPathFileUri
+     * @var iFilePathUri
      */
     protected $pathUri;
 
     /**
      * Construct
      *
-     * @param array|string|iPathFileUri $pathUri
+     * @param array|string|iFilePathUri $pathUri
      * @throws \Exception
      */
     function __construct($pathUri = null)
     {
-        if ($pathUri instanceof iPathFileUri)
+        if ($pathUri instanceof iFilePathUri)
             $pathUri = $pathUri->toArray();
         elseif (is_string($pathUri))
             $pathUri = $this->pathUri()->parse($pathUri);
@@ -46,7 +46,7 @@ abstract class AbstractCommonNode
                 $this->pathUri()->fromArray($pathUri);
             else
                 throw new \Exception(sprintf(
-                    'PathUri must be instanceof iPathFileUri, Array or String, given: %s'
+                    'PathUri must be instanceof iFilePathUri, Array or String, given: %s'
                     , is_object($pathUri) ? get_class($pathUri) : gettype($pathUri)
                 ));
         }
@@ -57,14 +57,14 @@ abstract class AbstractCommonNode
      *
      * - it used to build uri address to file
      *
-     * @return iPathFileUri
+     * @return iFilePathUri
      */
     function pathUri()
     {
         if (!$this->pathUri)
-            $this->pathUri = (new PathFileUri)
+            $this->pathUri = (new FilePathUri)
                 // by default create relative paths
-                ->setPathStrMode(PathFileUri::PATH_AS_RELATIVE)
+                ->setPathStrMode(FilePathUri::PATH_AS_RELATIVE)
                 ->setSeparator(
                     $this->filesystem()->pathUri()
                         ->getSeparator()

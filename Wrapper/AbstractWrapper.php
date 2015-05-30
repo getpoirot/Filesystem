@@ -12,7 +12,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFsBase;
-use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\Interfaces\iFilePathUri;
 
 /**
  * @method string getFilename(iCommonInfo $file)
@@ -34,7 +34,7 @@ use Poirot\PathUri\Interfaces\iPathFileUri;
  * @method $this chATime(iCommonInfo $file, $time = null)
  * @method $this chMTime(iCommonInfo $file, $time = null)
  * @method $this unlink($file)
- * @method iPathFileUri pathUri()
+ * @method iFilePathUri pathUri()
  * @method iFsBase chDir(iDirectoryInfo $dir)
  * @method iDirectory getCwd()
  * @method iCommonInfo mkFromPath($path)

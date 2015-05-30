@@ -9,7 +9,7 @@ use Poirot\Filesystem\Interfaces\Filesystem\iFile;
 use Poirot\Filesystem\Interfaces\Filesystem\iFileInfo;
 use Poirot\Filesystem\Interfaces\Filesystem\iFilePermissions;
 use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
-use Poirot\PathUri\Interfaces\iPathFileUri;
+use Poirot\PathUri\Interfaces\iFilePathUri;
 
 interface iFsReadable
 {
@@ -66,7 +66,7 @@ interface iFsReadable
      * - every time return clean/reset or new instance of
      *   pathUri
      *
-     * @return iPathFileUri
+     * @return iFilePathUri
      */
     function pathUri();
 
