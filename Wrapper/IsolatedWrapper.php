@@ -102,7 +102,8 @@ class IsolatedWrapper extends AbstractWrapper
             || !is_dir($dir->toString())
         )
             throw new \Exception(sprintf(
-                'Dir path must be an absolute address, to an existence directory.'
+                'Dir "%s" must be an absolute address, to an existence directory.',
+                $dir->toString()
             ));
 
         // Set Root Dir:
@@ -139,7 +140,7 @@ class IsolatedWrapper extends AbstractWrapper
         if (!$this->rootDir)
             // root "/"
             $this->chRootPath(new SeqPathJoinUri(
-                [ 'path' => [''] ]
+                [ 'path' => ['/'] ]
             ));
 
         return $this->rootDir;
@@ -883,7 +884,7 @@ class IsolatedWrapper extends AbstractWrapper
      *
      * @return string
      */
-    protected function __getRealPathFromIsolatedPath($node)
+    function __getRealPathFromIsolatedPath($node)
     {
         // Achieve Path Object:
         if ($node instanceof iCommonInfo)
