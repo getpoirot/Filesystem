@@ -255,6 +255,9 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function scanDir(iDirectoryInfo $dir = null, $sortingOrder = iFsBase::SCANDIR_SORT_NONE)
     {
+        if ($dir === null)
+            $dir = $this->getCwd();
+
         $pathStr = $this->__getRealPathFromIsolatedPath($dir);
         $dir     = $this->__changeNodePathFromString($dir, $pathStr);
 
@@ -893,9 +896,10 @@ class IsolatedWrapper extends AbstractWrapper
                 'path'      => $node,
                 'separator' => $this->pathUri()->getSeparator()
             ]);
+        else
+            $path = $node;
 
         // Get Isolated Real Filesystem Path To File:
-
         if (!$path->isAbsolute()) {
             $cwdPath = new SeqPathJoinUri([
                 'path'      => $this->getCwd()->pathUri()->toString(),
