@@ -59,7 +59,7 @@ class IsolatedWrapper extends AbstractWrapper
         foreach($arguments as $i => $arg) {
             if ($arg instanceof iCommonInfo) {
                 // Change PathUri File Node Common Arguments
-                $pathStr = $this->__getRealPathFromIsolatedPath($arg);
+                $pathStr = $this->_getRealPathFromIsolatedPath($arg);
                 $node    = $this->__changeNodePathFromString($arg, $pathStr);
                 $arguments[$i] = $node;
             }
@@ -214,7 +214,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function chDir(iDirectoryInfo $dir)
     {
-        $dirRealpath = $this->__getRealPathFromIsolatedPath($dir);
+        $dirRealpath = $this->_getRealPathFromIsolatedPath($dir);
 
         $this->__lastCDir = $dirRealpath;
 
@@ -231,7 +231,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function mkFromPath($path)
     {
-        $realPath = $this->__getRealPathFromIsolatedPath($path);
+        $realPath = $this->_getRealPathFromIsolatedPath($path);
         $nodeObj  = $this->gear()->mkFromPath($realPath);
 
         $node     = $this->__getIsolatedPathNode($nodeObj);
@@ -259,7 +259,7 @@ class IsolatedWrapper extends AbstractWrapper
         if ($dir === null)
             $dir = $this->getCwd();
 
-        $pathStr = $this->__getRealPathFromIsolatedPath($dir);
+        $pathStr = $this->_getRealPathFromIsolatedPath($dir);
         $dir     = $this->__changeNodePathFromString($dir, $pathStr);
 
         return $this->gear()->scanDir($dir, $sortingOrder);
@@ -276,7 +276,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function chgrp(iCommonInfo $file, $group)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chgrp($file, $group);
@@ -294,7 +294,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getFileGroup(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileGroup($file);
@@ -311,7 +311,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function chmod(iCommonInfo $file, iFilePermissions $mode)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chmod($file, $mode);
@@ -326,7 +326,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getFilePerms(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFilePerms($file);
@@ -343,7 +343,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function chown(iCommonInfo $file, $user)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chown($file, $user);
@@ -359,7 +359,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getFileOwner(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileOwner($file);
@@ -388,10 +388,10 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function copy(iCommonInfo $source, iCommon $dest)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($source);
+        $pathStr = $this->_getRealPathFromIsolatedPath($source);
         $source  = $this->__changeNodePathFromString($source, $pathStr);
 
-        $pathStr = $this->__getRealPathFromIsolatedPath($dest);
+        $pathStr = $this->_getRealPathFromIsolatedPath($dest);
         $dest    = $this->__changeNodePathFromString($dest, $pathStr);
 
         return $this->gear()->copy($source, $dest);
@@ -411,7 +411,7 @@ class IsolatedWrapper extends AbstractWrapper
     function isFile($source)
     {
         if (is_string($source))
-            $source = $this->__getRealPathFromIsolatedPath($source);
+            $source = $this->_getRealPathFromIsolatedPath($source);
 
         return $this->gear()->isFile($source);
     }
@@ -430,7 +430,7 @@ class IsolatedWrapper extends AbstractWrapper
     function isDir($source)
     {
         if (is_string($source))
-            $source = $this->__getRealPathFromIsolatedPath($source);
+            $source = $this->_getRealPathFromIsolatedPath($source);
 
         return $this->gear()->isDir($source);
     }
@@ -449,7 +449,7 @@ class IsolatedWrapper extends AbstractWrapper
     function isLink($source)
     {
         if (is_string($source))
-            $source = $this->__getRealPathFromIsolatedPath($source);
+            $source = $this->_getRealPathFromIsolatedPath($source);
 
         return $this->gear()->isLink($source);
     }
@@ -465,7 +465,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function isExists(iCommonInfo $cnode)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($cnode);
+        $pathStr = $this->_getRealPathFromIsolatedPath($cnode);
         $file    = $this->__changeNodePathFromString($cnode, $pathStr);
 
         return $this->gear()->isExists($file);
@@ -486,7 +486,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function putFileContents(iFile $file, $contents)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->putFileContents($file, $contents);
@@ -503,7 +503,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getFileContents(iFile $file, $maxlen = 0)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileContents($file, $maxlen);
@@ -519,7 +519,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getATime(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getATime($file);
@@ -538,7 +538,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getCTime(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getCTime($file);
@@ -556,7 +556,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getMTime(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getMTime($file);
@@ -572,7 +572,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getFileSize(iFileInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileSize($file);
@@ -593,7 +593,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function flock(iFileInfo $file, $lock = LOCK_EX)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->flock($file, $lock);
@@ -611,7 +611,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function isReadable(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->isReadable($file);
@@ -626,7 +626,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function isWritable(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->isWritable($file);
@@ -656,7 +656,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function mkDir(iDirectoryInfo $dir, iFilePermissions $mode = null)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($dir);
+        $pathStr = $this->_getRealPathFromIsolatedPath($dir);
         $dir     = $this->__changeNodePathFromString($dir, $pathStr);
 
         return $this->gear()->mkDir($dir, $mode);
@@ -671,7 +671,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getFilename(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFilename($file);
@@ -688,7 +688,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getFileExtension(iFileInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getFileExtension($file);
@@ -703,7 +703,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function getBasename(iCommonInfo $file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->getBasename($file);
@@ -727,9 +727,9 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function rename(iCommonInfo $file, $newName)
     {
-        $newName = $this->__getRealPathFromIsolatedPath($newName);
+        $newName = $this->_getRealPathFromIsolatedPath($newName);
 
-        $fRealPath = $this->__getRealPathFromIsolatedPath($file);
+        $fRealPath = $this->_getRealPathFromIsolatedPath($file);
         $file      = $this->__changeNodePathFromString($file, $fRealPath);
 
         return $this->gear()->rename($file, $newName);
@@ -748,7 +748,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function rmDir(iDirectoryInfo $dir)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($dir);
+        $pathStr = $this->_getRealPathFromIsolatedPath($dir);
         $dir     = $this->__changeNodePathFromString($dir, $pathStr);
 
         return $this->gear()->rmDir($dir);
@@ -765,7 +765,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function chATime(iCommonInfo $file, $time = null)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chATime($file, $time);
@@ -782,7 +782,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function chMTime(iCommonInfo $file, $time = null)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->chMTime($file, $time);
@@ -798,7 +798,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function linkRead(iLinkInfo $link)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($link);
+        $pathStr = $this->_getRealPathFromIsolatedPath($link);
         $link    = $this->__changeNodePathFromString($link, $pathStr);
 
         $return  = $this->gear()->linkRead($link);
@@ -816,7 +816,7 @@ class IsolatedWrapper extends AbstractWrapper
      */
     function unlink($file)
     {
-        $pathStr = $this->__getRealPathFromIsolatedPath($file);
+        $pathStr = $this->_getRealPathFromIsolatedPath($file);
         $file    = $this->__changeNodePathFromString($file, $pathStr);
 
         return $this->gear()->unlink($file);
@@ -884,7 +884,7 @@ class IsolatedWrapper extends AbstractWrapper
      *
      * @return string
      */
-    function __getRealPathFromIsolatedPath($node)
+    function _getRealPathFromIsolatedPath($node)
     {
         // Achieve Path Object:
         if ($node instanceof iCommonInfo)
