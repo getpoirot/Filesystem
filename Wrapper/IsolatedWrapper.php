@@ -14,13 +14,13 @@ use Poirot\Filesystem\Interfaces\Filesystem\iLinkInfo;
 use Poirot\Filesystem\Interfaces\iFilesystem;
 use Poirot\Filesystem\Interfaces\iFsBase;
 use Poirot\PathUri\Interfaces\iFilePathUri;
-use Poirot\PathUri\Interfaces\iPathJoinedUri;
+use Poirot\PathUri\Interfaces\iSeqPathUri;
 use Poirot\PathUri\SeqPathJoinUri;
 
 class IsolatedWrapper extends AbstractWrapper
 {
     /**
-     * @var iPathJoinedUri
+     * @var iSeqPathUri
      */
     protected $rootDir;
 
@@ -34,7 +34,7 @@ class IsolatedWrapper extends AbstractWrapper
      * Construct
      *
      * @param iFilesystem $filesystem
-     * @param null|iPathJoinedUri|string $rootDir
+     * @param null|iSeqPathUri|string $rootDir
      *
      * @throws \Exception
      */
@@ -73,16 +73,16 @@ class IsolatedWrapper extends AbstractWrapper
      *
      * - root directory must be absolute
      *
-     * @param string|iPathJoinedUri $dir
+     * @param string|iSeqPathUri $dir
      *
      * @throws \Exception On Failure
      * @return $this
      */
     function chRootPath($dir)
     {
-        if (!is_string($dir) && !$dir instanceof iPathJoinedUri)
+        if (!is_string($dir) && !$dir instanceof iSeqPathUri)
             throw new \Exception(sprintf(
-                'Dir Path must be string or instanceof iPathJoinedUri but "%s" given.'
+                'Dir Path must be string or instanceof iSeqPathUri but "%s" given.'
                 , is_object($dir) ? get_class($dir) : gettype($dir)
             ));
 
@@ -132,7 +132,7 @@ class IsolatedWrapper extends AbstractWrapper
     /**
      * Get Root Directory Path
      *
-     * @return iPathJoinedUri
+     * @return iSeqPathUri
      */
     function getRootPath()
     {
@@ -876,7 +876,7 @@ class IsolatedWrapper extends AbstractWrapper
     /**
      * Get Real Filesystem Path String From Isolated Path
      *
-     * @param iCommonInfo|iFilePathUri|iPathJoinedUri|string $node
+     * @param iCommonInfo|iFilePathUri|iSeqPathUri|string $node
      *
      * @return string
      */
