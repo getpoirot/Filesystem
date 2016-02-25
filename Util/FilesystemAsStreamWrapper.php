@@ -1,7 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Util;
 
-use Poirot\Core\AbstractOptions;
+use Poirot\Std\AbstractOptions;
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
 use Poirot\Filesystem\FilePermissions;

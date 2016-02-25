@@ -1,8 +1,7 @@
 <?php
 namespace Poirot\Filesystem\Adapter\Ftp;
 
-use Poirot\Core\AbstractOptions;
-use Poirot\Core\Interfaces\iOptionsProvider;
+use Poirot\Std\Interfaces\ipOptionsProvider;
 use Poirot\Filesystem\Adapter\AbstractCommonNode;
 use Poirot\Filesystem\Adapter\Directory;
 use Poirot\Filesystem\Adapter\File;
@@ -21,7 +20,7 @@ use Poirot\PathUri\FilePathUri;
 
 class FSFtp implements
     iFsBase,
-    iOptionsProvider
+    ipOptionsProvider
 {
     /**
      * @var FSFtpOptions
@@ -62,10 +61,10 @@ class FSFtp implements
                 , is_object($options) ? get_class($options) : gettype($options)
             ));
 
-        $this->inOptions()->from($options);
+        $this->optsData()->from($options);
 
         // inject filesystem, refresh connection on option changes
-        $this->inOptions()->setFtpFilesystem($this);
+        $this->optsData()->setFtpFilesystem($this);
     }
 
     /**
@@ -84,13 +83,13 @@ class FSFtp implements
         )
             return $this->resource;
 
-        $serverUri  = $this->inOptions()->getServerUri();
-        $serverPort = $this->inOptions()->getPort();
-        $timeout    = $this->inOptions()->getTimeout();
+        $serverUri  = $this->optsData()->getServerUri();
+        $serverPort = $this->optsData()->getPort();
+        $timeout    = $this->optsData()->getTimeout();
 
-        $username   = $this->inOptions()->getUsername();
+        $username   = $this->optsData()->getUsername();
 
-        if ($this->inOptions()->getUseSsl())
+        if ($this->optsData()->getUseSsl())
             $conn   = ftp_ssl_connect($serverUri, $serverPort, $timeout);
         else
             $conn   = ftp_connect($serverUri, $serverPort, $timeout);
@@ -98,7 +97,7 @@ class FSFtp implements
         $loginR = @ftp_login(
             $conn,
             $username,
-            $this->inOptions()->getPassword()
+            $this->optsData()->getPassword()
         );
 
         if (!$conn || !$loginR)
@@ -1088,7 +1087,7 @@ class FSFtp implements
     /**
      * @return FSFtpOptions
      */
-    function inOptions()
+    function optsData()
     {
         if (!$this->options)
             $this->options = new FSFtpOptions();
@@ -1113,7 +1112,7 @@ class FSFtp implements
      *
      * @return FSFtpOptions
      */
-    static function newOptions()
+    static function newOptsData()
     {
         return new FSFtpOptions();
     }

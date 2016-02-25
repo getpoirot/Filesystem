@@ -1,9 +1,9 @@
 <?php
 namespace Poirot\Filesystem\Adapter\Ftp;
 
-use Poirot\Core\AbstractOptions;
+use Poirot\Std\Struct\AbstractOptionsData;
 
-class FSFtpOptions extends AbstractOptions
+class FSFtpOptions extends AbstractOptionsData
 {
     /**
      * ! injected filesystem to refresh connection
@@ -47,7 +47,7 @@ class FSFtpOptions extends AbstractOptions
     {
         $options = $this->extractOptions($uri);
 
-        $this->fromArray($options);
+        $this->from($options);
 
         return $this;
     }
